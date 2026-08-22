@@ -1,22 +1,14 @@
 import asyncio
-from pathlib import Path
 
 from dotenv import load_dotenv
 from agents import Agent, Runner
 from agents.mcp import MCPServerStdio
 
+from aug9.skills import load_skills
 
 load_dotenv()
 
-skill_paths = [
-    Path("skills/sg-place-finder/SKILL.md"),
-    Path("skills/sg-weather/SKILL.md"),
-]
-
-skill_instructions = "\n\n".join(
-    path.read_text()
-    for path in skill_paths
-)
+skill_instructions = load_skills()
 
 async def run_agent(user_input: str) -> str:
     async with MCPServerStdio(
