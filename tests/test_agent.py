@@ -40,3 +40,22 @@ def test_agent_does_not_hallucinate_invalid_location():
 
     assert "couldn’t" in result.lower() or "could not" in result.lower()
 
+@pytest.mark.integration
+def test_agent_gets_route_between_locations():
+    result = asyncio.run(
+        run_agent(
+            "How do I get from Maxwell Food Centre to Marina Bay Sands?"
+        )
+    )
+
+    assert "Maxwell" in result
+    assert "Marina Bay Sands" in result
+    assert any(
+        word in result.lower()
+        for word in [
+            "walk",
+            "route",
+            "minute",
+            "distance",
+        ]
+    )

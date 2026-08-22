@@ -45,7 +45,9 @@ class Route(BaseModel):
     origin: str
     destination: str
     steps: list[str]
-
+    summary: str | None = None
+    distance_meters: float | None = None
+    duration_minutes: float | None = None
 
 class RouteResult(BaseModel):
     status: SearchStatus

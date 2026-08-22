@@ -6,8 +6,32 @@ from mcp.server import MCPServer
 from aug9.models import SearchStatus
 from aug9.onemap import get_token, search_location
 from aug9.weather import get_weather
+from aug9.transport import get_sg_route
 
 mcp = MCPServer("Aug9")
+
+@mcp.tool()
+def get_sg_transport(
+    origin: str,
+    destination: str,
+) -> dict:
+
+    load_dotenv()
+
+    token = get_token(
+        os.getenv("ONEMAP_BASE_URL"),
+        os.getenv("ONEMAP_EMAIL"),
+        os.getenv("ONEMAP_PASSWORD"),
+    )
+
+    result = get_sg_route(
+        os.getenv("ONEMAP_BASE_URL"),
+        token,
+        origin,
+        destination,
+    )
+
+    return result.model_dump()
 
 @mcp.tool()
 def get_sg_weather(query: str) -> dict:
