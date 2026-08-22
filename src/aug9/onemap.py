@@ -62,11 +62,21 @@ def search_location(
     data = response.json()
     results = data.get("results", [])
      
-    if not results: 
+    if not results:
+        simplified_query = query.replace(", Singapore", "").replace(" Singapore", "").strip()
+
+        if simplified_query != query:
+            return search_location(
+                base_url=base_url,
+                token=token,
+                query=simplified_query,
+            )
+
         return LocationSearchResult(
             status=SearchStatus.NO_RESULTS,
             message=f'No location found for "{query}".',
         )
+
     first = results[0]
     location = Location(
         name=first["SEARCHVAL"],

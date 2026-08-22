@@ -6,6 +6,44 @@ from aug9.onemap import search_location
 from aug9.onemap import get_token, search_location
 from aug9.models import SearchStatus
 
+@patch("aug9.onemap.httpx.get")
+def test_search_location_retries_without_singapore_suffix(mock_get):
+    first_response = Mock()
+    first_response.json.return_value = {
+        "results": []
+    }
+    first_response.raise_for_status.return_value = None
+
+    second_response = Mock()
+    second_response.json.return_value = {
+        "results": [
+            {
+                "SEARCHVAL": "MAXWELL FOOD CENTRE",
+                "ADDRESS": "1 KADAYANALLUR STREET MAXWELL FOOD CENTRE SINGAPORE 069184",
+                "POSTAL": "069184",
+                "LATITUDE": "1.28033142727315",
+                "LONGITUDE": "103.844747227479",
+            }
+        ]
+    }
+    second_response.raise_for_status.return_value = None
+
+    mock_get.side_effect = [
+        first_response,
+        second_response,
+    ]
+
+    result = search_location(
+        base_url="https://example.com",
+        token="fake-token",
+        query="Maxwell Food Centre, Singapore",
+    )
+
+    assert result.status == SearchStatus.SUCCESS
+    assert result.location is not None
+    assert result.location.name == "MAXWELL FOOD CENTRE"
+    assert mock_get.call_count == 2
+
 @patch("aug9.onemap.httpx.post")
 def test_get_token_returns_none_on_http_error(mock_post):
     mock_response = Mock()
