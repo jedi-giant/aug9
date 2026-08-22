@@ -81,7 +81,9 @@ Built:
 
 ---
 
-# v0.2 — Singapore Daily Assistant 🚧
+# v0.2 — Singapore Daily Assistant ✅ 
+✅ Walking route provider integrated
+✅ Agent transport evaluation added
 
 ## Transport Intelligence
 
