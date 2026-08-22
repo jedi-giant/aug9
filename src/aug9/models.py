@@ -40,3 +40,14 @@ class Settings(BaseModel):
     onemap_email: str
     onemap_password: str
     onemap_base_url: str
+
+class Route(BaseModel):
+    origin: str
+    destination: str
+    steps: list[str]
+
+
+class RouteResult(BaseModel):
+    status: SearchStatus
+    route: Route | None = None
+    message: str | None = None
