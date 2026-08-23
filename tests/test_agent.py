@@ -4,6 +4,26 @@ import pytest
 from aug9.agent import run_agent
 
 @pytest.mark.integration
+def test_agent_recommends_food_for_location():
+    result = asyncio.run(
+        run_agent(
+            "What should I eat at Maxwell Food Centre?"
+        )
+    )
+
+    assert "Maxwell" in result
+
+    assert any(
+        food in result.lower()
+        for food in [
+            "chicken rice",
+            "tian tian",
+            "oyster",
+            "food",
+        ]
+    )
+
+@pytest.mark.integration
 def test_agent_gets_weather_for_location():
     result = asyncio.run(
         run_agent(

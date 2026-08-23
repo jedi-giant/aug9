@@ -53,3 +53,14 @@ class RouteResult(BaseModel):
     status: SearchStatus
     route: Route | None = None
     message: str | None = None
+
+class FoodRecommendation(BaseModel):
+    name: str
+    description: str
+    location: str
+
+
+class FoodResult(BaseModel):
+    status: SearchStatus
+    recommendations: list[FoodRecommendation]
+    message: str | None = None

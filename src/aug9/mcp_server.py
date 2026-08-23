@@ -7,8 +7,20 @@ from aug9.models import SearchStatus
 from aug9.onemap import get_token, search_location
 from aug9.weather import get_weather
 from aug9.transport import get_sg_route
+from aug9.food import get_food_recommendations
 
 mcp = MCPServer("Aug9")
+
+@mcp.tool()
+def get_sg_food(
+    location: str,
+) -> dict:
+
+    result = get_food_recommendations(
+        location
+    )
+
+    return result.model_dump()
 
 @mcp.tool()
 def get_sg_transport(
