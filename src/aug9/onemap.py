@@ -1,6 +1,7 @@
 import httpx
 
-from aug9.models import Location, LocationSearchResult, SearchStatus
+from aug9.core.models import Place
+from aug9.models import LocationSearchResult, SearchStatus
 
 def get_token(base_url: str, email: str, password: str) -> str | None:
     try:
@@ -78,16 +79,18 @@ def search_location(
         )
 
     first = results[0]
-    location = Location(
+
+    place = Place(
         name=first["SEARCHVAL"],
+        place_type="location",
         address=first["ADDRESS"],
         postal_code=first["POSTAL"],
-        latitude=first["LATITUDE"],
-        longitude=first["LONGITUDE"],
+        latitude=float(first["LATITUDE"]),
+        longitude=float(first["LONGITUDE"]),
     )
 
     return LocationSearchResult(
         status=SearchStatus.SUCCESS,
-        location=location,
+        location=place,
     )        
     

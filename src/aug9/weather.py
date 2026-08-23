@@ -2,8 +2,8 @@ import math
 
 import httpx
 
-from aug9.models import Location, Weather, WeatherResult, SearchStatus
-
+from aug9.core.models import Place
+from aug9.models import Weather, WeatherResult, SearchStatus
 
 WEATHER_URL = (
     "https://api-open.data.gov.sg/"
@@ -23,7 +23,7 @@ def distance_between(
     )
 
 
-def get_weather(location: Location) -> WeatherResult:
+def get_weather(place: Place) -> WeatherResult:
     try:
         response = httpx.get(
             WEATHER_URL,
@@ -52,8 +52,8 @@ def get_weather(location: Location) -> WeatherResult:
     nearest_area = min(
         areas,
         key=lambda area: distance_between(
-            location.latitude,
-            location.longitude,
+            place.latitude,
+            place.longitude,
             area["label_location"]["latitude"],
             area["label_location"]["longitude"],
         ),

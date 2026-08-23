@@ -1,7 +1,8 @@
 from unittest.mock import patch
 
 from aug9 import main
-from aug9.models import Location, LocationSearchResult, SearchStatus
+from aug9.core.models import Place
+from aug9.models import LocationSearchResult, SearchStatus
 
 @patch("aug9.search_location")
 @patch("aug9.get_token")
@@ -11,8 +12,9 @@ def test_main_prints_location(mock_get_token, mock_search_location, capsys):
 
     mock_search_location.return_value = LocationSearchResult(
         status=SearchStatus.SUCCESS,
-        location=Location(
+        location=Place(
             name="MAXWELL FOOD CENTRE",
+            place_type="location",
             address="1 KADAYANALLUR STREET",
             postal_code="069184",
             latitude=1.2803,

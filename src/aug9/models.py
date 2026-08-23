@@ -14,20 +14,10 @@ class SearchStatus(str, Enum):
     NETWORK_ERROR = "network_error"
     API_ERROR = "api_error"
 
-
-class Location(BaseModel):
-    name: str
-    address: str
-    postal_code: str
-    latitude: float
-    longitude: float
-
-
-class LocationSearchResult(BaseModel):
+class PlaceSearchResult(BaseModel):
     status: SearchStatus
-    location: Location | None = None
+    location: Place | None = None
     message: str | None = None
-
 
 class Weather(BaseModel):
     temperature_c: float | None = None

@@ -2,7 +2,8 @@ from unittest.mock import Mock, patch
 
 import httpx
 
-from aug9.models import Location, SearchStatus
+from aug9.core.models import Place
+from aug9.models import SearchStatus
 from aug9.weather import get_weather
 
 @patch("aug9.weather.httpx.get")
@@ -11,15 +12,16 @@ def test_get_weather_returns_network_error(mock_get):
         "Network unavailable"
     )
 
-    location = Location(
+    place = Place(
         name="MAXWELL FOOD CENTRE",
+        place_type="location",
         address="1 KADAYANALLUR STREET",
         postal_code="069184",
         latitude=1.2803,
         longitude=103.8447,
     )
 
-    result = get_weather(location)
+    result = get_weather(place)
 
     assert result.status == SearchStatus.NETWORK_ERROR
     assert result.message == "Network unavailable"
@@ -36,15 +38,16 @@ def test_get_weather_returns_api_error(mock_get):
 
     mock_get.return_value = mock_response
 
-    location = Location(
+    place = Place(
         name="MAXWELL FOOD CENTRE",
+        place_type="location",
         address="1 KADAYANALLUR STREET",
         postal_code="069184",
         latitude=1.2803,
         longitude=103.8447,
     )
 
-    result = get_weather(location)
+    result = get_weather(place)
 
     assert result.status == SearchStatus.API_ERROR
     assert "HTTP 500" in result.message
@@ -91,15 +94,16 @@ def test_get_weather_returns_forecast_for_nearest_area(mock_get):
     mock_response.raise_for_status.return_value = None
     mock_get.return_value = mock_response
 
-    location = Location(
+    place = Place(
         name="MAXWELL FOOD CENTRE",
+        place_type="location",
         address="1 KADAYANALLUR STREET",
         postal_code="069184",
         latitude=1.2803,
         longitude=103.8447,
     )
 
-    result = get_weather(location)
+    result = get_weather(place)
 
     assert result.status == SearchStatus.SUCCESS
     assert result.weather is not None

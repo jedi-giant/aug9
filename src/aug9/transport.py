@@ -46,6 +46,6 @@ def get_sg_route(
         origin_result.location.longitude,
         destination_result.location.latitude,
         destination_result.location.longitude,
-        origin,
-        destination,
+        origin_result.location.name,
+        destination_result.location.name,
     )

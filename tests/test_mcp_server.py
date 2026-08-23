@@ -1,7 +1,8 @@
 from unittest.mock import patch
 
 from aug9.mcp_server import resolve_sg_location
-from aug9.models import Location, LocationSearchResult, SearchStatus
+from aug9.core.models import Place
+from aug9.models import LocationSearchResult, SearchStatus
 
 @patch("aug9.mcp_server.get_token")
 def test_resolve_sg_location_authentication_error(mock_get_token):
@@ -19,8 +20,9 @@ def test_resolve_sg_location_success(mock_get_token, mock_search_location):
 
     mock_search_location.return_value = LocationSearchResult(
         status=SearchStatus.SUCCESS,
-        location=Location(
+        location=Place(
             name="MAXWELL FOOD CENTRE",
+            place_type="location",
             address="1 KADAYANALLUR STREET",
             postal_code="069184",
             latitude=1.2803,

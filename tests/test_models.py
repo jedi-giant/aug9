@@ -1,9 +1,9 @@
-from aug9.models import Location
+from aug9.core.models import Place
 
-
-def test_location_converts_coordinates_to_float():
-    location = Location(
+def test_place_converts_coordinates_to_float():
+    location = Place(
         name="Maxwell Food Centre",
+        place_type="location",
         address="1 Kadayanallur Street",
         postal_code="069184",
         latitude="1.28033142727315",
@@ -17,10 +17,11 @@ import pytest
 from pydantic import ValidationError
 
 
-def test_location_rejects_invalid_latitude():
+def test_place_rejects_invalid_latitude():
     with pytest.raises(ValidationError):
-        Location(
+        Place(
             name="Bad Location",
+            place_type="location",
             address="Unknown",
             postal_code="000000",
             latitude="not-a-number",

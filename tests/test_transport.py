@@ -10,8 +10,8 @@ def test_get_sg_route_returns_route(
     mock_search_location,
     mock_calculate_route,
 ):
+    from aug9.core.models import Place
     from aug9.models import (
-        Location,
         LocationSearchResult,
         Route,
         RouteResult,
@@ -20,8 +20,9 @@ def test_get_sg_route_returns_route(
     mock_search_location.side_effect = [
         LocationSearchResult(
             status=SearchStatus.SUCCESS,
-            location=Location(
+            location=Place(
                 name="Maxwell Food Centre",
+                place_type="location",
                 address="1 Kadayanallur Street",
                 postal_code="069184",
                 latitude=1.280331,
@@ -30,8 +31,9 @@ def test_get_sg_route_returns_route(
         ),
         LocationSearchResult(
             status=SearchStatus.SUCCESS,
-            location=Location(
+            location=Place(
                 name="Marina Bay Sands",
+                place_type="location",
                 address="10 Bayfront Avenue",
                 postal_code="018956",
                 latitude=1.2838,
