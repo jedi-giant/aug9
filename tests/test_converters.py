@@ -1,4 +1,4 @@
-from aug9.core.converters import location_to_place
+from aug9.core.converters.location import location_to_place
 from aug9.models import Location
 
 
