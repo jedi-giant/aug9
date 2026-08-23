@@ -1,7 +1,12 @@
 from enum import Enum
 
 from pydantic import BaseModel
+from aug9.core.models import Place
 
+class FoodRecommendation(BaseModel):
+    name: str
+    description: str
+    place: Place
 
 class SearchStatus(str, Enum):
     SUCCESS = "success"
@@ -53,12 +58,6 @@ class RouteResult(BaseModel):
     status: SearchStatus
     route: Route | None = None
     message: str | None = None
-
-class FoodRecommendation(BaseModel):
-    name: str
-    description: str
-    location: str
-
 
 class FoodResult(BaseModel):
     status: SearchStatus

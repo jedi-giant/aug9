@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Tian Tian Chicken Rice",
+    "description": "Famous Hainanese chicken rice stall known for tender chicken and fragrant rice.",
+    "place": {
+      "name": "Maxwell Food Centre",
+      "place_type": "hawker_centre"
+    }
+  },
+  {
+    "name": "Maxwell Fuzhou Oyster Cake",
+    "description": "Traditional crispy oyster cake with seafood filling.",
+    "place": {
+      "name": "Maxwell Food Centre",
+      "place_type": "hawker_centre"
+    }
+  }
+]

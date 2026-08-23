@@ -1,3 +1,5 @@
+from aug9.core.models import Place
+from aug9.food_data import load_food_data
 from aug9.models import (
     FoodRecommendation,
     FoodResult,
@@ -5,30 +7,28 @@ from aug9.models import (
 )
 
 
-FOOD_DATABASE = {
-    "Maxwell Food Centre": [
-        FoodRecommendation(
-            name="Tian Tian Chicken Rice",
-            description="Famous Hainanese chicken rice stall.",
-            location="Maxwell Food Centre",
-        ),
-        FoodRecommendation(
-            name="Maxwell Fuzhou Oyster Cake",
-            description="Traditional crispy oyster cake.",
-            location="Maxwell Food Centre",
-        ),
-    ]
-}
+RAW_FOOD_DATA = load_food_data()
 
 
 def get_food_recommendations(
     location: str,
 ) -> FoodResult:
 
-    recommendations = FOOD_DATABASE.get(
-        location,
-        [],
-    )
+    recommendations = []
+
+    for item in RAW_FOOD_DATA:
+
+        if item["place"]["name"] == location:
+
+            recommendations.append(
+                FoodRecommendation(
+                    name=item["name"],
+                    description=item["description"],
+                    place=Place(
+                        **item["place"]
+                    ),
+                )
+            )
 
     return FoodResult(
         status=SearchStatus.SUCCESS,

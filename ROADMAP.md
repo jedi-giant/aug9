@@ -118,7 +118,7 @@ Potential data sources:
 
 # v0.3 — Singapore Discovery
 
-## Food Intelligence
+## Food Intelligence ✅
 
 Capability:
 

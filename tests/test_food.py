@@ -11,6 +11,6 @@ def test_food_recommendations_for_maxwell():
     assert result.status == SearchStatus.SUCCESS
     assert len(result.recommendations) > 0
     assert (
-        result.recommendations[0].location
+        result.recommendations[0].place.name
         == "Maxwell Food Centre"
     )
