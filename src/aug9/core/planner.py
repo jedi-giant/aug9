@@ -1,9 +1,29 @@
-from pydantic import BaseModel
-
+from pydantic import BaseModel, Field
 
 class Plan(BaseModel):
     intent: str
     required_capabilities: list[str]
+    entities: dict[str, str | None] = Field(
+        default_factory=dict
+    )
+
+def extract_entities(
+    user_input: str,
+) -> dict[str, str]:
+
+    entities = {}
+
+    known_locations = [
+        "Maxwell Food Centre",
+        "Marina Bay Sands",
+        "Tanjong Pagar",
+    ]
+
+    for location in known_locations:
+        if location.lower() in user_input.lower():
+            entities["location"] = location
+
+    return entities
 
 def create_plan(
     user_input: str,
@@ -12,6 +32,18 @@ def create_plan(
     text = user_input.lower()
 
     capabilities = []
+    if any(
+        word in text
+        for word in [
+            "near",
+            "at",
+            "from",
+            "to",
+            "where",
+            "around",
+        ]
+    ):
+        capabilities.append("place_resolution")
 
     if any(
         word in text
@@ -48,4 +80,5 @@ def create_plan(
     return Plan(
         intent=user_input,
         required_capabilities=capabilities,
+        entities=extract_entities(user_input),
     )

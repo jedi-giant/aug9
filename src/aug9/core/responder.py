@@ -1,0 +1,36 @@
+from aug9.core.executor import ExecutionResult
+
+
+def compose_response(
+    execution: ExecutionResult,
+) -> str:
+
+    messages = []
+
+    food = execution.outputs.get("food")
+
+    if food:
+        if hasattr(food, "recommendations"):
+            if food.recommendations:
+                names = [
+                    item.name
+                    for item in food.recommendations
+                ]
+
+                messages.append(
+                    "You can try: "
+                    + ", ".join(names)
+                    + "."
+                )
+
+    weather = execution.outputs.get("weather")
+
+    if weather:
+        if hasattr(weather, "weather"):
+            if weather.weather:
+                messages.append(
+                    f"Weather forecast: "
+                    f"{weather.weather.forecast}."
+                )
+
+    return " ".join(messages)

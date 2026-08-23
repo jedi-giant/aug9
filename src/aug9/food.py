@@ -12,13 +12,14 @@ RAW_FOOD_DATA = load_food_data()
 
 def get_food_recommendations(
     location: str,
+    preferences: list[str] | None = None,
 ) -> FoodResult:
 
     recommendations = []
 
     for item in RAW_FOOD_DATA:
 
-        if item["place"]["name"] == location:
+        if item["place"]["name"].lower() == location.lower():
 
             recommendations.append(
                 FoodRecommendation(
@@ -28,6 +29,15 @@ def get_food_recommendations(
                         **item["place"]
                     ),
                 )
+            )
+    if preferences:
+
+        if "chicken rice" in preferences:
+
+            recommendations.sort(
+                key=lambda item:
+                    "chicken rice"
+                    not in item.name.lower()
             )
 
     return FoodResult(

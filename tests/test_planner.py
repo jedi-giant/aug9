@@ -1,5 +1,13 @@
 from aug9.core.planner import create_plan
 
+def test_planner_detects_place_resolution():
+
+    plan = create_plan(
+        "What is the weather at Maxwell Food Centre?"
+    )
+
+    assert "place_resolution" in plan.required_capabilities
+    assert "weather" in plan.required_capabilities
 
 def test_planner_identifies_food_and_weather():
 

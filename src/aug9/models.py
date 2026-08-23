@@ -14,7 +14,7 @@ class SearchStatus(str, Enum):
     NETWORK_ERROR = "network_error"
     API_ERROR = "api_error"
 
-class PlaceSearchResult(BaseModel):
+class LocationSearchResult(BaseModel):
     status: SearchStatus
     location: Place | None = None
     message: str | None = None

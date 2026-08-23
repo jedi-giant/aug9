@@ -1,11 +1,11 @@
 from unittest.mock import patch
 
-from aug9 import main
+from aug9.cli import main
 from aug9.core.models import Place
 from aug9.models import LocationSearchResult, SearchStatus
 
-@patch("aug9.search_location")
-@patch("aug9.get_token")
+@patch("aug9.cli.search_location")
+@patch("aug9.cli.get_token")
 @patch("sys.argv", ["aug9", "Maxwell Food Centre"])
 def test_main_prints_location(mock_get_token, mock_search_location, capsys):
     mock_get_token.return_value = "fake-token"
@@ -28,8 +28,8 @@ def test_main_prints_location(mock_get_token, mock_search_location, capsys):
 
     assert "MAXWELL FOOD CENTRE" in captured.out
 
-@patch("aug9.search_location")
-@patch("aug9.get_token")
+@patch("aug9.cli.search_location")
+@patch("aug9.cli.get_token")
 @patch("sys.argv", ["aug9", "xyzabcnotaplace123"])
 def test_main_prints_no_results(mock_get_token, mock_search_location, capsys):
     mock_get_token.return_value = "fake-token"
@@ -45,8 +45,8 @@ def test_main_prints_no_results(mock_get_token, mock_search_location, capsys):
 
     assert 'No location found for "xyzabcnotaplace123".' in captured.out
 
-@patch("aug9.search_location")
-@patch("aug9.get_token")
+@patch("aug9.cli.search_location")
+@patch("aug9.cli.get_token")
 @patch("sys.argv", ["aug9", "Maxwell Food Centre"])
 def test_main_prints_network_error(mock_get_token, mock_search_location, capsys):
     mock_get_token.return_value = "fake-token"
