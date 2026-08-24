@@ -1,66 +1,184 @@
+import os
 import sqlite3
 from pathlib import Path
+
+import psycopg
 
 from aug9.core.embeddings import create_embedding
 
 
-DB_PATH = Path("aug9.db")
+SQLITE_DB_PATH = Path(
+    os.getenv(
+        "AUG9_DB_PATH",
+        "aug9.db",
+    )
+)
+
+
+def is_postgres() -> bool:
+    database_url = os.getenv(
+        "DATABASE_URL"
+    )
+
+    return bool(
+        database_url
+        and database_url.startswith(
+            (
+                "postgres://",
+                "postgresql://",
+            )
+        )
+    )
 
 
 def get_connection():
-    conn = sqlite3.connect(
-        DB_PATH,
+    """
+    Use PostgreSQL when DATABASE_URL is available.
+    Otherwise fall back to local SQLite.
+    """
+
+    if is_postgres():
+        return psycopg.connect(
+            os.environ["DATABASE_URL"]
+        )
+
+    return sqlite3.connect(
+        SQLITE_DB_PATH,
         timeout=10,
     )
 
-    return conn
+
+def placeholder() -> str:
+    """
+    SQLite uses ?
+    PostgreSQL/psycopg uses %s
+    """
+
+    if is_postgres():
+        return "%s"
+
+    return "?"
 
 
 def initialise_database():
-
     conn = get_connection()
-
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS memories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT NOT NULL,
-            category TEXT NOT NULL,
-            value TEXT NOT NULL,
-            memory_type TEXT NOT NULL,
-            confidence REAL NOT NULL,
-            expires INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-    )
+    if is_postgres():
 
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS memory_embeddings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            memory_id INTEGER NOT NULL,
-            embedding TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(memory_id)
-                REFERENCES memories(id)
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS memories (
+                id BIGSERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                category TEXT NOT NULL,
+                value TEXT NOT NULL,
+                memory_type TEXT NOT NULL,
+                confidence REAL NOT NULL,
+                expires INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
         )
-        """
-    )
 
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS conversations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT NOT NULL,
-            role TEXT NOT NULL,
-            message TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS memory_embeddings (
+                id BIGSERIAL PRIMARY KEY,
+                memory_id BIGINT NOT NULL,
+                embedding TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(memory_id)
+                    REFERENCES memories(id)
+                    ON DELETE CASCADE
+            )
+            """
         )
-        """
-    )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS conversations (
+                id BIGSERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS usage_events (
+                id BIGSERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                session_id TEXT,
+                message_length INTEGER NOT NULL,
+                status TEXT NOT NULL,
+                latency_ms INTEGER,
+                error_type TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS memories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                category TEXT NOT NULL,
+                value TEXT NOT NULL,
+                memory_type TEXT NOT NULL,
+                confidence REAL NOT NULL,
+                expires INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS memory_embeddings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                memory_id INTEGER NOT NULL,
+                embedding TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(memory_id)
+                    REFERENCES memories(id)
+                    ON DELETE CASCADE
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS conversations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS usage_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                session_id TEXT,
+                message_length INTEGER NOT NULL,
+                status TEXT NOT NULL,
+                latency_ms INTEGER,
+                error_type TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
 
     conn.commit()
     conn.close()
@@ -74,20 +192,19 @@ def save_memory(
     confidence: float,
     expires: bool,
 ):
-
     conn = get_connection()
-
     cursor = conn.cursor()
 
-    # Prevent duplicate memories
+    p = placeholder()
+
     cursor.execute(
-        """
+        f"""
         SELECT id
         FROM memories
-        WHERE user_id = ?
-        AND category = ?
-        AND value = ?
-        AND memory_type = ?
+        WHERE user_id = {p}
+          AND category = {p}
+          AND value = {p}
+          AND memory_type = {p}
         """,
         (
             user_id,
@@ -103,47 +220,68 @@ def save_memory(
         conn.close()
         return
 
+    if is_postgres():
 
-    # Save memory
-    cursor.execute(
-        """
-        INSERT INTO memories (
-            user_id,
-            category,
-            value,
-            memory_type,
-            confidence,
-            expires
+        cursor.execute(
+            """
+            INSERT INTO memories (
+                user_id,
+                category,
+                value,
+                memory_type,
+                confidence,
+                expires
+            )
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id
+            """,
+            (
+                user_id,
+                category,
+                value,
+                memory_type,
+                confidence,
+                int(expires),
+            ),
         )
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-        (
-            user_id,
-            category,
-            value,
-            memory_type,
-            confidence,
-            int(expires),
-        ),
-    )
 
+        memory_id = cursor.fetchone()[0]
 
-    memory_id = cursor.lastrowid
+    else:
 
+        cursor.execute(
+            """
+            INSERT INTO memories (
+                user_id,
+                category,
+                value,
+                memory_type,
+                confidence,
+                expires
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                user_id,
+                category,
+                value,
+                memory_type,
+                confidence,
+                int(expires),
+            ),
+        )
 
-    # Commit memory first
-    # This releases SQLite lock
+        memory_id = cursor.lastrowid
+
     conn.commit()
     conn.close()
 
-
-    # Generate embedding after transaction completes
+    # Create embedding only after the memory transaction
+    # has been committed and closed.
     embedding = create_embedding(
         value
     )
 
-
-    # Save embedding separately
     save_embedding(
         memory_id,
         embedding,
@@ -153,13 +291,13 @@ def save_memory(
 def get_memories(
     user_id: str,
 ):
-
     conn = get_connection()
-
     cursor = conn.cursor()
 
+    p = placeholder()
+
     cursor.execute(
-        """
+        f"""
         SELECT
             category,
             value,
@@ -167,11 +305,10 @@ def get_memories(
             confidence,
             expires
         FROM memories
-        WHERE user_id = ?
+        WHERE user_id = {p}
+        ORDER BY id ASC
         """,
-        (
-            user_id,
-        ),
+        (user_id,),
     )
 
     rows = cursor.fetchall()
@@ -181,23 +318,22 @@ def get_memories(
     return rows
 
 
-
 def save_embedding(
     memory_id: int,
     embedding: list[float],
 ):
-
     conn = get_connection()
-
     cursor = conn.cursor()
 
+    p = placeholder()
+
     cursor.execute(
-        """
+        f"""
         INSERT INTO memory_embeddings (
             memory_id,
             embedding
         )
-        VALUES (?, ?)
+        VALUES ({p}, {p})
         """,
         (
             memory_id,
@@ -209,20 +345,31 @@ def save_embedding(
     conn.close()
 
 
-
-def get_embeddings():
-
+def get_embeddings(
+    user_id: str,
+):
     conn = get_connection()
-
     cursor = conn.cursor()
 
+    p = placeholder()
+
     cursor.execute(
-        """
+        f"""
         SELECT
-            memory_id,
-            embedding
-        FROM memory_embeddings
-        """
+            m.id,
+            m.category,
+            m.value,
+            m.memory_type,
+            m.confidence,
+            m.expires,
+            e.embedding
+        FROM memories m
+        JOIN memory_embeddings e
+          ON e.memory_id = m.id
+        WHERE m.user_id = {p}
+        ORDER BY m.id ASC
+        """,
+        (user_id,),
     )
 
     rows = cursor.fetchall()
@@ -230,3 +377,49 @@ def get_embeddings():
     conn.close()
 
     return rows
+
+
+def log_usage_event(
+    user_id: str,
+    session_id: str | None,
+    message_length: int,
+    status: str,
+    latency_ms: int | None = None,
+    error_type: str | None = None,
+) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    p = placeholder()
+
+    cursor.execute(
+        f"""
+        INSERT INTO usage_events (
+            user_id,
+            session_id,
+            message_length,
+            status,
+            latency_ms,
+            error_type
+        )
+        VALUES (
+            {p},
+            {p},
+            {p},
+            {p},
+            {p},
+            {p}
+        )
+        """,
+        (
+            user_id,
+            session_id,
+            message_length,
+            status,
+            latency_ms,
+            error_type,
+        ),
+    )
+
+    conn.commit()
+    conn.close()

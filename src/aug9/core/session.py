@@ -1,28 +1,22 @@
-from aug9.core.memory import (
-    ConversationState,
-    UserMemory,
-)
-
-from aug9.core.database import (
-    get_memories,
-    save_memory,
-)
+from aug9.core.memory import ConversationState, UserMemory
+from aug9.core.database import get_memories, save_memory
 
 
-USER_ID = "default_user"
+# Per-user in-process session state.
+# This avoids the old single global session leaking between users.
+_sessions: dict[str, ConversationState] = {}
 
 
-_session = ConversationState()
+def get_memory(
+    user_id: str,
+) -> ConversationState:
 
-
-def get_memory() -> ConversationState:
-    global _session
-
+    # Load persisted long-term memories from the database.
     memories = get_memories(
-        USER_ID
+        user_id
     )
 
-    preferences = {}
+    preferences: dict[str, list[UserMemory]] = {}
 
     for (
         category,
@@ -32,10 +26,10 @@ def get_memory() -> ConversationState:
         expires,
     ) in memories:
 
-        if category not in preferences:
-            preferences[category] = []
-
-        preferences[category].append(
+        preferences.setdefault(
+            category,
+            []
+        ).append(
             UserMemory(
                 value=value,
                 memory_type=memory_type,
@@ -44,24 +38,37 @@ def get_memory() -> ConversationState:
             )
         )
 
-    _session.preferences = preferences
+    # Restore this user's temporary/session state if it exists.
+    existing_state = _sessions.get(
+        user_id
+    )
 
-    return _session
+    if existing_state is None:
+        existing_state = ConversationState()
+
+    return ConversationState(
+        current_place=existing_state.current_place,
+        last_intent=existing_state.last_intent,
+        history=existing_state.history,
+        preferences=preferences,
+    )
 
 
 def update_memory(
+    user_id: str,
     state: ConversationState,
-):
-    global _session
+) -> None:
 
-    _session = state
+    # Store temporary/session state separately for each user.
+    _sessions[user_id] = state
 
+    # Persist long-term preferences to the database.
     for category, values in state.preferences.items():
 
         for memory in values:
 
             save_memory(
-                USER_ID,
+                user_id,
                 category,
                 memory.value,
                 memory.memory_type,

@@ -31,7 +31,9 @@ def test_aug9_full_flow(
     )
 
     response = run_aug9(
-        "What should I eat at Maxwell Food Centre?"
+        "What should I eat at Maxwell Food Centre?",
+        user_id="test_user",
+        session_id="test_session",
     )
 
     assert "Tian Tian" in response

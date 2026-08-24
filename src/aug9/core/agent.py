@@ -11,17 +11,19 @@ from aug9.core.memory_retriever import retrieve_relevant_memory
 from aug9.core.memory_ranker import rank_memories
 from aug9.core.semantic_memory import retrieve_semantic_memories
 
+
 def run_aug9(
     user_input: str,
-) -> str:
-
+    user_id: str,
+    session_id: str | None = None,
+):
     extracted = extract_memories(
         user_input
     )
 
     for memory in extracted.memories:
         save_memory(
-            "default_user",
+            user_id,
             memory.category,
             memory.value,
             memory.memory_type,
@@ -29,14 +31,16 @@ def run_aug9(
             memory.expires,
         )
 
-    memory = get_memory()
-    
+    memory = get_memory(user_id)
+
     relevant_memory = retrieve_relevant_memory(
         memory,
         user_input,
     )
+
     semantic_memories = retrieve_semantic_memories(
-        user_input
+        user_id,
+        user_input,
     )
 
     candidate_memories = []
@@ -51,12 +55,25 @@ def run_aug9(
                 }
             )
 
+    existing_values = {
+        item["value"]
+        for item in candidate_memories
+    }
+
+    for semantic_memory in semantic_memories:
+        if semantic_memory["value"] not in existing_values:
+            candidate_memories.append(
+                {
+                    "category": semantic_memory["category"],
+                    "value": semantic_memory["value"],
+                    "type": semantic_memory["memory_type"],
+                }
+            )
 
     ranked_memory = rank_memories(
         user_input,
         candidate_memories,
     )
-
 
     ranked_preferences = {}
 
@@ -73,18 +90,14 @@ def run_aug9(
         memory,
     )
 
-    memory = get_memory()
-
-    raw_plan = create_plan(
-        user_input,
-        memory,
-    )
     plan = llm_plan_to_plan(
         raw_plan
     )
+
     context = build_context(
         user_input,
         plan.entities,
+        user_id=user_id,
     )
 
     execution = execute_plan(
@@ -95,6 +108,7 @@ def run_aug9(
     response = compose_response(
         execution
     )
+
     trace = AgentTrace(
         user_input=user_input,
         plan=plan,
@@ -109,4 +123,5 @@ def run_aug9(
             indent=2
         )
     )
+
     return response

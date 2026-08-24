@@ -8,9 +8,11 @@ from aug9.core.session import get_memory, update_memory
 from aug9.core.converters.location import location_to_place
 from aug9.onemap import get_token, search_location
 
+
 def build_context(
     user_input: str,
     entities: dict[str, str] | None = None,
+    user_id: str = "",
 ) -> UserContext:
 
     load_dotenv()
@@ -34,8 +36,12 @@ def build_context(
     )
 
     if token is None:
+        memory = get_memory(user_id)
+
         return UserContext(
-            intent=user_input
+            current_place=memory.current_place,
+            intent=user_input,
+            memory=memory,
         )
 
     query = user_input
@@ -50,29 +56,39 @@ def build_context(
     )
 
     if result.location is not None:
-    
+
         place = location_to_place(
             result.location
         )
 
+        existing_memory = get_memory(
+            user_id
+        )
+
+        state = ConversationState(
+            current_place=place,
+            last_intent=user_input,
+            history=[
+                *existing_memory.history,
+                user_input,
+            ],
+            preferences=existing_memory.preferences,
+        )
+
         update_memory(
-            ConversationState(
-                current_place=place,
-                last_intent=user_input,
-                history=[
-                    user_input
-                ],
-            )
+            user_id,
+            state,
         )
 
         return UserContext(
             current_place=place,
             intent=user_input,
-            memory=get_memory(),
+            memory=get_memory(user_id),
         )
 
-
-    memory = get_memory()
+    memory = get_memory(
+        user_id
+    )
 
     return UserContext(
         current_place=memory.current_place,

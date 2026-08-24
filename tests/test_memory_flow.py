@@ -18,12 +18,13 @@ def test_previous_location_is_remembered():
     )
 
     update_memory(
+        "test_user",
         ConversationState(
             current_place=place
         )
     )
 
-    memory = get_memory()
+    memory = get_memory("test_user")
 
     assert (
         memory.current_place.name

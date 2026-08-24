@@ -11,8 +11,13 @@ def test_memory_updates():
         last_intent="food"
     )
 
-    update_memory(state)
+    update_memory(
+        "test_user",
+        state,
+    )
 
-    memory = get_memory()
+    memory = get_memory(
+        "test_user"
+    )
 
     assert memory.last_intent == "food"
