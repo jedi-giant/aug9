@@ -12,7 +12,13 @@ from aug9.discovery.repository import DiscoveryRepository
 def main() -> None:
     initialise_database()
     with httpx.Client(timeout=30, follow_redirects=True, headers={"User-Agent": USER_AGENT}) as client:
-        results = run_public_event_imports(DiscoveryRepository(), client)
+        results = run_public_event_imports(
+            DiscoveryRepository(),
+            client,
+            on_source_start=lambda source_id: print(
+                f"{source_id}: starting", flush=True
+            ),
+        )
     for source_id, summary in results:
         if isinstance(summary, Exception):
             print(f"{source_id}: failed={type(summary).__name__}")

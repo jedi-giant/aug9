@@ -6,6 +6,7 @@ import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from html.parser import HTMLParser
+from collections.abc import Callable
 from urllib.parse import urljoin, urlparse
 from urllib.robotparser import RobotFileParser
 
@@ -378,11 +379,15 @@ class PublicEventAdapter:
 def run_public_event_imports(
     repository: DiscoveryRepository,
     client: httpx.Client,
+    *,
+    on_source_start: Callable[[str], None] | None = None,
 ) -> list[tuple[str, object]]:
     interval = float(os.getenv("PUBLIC_EVENT_MIN_INTERVAL_SECONDS", "3"))
     http = GovernedHttpClient(client, minimum_interval_seconds=interval)
     results = []
     for source in PUBLIC_EVENT_SOURCES:
+        if on_source_start:
+            on_source_start(source.id)
         adapter = PublicEventAdapter(source, http)
         try:
             summary = DataAggregationEngine(

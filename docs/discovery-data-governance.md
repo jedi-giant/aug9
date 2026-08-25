@@ -197,3 +197,10 @@ Facebook Events remains disabled until Aug9 has an approved Facebook API
 connection. The collector does not automate login, simulate a user session, or
 bypass access controls. A source blocked by robots or redirected outside its
 approved host boundary is recorded as a failed ingestion and skipped.
+
+The job prints a `starting` line before each source. PostgreSQL connections use
+a 10-second connection timeout, 10-second lock timeout, and 60-second statement
+timeout by default, preventing an unavailable or locked database from leaving a
+cron worker hanging indefinitely. These can be adjusted with
+`DATABASE_CONNECT_TIMEOUT_SECONDS`, `DATABASE_LOCK_TIMEOUT_SECONDS`, and
+`DATABASE_STATEMENT_TIMEOUT_SECONDS`.

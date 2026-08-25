@@ -16,6 +16,13 @@ SQLITE_DB_PATH = Path(
 )
 
 
+def _positive_int_environment(name: str, default: int) -> int:
+    value = int(os.getenv(name, str(default)))
+    if value < 1:
+        raise ValueError(f"{name} must be a positive integer")
+    return value
+
+
 def is_postgres() -> bool:
     database_url = os.getenv(
         "DATABASE_URL"
@@ -39,8 +46,23 @@ def get_connection():
     """
 
     if is_postgres():
+        connect_timeout = _positive_int_environment(
+            "DATABASE_CONNECT_TIMEOUT_SECONDS", 10
+        )
+        statement_timeout_ms = 1000 * _positive_int_environment(
+            "DATABASE_STATEMENT_TIMEOUT_SECONDS", 60
+        )
+        lock_timeout_ms = 1000 * _positive_int_environment(
+            "DATABASE_LOCK_TIMEOUT_SECONDS", 10
+        )
         return psycopg.connect(
-            os.environ["DATABASE_URL"]
+            os.environ["DATABASE_URL"],
+            connect_timeout=connect_timeout,
+            application_name="aug9",
+            options=(
+                f"-c statement_timeout={statement_timeout_ms} "
+                f"-c lock_timeout={lock_timeout_ms}"
+            ),
         )
 
     return sqlite3.connect(
