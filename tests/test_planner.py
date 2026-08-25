@@ -16,3 +16,9 @@ def test_planner_identifies_food_and_weather():
     )
 
     assert "food" in plan.required_capabilities
+
+
+def test_planner_detects_hawker_discovery():
+    plan = create_plan("Show me hawker centres in Singapore")
+
+    assert "hawkers" in plan.required_capabilities

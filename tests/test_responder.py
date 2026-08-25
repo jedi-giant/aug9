@@ -103,3 +103,17 @@ def test_response_surfaces_transport_failure_summary():
     )
 
     assert compose_response(result) == "Unable to resolve the route destination."
+
+
+def test_response_supports_registered_hawker_skill_result():
+    result = ExecutionResult(
+        plan=Plan(intent="hawkers", required_capabilities=["hawkers"]),
+        outputs={
+            "hawkers": SkillResult(
+                success=True,
+                data={"places": [{"name": "Maxwell Food Centre"}]},
+            )
+        },
+    )
+
+    assert compose_response(result) == "Hawker centres: Maxwell Food Centre."

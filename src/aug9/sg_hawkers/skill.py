@@ -1,0 +1,37 @@
+from typing import Any
+
+from aug9.core.context import UserContext
+from aug9.core.skill import Aug9Skill, SkillResult
+from aug9.sg_hawkers.provider import HawkerProvider
+
+
+class SgHawkersSkill(Aug9Skill):
+    name = "sg_hawkers"
+    description = "Discover hawker centres in Aug9's curated Singapore catalog"
+    version = "0.1.0"
+
+    def __init__(self, provider: HawkerProvider) -> None:
+        self.provider = provider
+
+    @property
+    def capabilities(self) -> list[str]:
+        return ["hawkers"]
+
+    def execute(
+        self,
+        context: UserContext,
+        entities: dict[str, Any],
+    ) -> SkillResult:
+        query = entities.get("location")
+        places = self.provider.discover(str(query) if query else None)
+        if not places:
+            return SkillResult(
+                success=False,
+                summary="No hawker centres are available in the current catalog.",
+            )
+
+        return SkillResult(
+            success=True,
+            data={"places": [place.model_dump() for place in places]},
+            summary="Hawker centres: " + ", ".join(place.name for place in places) + ".",
+        )

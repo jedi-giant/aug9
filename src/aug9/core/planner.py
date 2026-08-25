@@ -79,6 +79,17 @@ def create_plan(
         capabilities.append("transport")
 
     if any(
+        phrase in text
+        for phrase in [
+            "hawker centre",
+            "hawker centres",
+            "hawker center",
+            "hawker centers",
+        ]
+    ):
+        capabilities.append("hawkers")
+
+    if any(
         word in text
         for word in [
             "eat",

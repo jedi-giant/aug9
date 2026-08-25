@@ -23,6 +23,16 @@ def compose_response(
                     + "."
                 )
 
+    hawkers = execution.outputs.get("hawkers")
+
+    if hawkers:
+        if getattr(hawkers, "success", False):
+            names = [place["name"] for place in hawkers.data.get("places", [])]
+            if names:
+                messages.append("Hawker centres: " + ", ".join(names) + ".")
+        elif getattr(hawkers, "summary", None):
+            messages.append(hawkers.summary)
+
     weather = execution.outputs.get("weather")
 
     if weather:

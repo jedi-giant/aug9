@@ -2,6 +2,7 @@ from aug9.core.skill_registry import SkillRegistry, skill_registry
 from aug9.sg_place import OneMapProvider, SgPlaceSkill
 from aug9.sg_weather import DataGovSgWeatherProvider, SgWeatherSkill
 from aug9.sg_transport import OsrmRouteProvider, SgTransportSkill
+from aug9.sg_hawkers import FoodCatalogHawkerProvider, SgHawkersSkill
 
 
 def register_default_skills(registry: SkillRegistry = skill_registry) -> SkillRegistry:
@@ -16,4 +17,6 @@ def register_default_skills(registry: SkillRegistry = skill_registry) -> SkillRe
                 OsrmRouteProvider(),
             )
         )
+    if registry.get("sg_hawkers") is None:
+        registry.register(SgHawkersSkill(FoodCatalogHawkerProvider()))
     return registry

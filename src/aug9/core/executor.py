@@ -20,6 +20,7 @@ def execute_plan(
 
     execution_order = [
         "place_resolution",
+        "hawkers",
         "food",
         "weather",
         "transport",
