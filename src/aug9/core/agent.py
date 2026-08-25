@@ -10,13 +10,15 @@ from aug9.core.database import save_memory
 from aug9.core.memory_retriever import retrieve_relevant_memory
 from aug9.core.memory_ranker import rank_memories
 from aug9.core.semantic_memory import retrieve_semantic_memories
+from aug9.core.agent_response import AgentResponse, compose_agent_response
 
 
 def run_aug9(
     user_input: str,
     user_id: str,
     session_id: str | None = None,
-):
+    structured: bool = False,
+) -> str | AgentResponse:
     extracted = extract_memories(
         user_input
     )
@@ -124,4 +126,6 @@ def run_aug9(
         )
     )
 
+    if structured:
+        return compose_agent_response(execution)
     return response

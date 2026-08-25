@@ -1,9 +1,10 @@
 import re
 from typing import Any
+from urllib.parse import quote_plus
 
 from aug9.core.context import UserContext
 from aug9.core.models import Place
-from aug9.core.skill import Aug9Skill, SkillResult
+from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
 from aug9.models import SearchStatus
 from aug9.sg_place.provider import PlaceProvider
 from aug9.sg_transport.provider import RouteProvider
@@ -61,6 +62,19 @@ class SgTransportSkill(Aug9Skill):
                 "status": result.status.value,
             },
             summary=result.route.summary,
+            actions=[
+                SkillAction(
+                    type="open_url",
+                    label="Open directions",
+                    url=(
+                        "https://www.google.com/maps/dir/?api=1"
+                        f"&origin={quote_plus(origin.name)}"
+                        f"&destination={quote_plus(destination.name)}"
+                        "&travelmode=walking"
+                    ),
+                    metadata={"capability": "transport"},
+                )
+            ],
         )
 
     def _resolve(self, query: Any) -> Place | None:

@@ -1,8 +1,9 @@
 import re
 from typing import Any
+from urllib.parse import quote_plus
 
 from aug9.core.context import UserContext
-from aug9.core.skill import Aug9Skill, SkillResult
+from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
 from aug9.sg_hawkers.provider import HawkerProvider
 
 
@@ -35,6 +36,18 @@ class SgHawkersSkill(Aug9Skill):
             success=True,
             data={"places": [place.model_dump() for place in places]},
             summary="Hawker centres: " + ", ".join(place.name for place in places) + ".",
+            actions=[
+                SkillAction(
+                    type="open_url",
+                    label=f"Open {place.name}",
+                    url=(
+                        "https://www.google.com/maps/search/?api=1"
+                        f"&query={quote_plus(place.name)}"
+                    ),
+                    metadata={"capability": "hawkers", "place": place.name},
+                )
+                for place in places
+            ],
         )
 
     @staticmethod

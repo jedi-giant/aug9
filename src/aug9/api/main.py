@@ -3,13 +3,14 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from aug9.api.rate_limit import (
     RateLimitExceeded,
     rate_limiter,
 )
 from aug9.core.agent import run_aug9
+from aug9.core.skill import SkillAction
 from aug9.core.database import (
     initialise_database,
     log_usage_event,
@@ -46,6 +47,8 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     response: str
+    actions: list[SkillAction] = Field(default_factory=list)
+    metadata: dict = Field(default_factory=dict)
 
 
 @app.get("/")
@@ -73,6 +76,7 @@ def chat(
             request.message,
             user_id=request.user_id,
             session_id=request.session_id,
+            structured=True,
         )
 
         latency_ms = int(
@@ -94,7 +98,9 @@ def chat(
         )
 
         return ChatResponse(
-            response=result
+            response=result.response,
+            actions=result.actions,
+            metadata=result.metadata,
         )
 
     except RateLimitExceeded as error:
