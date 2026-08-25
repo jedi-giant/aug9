@@ -2,7 +2,7 @@
 
 Singaporean AI LifeOps Agent powered by MCP.
 
-Aug9 is an open-source AI assistant that connects Singapore-specific data sources through Model Context Protocol (MCP) tools, allowing an AI agent to answer location and lifestyle questions using live data.
+Aug9 is an open-source AI assistant that connects Singapore-specific data sources built on Skills and Model Context Protocol (MCP) tools, allowing an AI agent to answer location and lifestyle questions using live data.
 
 ## Vision
 
