@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from aug9.core.context import UserContext
@@ -22,7 +23,7 @@ class SgHawkersSkill(Aug9Skill):
         context: UserContext,
         entities: dict[str, Any],
     ) -> SkillResult:
-        query = entities.get("location")
+        query = entities.get("location") or self._extract_location(context.intent)
         places = self.provider.discover(str(query) if query else None)
         if not places:
             return SkillResult(
@@ -35,3 +36,14 @@ class SgHawkersSkill(Aug9Skill):
             data={"places": [place.model_dump() for place in places]},
             summary="Hawker centres: " + ", ".join(place.name for place in places) + ".",
         )
+
+    @staticmethod
+    def _extract_location(intent: str | None) -> str | None:
+        if not intent:
+            return None
+        match = re.search(
+            r"\b(?:near|around|at)\s+(.+?)(?:[?.!]|$)",
+            intent,
+            flags=re.IGNORECASE,
+        )
+        return match.group(1).strip() if match else None

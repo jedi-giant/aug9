@@ -5,7 +5,11 @@ from aug9.sg_hawkers.skill import SgHawkersSkill
 
 
 class FakeHawkerProvider:
+    def __init__(self) -> None:
+        self.queries: list[str | None] = []
+
     def discover(self, query: str | None = None) -> list[Place]:
+        self.queries.append(query)
         return [Place(name="Maxwell Food Centre", place_type="hawker_centre")]
 
 
@@ -34,3 +38,15 @@ def test_sg_hawkers_returns_structured_places():
     assert result.success is True
     assert result.data["places"][0]["name"] == "Maxwell Food Centre"
     assert result.summary == "Hawker centres: Maxwell Food Centre."
+
+
+def test_sg_hawkers_recovers_near_location_from_intent():
+    provider = FakeHawkerProvider()
+
+    result = SgHawkersSkill(provider).execute(
+        UserContext(intent="Show me hawker centres near Newton"),
+        {},
+    )
+
+    assert result.success is True
+    assert provider.queries == ["Newton"]
