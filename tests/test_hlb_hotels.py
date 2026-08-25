@@ -28,7 +28,7 @@ def test_hlb_hotel_importer_batches_valid_records(repository):
             "DESCRIPTION": None,
             "POSTALCODE": "189626",
             "KEEPERNAME": "Personal Name",
-            "TOTALROOMS": "84",
+            "TOTALROOMS": "1,084",
             "FMEL_UPD_D": "20220713235853",
             "NAME": "Hotel Bencoolen",
         },
@@ -73,7 +73,7 @@ def test_hlb_hotel_importer_batches_valid_records(repository):
     assert summary.rejected == 1
     assert len(matches) == 1
     assert matches[0].postal_code == "189626"
-    assert profile == (84, "20220713235853")
+    assert profile == (1084, "20220713235853")
     assert "KEEPERNAME" not in raw_payload["properties"]
     assert "HYPERLINK" not in raw_payload["properties"]
     assert "keeper_name" not in fields

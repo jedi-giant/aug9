@@ -142,7 +142,10 @@ class HlbHotelImporter:
             external_id = hashlib.sha256(stable_key.encode()).hexdigest()[:20]
 
         room_value = str(properties.get("TOTALROOMS") or "").strip()
-        room_count = int(room_value) if room_value else None
+        normalised_room_value = room_value.replace(",", "")
+        if normalised_room_value and not normalised_room_value.isdigit():
+            raise ValueError("Hotel room count must be a whole number")
+        room_count = int(normalised_room_value) if normalised_room_value else None
         if room_count is not None and room_count < 0:
             raise ValueError("Hotel room count cannot be negative")
         description = str(properties.get("DESCRIPTION") or "").strip() or None
