@@ -569,6 +569,29 @@ class DiscoveryRepository:
         conn.close()
         return [self._entity_from_row(row) for row in rows]
 
+    def archive_expired_events(self, *, now: datetime | None = None) -> int:
+        cutoff = now or datetime.now(UTC)
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        cursor.execute(
+            f"""
+            UPDATE discovery_entities
+            SET status = 'archived', updated_at = CURRENT_TIMESTAMP
+            WHERE entity_type = 'event'
+              AND status = 'active'
+              AND id IN (
+                  SELECT entity_id FROM discovery_event_profiles
+                  WHERE ends_at IS NOT NULL AND ends_at < {p}
+              )
+            """,
+            (cutoff.isoformat(),),
+        )
+        archived = cursor.rowcount
+        conn.commit()
+        conn.close()
+        return archived
+
     @staticmethod
     def _entity_from_row(row) -> DiscoveryEntity:
         return DiscoveryEntity(

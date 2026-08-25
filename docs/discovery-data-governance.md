@@ -170,3 +170,30 @@ uv run aug9-import-eventbrite-events
 Set `EVENTBRITE_PRIVATE_TOKEN` only in the deployment environment. The token is
 never written to the database or logs. Imported events retain Eventbrite source
 URLs and attribution and must continue to comply with Eventbrite's API terms.
+
+## Data aggregation engine
+
+All new API, approved-web, and moderated-submission adapters should emit the
+shared `AggregationRecord` model and pass through `DataAggregationEngine`.
+The engine normalises text and postal codes, optionally resolves incomplete
+addresses through a OneMap-compatible geocoder, generates deterministic
+cross-source entity identifiers, records field provenance, and applies a hard
+per-run record cap. Source permission is checked before collection begins, so
+`link_only`, `research_only`, and `prohibited` sources cannot enter the
+canonical store.
+
+Publisher prose, reviews, photographs, social posts, and inferred sentiment
+must not be placed in `raw_facts`. Each adapter is responsible for emitting
+only fields allowed by that source's licence, agreement, or recorded legal
+review. User submissions require moderation before they are represented by an
+ingestible source.
+
+Expired events can be archived with a separate scheduled job:
+
+```bash
+uv run aug9-archive-expired-events
+```
+
+Run source importers first and the expiry job afterwards. Delivery continues
+through the existing discovery repository, skills, API, Base44 interface, and
+future Telegram adapter, keeping collection concerns out of public contracts.
