@@ -135,3 +135,18 @@ When no canonical event matches, Aug9 may offer clearly attributed outbound
 links to Today Do What, Honeycombers, Eventbrite Singapore, and Visit Singapore.
 Linked pages remain external; their event text, images, ratings, and compilation
 are not copied into Aug9's canonical database.
+
+### Eventbrite organization import
+
+The Eventbrite importer uses the supported private-token API to discover
+organizations accessible to the authenticated account and retrieve their live,
+current/future events. It does not call the retired public location-search API.
+Only events with a Singapore venue are accepted.
+
+```bash
+uv run aug9-import-eventbrite-events
+```
+
+Set `EVENTBRITE_PRIVATE_TOKEN` only in the deployment environment. The token is
+never written to the database or logs. Imported events retain Eventbrite source
+URLs and attribution and must continue to comply with Eventbrite's API terms.
