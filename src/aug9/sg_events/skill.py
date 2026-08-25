@@ -6,6 +6,20 @@ from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
 from aug9.sg_events.provider import EventProvider
 
 
+EVENT_SOURCE_LINKS = (
+    ("Browse Today Do What", "https://todaydowhat.com/"),
+    (
+        "Browse Honeycombers events",
+        "https://thehoneycombers.com/singapore/singapore-event-calendar/search-events/",
+    ),
+    ("Browse Eventbrite Singapore", "https://www.eventbrite.sg/ttd/singapore/"),
+    (
+        "Browse Visit Singapore events",
+        "https://www.visitsingapore.com/whats-happening/all-happenings/",
+    ),
+)
+
+
 class SgEventsSkill(Aug9Skill):
     name = "sg_events"
     description = "Discover governed Singapore activities and events"
@@ -29,7 +43,22 @@ class SgEventsSkill(Aug9Skill):
         if not listings:
             return SkillResult(
                 success=False,
-                summary="No matching upcoming events were found in Aug9's governed sources.",
+                summary=(
+                    "No matching upcoming events were found in Aug9's governed "
+                    "sources. You can browse these external event guides."
+                ),
+                actions=[
+                    SkillAction(
+                        type="open_url",
+                        label=label,
+                        url=url,
+                        metadata={
+                            "capability": "events",
+                            "source_access": "link_only",
+                        },
+                    )
+                    for label, url in EVENT_SOURCE_LINKS
+                ],
             )
         return SkillResult(
             success=True,

@@ -20,12 +20,13 @@ class FakeRepository:
 
 
 class FakeEventProvider:
-    def __init__(self):
+    def __init__(self, listings=None):
         self.calls = []
+        self.listings = listings
 
     def discover(self, **kwargs):
         self.calls.append(kwargs)
-        return [
+        return self.listings if self.listings is not None else [
             EventListing(
                 name="Singapore Night Festival",
                 starts_at=datetime(2030, 8, 23, tzinfo=UTC),
@@ -86,3 +87,21 @@ def test_skill_builds_weekend_window():
     assert call["query"] == "Bras Basah"
     assert call["category"] == "festival"
     assert call["starts_before"] - call["starts_after"] == __import__("datetime").timedelta(days=2)
+
+
+def test_skill_offers_attributed_external_guides_when_catalog_is_empty():
+    result = SgEventsSkill(FakeEventProvider(listings=[])).execute(
+        UserContext(intent="What can I do this weekend?"), {}
+    )
+
+    assert result.success is False
+    assert [action.label for action in result.actions] == [
+        "Browse Today Do What",
+        "Browse Honeycombers events",
+        "Browse Eventbrite Singapore",
+        "Browse Visit Singapore events",
+    ]
+    assert all(
+        action.metadata["source_access"] == "link_only"
+        for action in result.actions
+    )

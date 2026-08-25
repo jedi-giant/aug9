@@ -32,6 +32,9 @@ terms or partnership status changes.
 | `kangcodex/singapore-skills` | `research_only` | MIT code may be adapted with attribution; audit every upstream source separately |
 | `mayimian123/sg-event` | `research_only` | No repository licence confirmed; use as a source map only |
 | Today Do What | `link_only` | Seek a feed or commercial partnership before ingestion |
+| Honeycombers | `link_only` | Written permission is required before reproducing or adapting event content |
+| Eventbrite | `link_only` | Use browse links now; upgrade only through an approved API integration under its API terms |
+| Visit Singapore Events Guide | `link_only` | Hyperlinking is allowed; automated copying requires STB's prior written permission |
 | ieatishootipost | `link_only` | Content requires express permission or a licence |
 | Miss Tam Chiak | `link_only` | Do not copy articles, reviews, or photography without permission |
 | SETHLUI.com | `link_only` | Public terms do not permit commercial reuse of site materials |
@@ -128,3 +131,7 @@ STB TIH cannot be used as the launch feed because STB retired it on 31 July
 2025. Historical data.gov.sg arts datasets must not be presented as upcoming
 events. Blogs, aggregators, and the referenced event repositories remain
 `link_only` or `research_only` until Aug9 receives compatible reuse permission.
+When no canonical event matches, Aug9 may offer clearly attributed outbound
+links to Today Do What, Honeycombers, Eventbrite Singapore, and Visit Singapore.
+Linked pages remain external; their event text, images, ratings, and compilation
+are not copied into Aug9's canonical database.
