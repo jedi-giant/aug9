@@ -12,6 +12,7 @@ def utc_now() -> datetime:
 class SourcePermission(StrEnum):
     OPEN_DATA = "open_data"
     LICENSED_PARTNER = "licensed_partner"
+    LEGAL_REVIEWED = "legal_reviewed"
     LINK_ONLY = "link_only"
     RESEARCH_ONLY = "research_only"
     PROHIBITED = "prohibited"

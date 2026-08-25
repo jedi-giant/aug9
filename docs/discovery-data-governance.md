@@ -10,13 +10,14 @@ licensed for ingestion.
 |---|---:|---|
 | `open_data` | Yes | Data published under a compatible open licence |
 | `licensed_partner` | Yes | Fields permitted by a written agreement |
+| `legal_reviewed` | Yes | Minimal factual extraction approved by Aug9's counsel; not open data or a partnership |
 | `link_only` | No | Attribution and outbound links only |
 | `research_only` | No | Source discovery and independent verification |
 | `prohibited` | No | Do not use |
 
-The discovery repository enforces this boundary: only `open_data` and
-`licensed_partner` sources can write canonical entities, source records, or
-field provenance.
+The discovery repository enforces this boundary: only `open_data`,
+`licensed_partner`, and specifically approved `legal_reviewed` sources can
+write canonical entities, source records, or field provenance.
 
 ## Initial source register
 
@@ -31,7 +32,7 @@ terms or partnership status changes.
 | Hotels Licensing Board dataset | `open_data` | Canonical licensed-hotel location layer |
 | `kangcodex/singapore-skills` | `research_only` | MIT code may be adapted with attribution; audit every upstream source separately |
 | `mayimian123/sg-event` | `research_only` | No repository licence confirmed; use as a source map only |
-| Today Do What | `link_only` | Seek a feed or commercial partnership before ingestion |
+| Today Do What | `legal_reviewed` | Counsel-approved minimal factual extraction only; retain attribution and outbound event links, and do not copy descriptions or images |
 | Honeycombers | `link_only` | Written permission is required before reproducing or adapting event content |
 | Eventbrite | `link_only` | Use browse links now; upgrade only through an approved API integration under its API terms |
 | Visit Singapore Events Guide | `link_only` | Hyperlinking is allowed; automated copying requires STB's prior written permission |
@@ -122,19 +123,38 @@ overwritten, and completed hotels are skipped on subsequent runs.
 
 ## Upcoming events
 
-The `sg_events` runtime reads only canonical event records whose source is
-classified as `open_data` or `licensed_partner`. Event profiles retain start
-and end times, category, organiser, ticketing and price metadata, and the
-official source or booking URL. Expired records are excluded by the runtime.
+The `sg_events` runtime reads canonical event records from ingestible sources.
+Event profiles retain start and end times, category, organiser, ticketing and
+price metadata, and the official source or booking URL. Expired records are
+excluded by the runtime.
 
 STB TIH cannot be used as the launch feed because STB retired it on 31 July
 2025. Historical data.gov.sg arts datasets must not be presented as upcoming
 events. Blogs, aggregators, and the referenced event repositories remain
-`link_only` or `research_only` until Aug9 receives compatible reuse permission.
-When no canonical event matches, Aug9 may offer clearly attributed outbound
-links to Today Do What, Honeycombers, Eventbrite Singapore, and Visit Singapore.
-Linked pages remain external; their event text, images, ratings, and compilation
-are not copied into Aug9's canonical database.
+`link_only` or `research_only` unless their classification is explicitly
+changed following permission or legal review. When no canonical event matches,
+Aug9 may offer clearly attributed outbound links to Today Do What,
+Honeycombers, Eventbrite Singapore, and Visit Singapore. Linked pages remain
+external; their event text, images, ratings, and compilation are not copied
+into Aug9's canonical database.
+
+### Today Do What controlled import
+
+Following Aug9's counsel review, the importer reads only publicly accessible
+activity cards from the Today Do What homepage. It stores the event name,
+location, displayed date and price label, and the public HTTPS event link. It
+does not store the publisher's description, images, or page compilation. Aug9
+generates a short factual description and preserves source attribution.
+
+```bash
+uv run aug9-import-today-do-what-events
+```
+
+The importer makes one page request per run, caps each run at 100 cards,
+rejects expired or malformed records, and does not bypass authentication,
+access controls, or anti-bot measures. Run it no more than once daily unless
+counsel and the source relationship support a different cadence. Remove or
+deactivate disputed records promptly through the established takedown process.
 
 ### Eventbrite organization import
 

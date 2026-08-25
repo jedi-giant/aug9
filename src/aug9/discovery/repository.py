@@ -81,6 +81,7 @@ class DiscoveryRepository:
             ingestable = {
                 SourcePermission.OPEN_DATA.value,
                 SourcePermission.LICENSED_PARTNER.value,
+                SourcePermission.LEGAL_REVIEWED.value,
             }
             if source_row[0] not in ingestable:
                 raise ValueError(
@@ -523,6 +524,7 @@ class DiscoveryRepository:
         allowed = {
             SourcePermission.OPEN_DATA.value,
             SourcePermission.LICENSED_PARTNER.value,
+            SourcePermission.LEGAL_REVIEWED.value,
         }
         if row is None:
             raise ValueError(f"Unknown discovery source: {source_id}")
