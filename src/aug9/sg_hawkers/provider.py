@@ -1,6 +1,11 @@
+import sqlite3
 from typing import Protocol
 
+import psycopg
+
 from aug9.core.models import Place
+from aug9.discovery.models import EntityType
+from aug9.discovery.repository import DiscoveryRepository
 from aug9.food_data import load_hawker_data
 
 
@@ -19,3 +24,43 @@ class CuratedHawkerProvider:
         normalized = query.casefold().strip()
         matches = [place for place in results if normalized in place.name.casefold()]
         return matches or results
+
+
+class DatabaseHawkerProvider:
+    """Read canonical hawker records and retain the curated catalog as fallback."""
+
+    def __init__(
+        self,
+        repository: DiscoveryRepository | None = None,
+        fallback: HawkerProvider | None = None,
+        *,
+        limit: int = 12,
+    ) -> None:
+        self.repository = repository or DiscoveryRepository()
+        self.fallback = fallback or CuratedHawkerProvider()
+        self.limit = limit
+
+    def discover(self, query: str | None = None) -> list[Place]:
+        try:
+            entities = self.repository.search_entities(
+                query,
+                entity_type=EntityType.HAWKER_CENTRE.value,
+                limit=self.limit,
+            )
+        except (psycopg.Error, sqlite3.Error):
+            return self.fallback.discover(query)
+
+        if not entities:
+            return self.fallback.discover(query)
+
+        return [
+            Place(
+                name=entity.name,
+                place_type=entity.entity_type.value,
+                address=entity.address,
+                postal_code=entity.postal_code,
+                latitude=entity.latitude,
+                longitude=entity.longitude,
+            )
+            for entity in entities
+        ]

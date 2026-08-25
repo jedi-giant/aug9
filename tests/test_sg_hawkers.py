@@ -1,6 +1,12 @@
+import sqlite3
+
 from aug9.core.context import UserContext
 from aug9.core.models import Place
-from aug9.sg_hawkers.provider import CuratedHawkerProvider
+from aug9.discovery.models import DiscoveryEntity, EntityType
+from aug9.sg_hawkers.provider import (
+    CuratedHawkerProvider,
+    DatabaseHawkerProvider,
+)
 from aug9.sg_hawkers.skill import SgHawkersSkill
 
 
@@ -11,6 +17,19 @@ class FakeHawkerProvider:
     def discover(self, query: str | None = None) -> list[Place]:
         self.queries.append(query)
         return [Place(name="Maxwell Food Centre", place_type="hawker_centre")]
+
+
+class FakeDiscoveryRepository:
+    def __init__(self, entities=None, error=None) -> None:
+        self.entities = entities or []
+        self.error = error
+        self.calls = []
+
+    def search_entities(self, query, *, entity_type, limit):
+        self.calls.append((query, entity_type, limit))
+        if self.error:
+            raise self.error
+        return self.entities
 
 
 def test_catalog_provider_loads_curated_hawker_centres():
@@ -30,6 +49,49 @@ def test_catalog_provider_filters_by_location_name():
     places = CuratedHawkerProvider().discover("Newton")
 
     assert [place.name for place in places] == ["Newton Food Centre"]
+
+
+def test_database_provider_returns_canonical_hawker_centres():
+    repository = FakeDiscoveryRepository(
+        entities=[
+            DiscoveryEntity(
+                id="hawker:123",
+                entity_type=EntityType.HAWKER_CENTRE,
+                name="Bishan Street 13 Hawker Centre",
+                postal_code="570514",
+                latitude=1.3509,
+                longitude=103.8482,
+                quality_score=1.0,
+            )
+        ]
+    )
+    provider = DatabaseHawkerProvider(repository=repository, limit=12)
+
+    places = provider.discover("Bishan")
+
+    assert [place.name for place in places] == [
+        "Bishan Street 13 Hawker Centre"
+    ]
+    assert places[0].postal_code == "570514"
+    assert repository.calls == [
+        ("Bishan", EntityType.HAWKER_CENTRE.value, 12)
+    ]
+
+
+def test_database_provider_falls_back_when_database_is_unavailable():
+    repository = FakeDiscoveryRepository(
+        error=sqlite3.OperationalError("database unavailable")
+    )
+    fallback = FakeHawkerProvider()
+    provider = DatabaseHawkerProvider(
+        repository=repository,
+        fallback=fallback,
+    )
+
+    places = provider.discover("Newton")
+
+    assert [place.name for place in places] == ["Maxwell Food Centre"]
+    assert fallback.queries == ["Newton"]
 
 
 def test_sg_hawkers_returns_structured_places():
