@@ -5,6 +5,7 @@ from pathlib import Path
 import psycopg
 
 from aug9.core.embeddings import create_embedding
+from aug9.discovery.schema import initialise_discovery_schema
 
 
 SQLITE_DB_PATH = Path(
@@ -179,6 +180,11 @@ def initialise_database():
             )
             """
         )
+
+    initialise_discovery_schema(
+        cursor,
+        postgres=is_postgres(),
+    )
 
     conn.commit()
     conn.close()

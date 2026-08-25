@@ -85,6 +85,9 @@ the files in [`skills/_template`](skills/_template). A production skill needs
 a provider boundary, registry wiring, deterministic unit tests, and user-facing
 instructions.
 
+Discovery-data contributors must also follow the
+[source and licensing policy](docs/discovery-data-governance.md).
+
 ## API compatibility
 
 `POST /chat` accepts `user_id`, `session_id`, and `message`. Its response is:
