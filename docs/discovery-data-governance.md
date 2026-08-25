@@ -34,7 +34,6 @@ terms or partnership status changes.
 | `mayimian123/sg-event` | `research_only` | No repository licence confirmed; use as a source map only |
 | Source 1 (`todaydowhat.com`) | `legal_reviewed` | Counsel-approved minimal factual extraction only; retain domain attribution and outbound event links, and do not copy descriptions or images |
 | Honeycombers | `link_only` | Written permission is required before reproducing or adapting event content |
-| Eventbrite | `link_only` | Use browse links now; upgrade only through an approved API integration under its API terms |
 | Visit Singapore Events Guide | `link_only` | Hyperlinking is allowed; automated copying requires STB's prior written permission |
 | ieatishootipost | `link_only` | Content requires express permission or a licence |
 | Miss Tam Chiak | `link_only` | Do not copy articles, reviews, or photography without permission |
@@ -134,7 +133,7 @@ events. Blogs, aggregators, and the referenced event repositories remain
 `link_only` or `research_only` unless their classification is explicitly
 changed following permission or legal review. When no canonical event matches,
 Aug9 may offer clearly attributed outbound links to Source 1,
-Honeycombers, Eventbrite Singapore, and Visit Singapore. Linked pages remain
+Honeycombers and Visit Singapore. Linked pages remain
 external; their event text, images, ratings, and compilation are not copied
 into Aug9's canonical database.
 
@@ -155,21 +154,6 @@ rejects expired or malformed records, and does not bypass authentication,
 access controls, or anti-bot measures. Run it no more than once daily unless
 counsel and the source relationship support a different cadence. Remove or
 deactivate disputed records promptly through the established takedown process.
-
-### Eventbrite organization import
-
-The Eventbrite importer uses the supported private-token API to discover
-organizations accessible to the authenticated account and retrieve their live,
-current/future events. It does not call the retired public location-search API.
-Only events with a Singapore venue are accepted.
-
-```bash
-uv run aug9-import-eventbrite-events
-```
-
-Set `EVENTBRITE_PRIVATE_TOKEN` only in the deployment environment. The token is
-never written to the database or logs. Imported events retain Eventbrite source
-URLs and attribution and must continue to comply with Eventbrite's API terms.
 
 ## Data aggregation engine
 
@@ -197,3 +181,7 @@ uv run aug9-archive-expired-events
 Run source importers first and the expiry job afterwards. Delivery continues
 through the existing discovery repository, skills, API, Base44 interface, and
 future Telegram adapter, keeping collection concerns out of public contracts.
+
+The retired Eventbrite integration is deactivated during schema initialization.
+Previously imported entities are archived rather than deleted so ingestion and
+provenance audit records remain available.

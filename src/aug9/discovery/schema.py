@@ -207,3 +207,22 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
         ON discovery_event_profiles(starts_at)
         """
     )
+    # Retired integrations keep their audit trail but cannot surface publicly.
+    cursor.execute(
+        """
+        UPDATE discovery_sources
+        SET active = 0, updated_at = CURRENT_TIMESTAMP
+        WHERE id = 'eventbrite_api'
+        """
+    )
+    cursor.execute(
+        """
+        UPDATE discovery_entities
+        SET status = 'archived', updated_at = CURRENT_TIMESTAMP
+        WHERE status = 'active'
+          AND id IN (
+              SELECT entity_id FROM discovery_source_records
+              WHERE source_id = 'eventbrite_api'
+          )
+        """
+    )

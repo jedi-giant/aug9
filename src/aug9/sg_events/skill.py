@@ -12,7 +12,6 @@ EVENT_SOURCE_LINKS = (
         "Browse Honeycombers events",
         "https://thehoneycombers.com/singapore/singapore-event-calendar/search-events/",
     ),
-    ("Browse Eventbrite Singapore", "https://www.eventbrite.sg/ttd/singapore/"),
     (
         "Browse Visit Singapore events",
         "https://www.visitsingapore.com/whats-happening/all-happenings/",

@@ -19,6 +19,9 @@ class Adapter:
     def collect(self):
         return self.records
 
+    def parse(self, raw):
+        return raw
+
 
 class Geocoder:
     def resolve(self, address):
@@ -131,4 +134,32 @@ def test_expired_events_are_archived(repository):
         GeoResolution(address="Singapore"),
         occurrence_at=record.starts_at,
     )
+    assert repository.get_entity(entity_id).status == "archived"
+
+
+def test_schema_initialisation_archives_retired_eventbrite_entities(repository):
+    retired = DiscoverySource(
+        id="eventbrite_api",
+        name="Retired source",
+        permission=SourcePermission.LICENSED_PARTNER,
+        base_url="https://example.org",
+    )
+    record = AggregationRecord(
+        external_id="legacy-event",
+        entity_type=EntityType.EVENT,
+        name="Legacy Event",
+        source_url="https://example.org/legacy-event",
+        starts_at=datetime(2026, 9, 1, tzinfo=UTC),
+    )
+    engine = DataAggregationEngine(repository)
+    engine.run(retired, Adapter([record]))
+    entity_id = DataAggregationEngine.canonical_id(
+        EntityType.EVENT,
+        "Legacy Event",
+        GeoResolution(address="Singapore"),
+        occurrence_at=record.starts_at,
+    )
+
+    database.initialise_database()
+
     assert repository.get_entity(entity_id).status == "archived"

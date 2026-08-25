@@ -1,7 +1,6 @@
 import hashlib
 import os
 import re
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from html.parser import HTMLParser
 from typing import Any
@@ -9,21 +8,25 @@ from urllib.parse import urlparse
 
 import httpx
 
-from aug9.discovery.models import (
-    DiscoveryEntity,
-    DiscoverySource,
-    EntityType,
-    EventProfile,
-    FieldProvenance,
-    SourcePermission,
-    SourceRecord,
+from aug9.discovery.aggregation import (
+    AggregationRecord,
+    AggregationSummary,
+    DataAggregationEngine,
 )
+from aug9.discovery.models import DiscoverySource, EntityType, SourcePermission
 from aug9.discovery.repository import DiscoveryRepository
 
 
 SOURCE_ID = "today_do_what"
 SOURCE_URL = "https://todaydowhat.com/"
 USER_AGENT = "Aug9EventIndexer/0.1 (+https://aug-nudge-now.base44.app/)"
+SOURCE = DiscoverySource(
+    id=SOURCE_ID,
+    name="Source 1",
+    permission=SourcePermission.LEGAL_REVIEWED,
+    base_url=SOURCE_URL,
+    attribution="Source 1 (todaydowhat.com)",
+)
 MONTHS = {
     month: index
     for index, month in enumerate(
@@ -32,13 +35,7 @@ MONTHS = {
     )
 }
 
-
-@dataclass(frozen=True)
-class TodayDoWhatImportSummary:
-    received: int
-    upserted: int
-    rejected: int
-    run_id: str
+TodayDoWhatImportSummary = AggregationSummary
 
 
 class ActivityCardParser(HTMLParser):
@@ -50,12 +47,13 @@ class ActivityCardParser(HTMLParser):
         if tag != "div":
             return
         values = {key: value or "" for key, value in attrs}
-        if values.get("data-kind") != "activity":
-            return
-        self.cards.append(values)
+        if values.get("data-kind") == "activity":
+            self.cards.append(values)
 
 
 class TodayDoWhatEventImporter:
+    """Source 1 adapter backed by the shared data aggregation engine."""
+
     def __init__(
         self,
         repository: DiscoveryRepository,
@@ -66,6 +64,11 @@ class TodayDoWhatEventImporter:
         self.repository = repository
         self.client = client
         self.now = now or datetime.now(UTC)
+        self.engine = DataAggregationEngine(
+            repository,
+            now=self.now,
+            max_records=100,
+        )
 
     @classmethod
     def from_environment(
@@ -79,52 +82,24 @@ class TodayDoWhatEventImporter:
         )
 
     def run(self) -> TodayDoWhatImportSummary:
-        self.repository.register_source(
-            DiscoverySource(
-                id=SOURCE_ID,
-                name="Source 1",
-                permission=SourcePermission.LEGAL_REVIEWED,
-                base_url=SOURCE_URL,
-                attribution="Source 1 (todaydowhat.com)",
-            )
-        )
-        run = self.repository.start_ingestion(SOURCE_ID)
-        received = upserted = rejected = 0
-        try:
-            for card in self.fetch_cards():
-                received += 1
-                try:
-                    self.upsert(card)
-                    upserted += 1
-                except (KeyError, TypeError, ValueError):
-                    rejected += 1
-            completed = self.repository.complete_ingestion(
-                run,
-                records_received=received,
-                records_upserted=upserted,
-                records_rejected=rejected,
-            )
-        except Exception as exc:
-            self.repository.complete_ingestion(
-                run,
-                records_received=received,
-                records_upserted=upserted,
-                records_rejected=rejected,
-                error=type(exc).__name__,
-            )
-            raise
-        return TodayDoWhatImportSummary(received, upserted, rejected, completed.id)
+        return self.engine.run(SOURCE, self)
 
-    def fetch_cards(self) -> list[dict[str, str]]:
+    def collect(self) -> list[dict[str, str]]:
         response = self.client.get(SOURCE_URL)
         response.raise_for_status()
         parser = ActivityCardParser()
         parser.feed(response.text)
-        return parser.cards[:100]
+        return parser.cards
 
-    def upsert(self, card: dict[str, str]) -> None:
+    def fetch_cards(self) -> list[dict[str, str]]:
+        return self.collect()[:100]
+
+    def parse(self, card: dict[str, str]) -> AggregationRecord:
         name = card["data-name"].strip()
-        location = card["data-location"].strip()
+        location = (
+            card.get("data-location", "").strip()
+            or card.get("data-location2", "").strip()
+        )
         date_label = card["data-dates"].strip()
         if not name or not location or not date_label:
             raise ValueError("Required event fact is missing")
@@ -134,63 +109,38 @@ class TodayDoWhatEventImporter:
         event_url = self.safe_url(
             card.get("data-moreinfo") or card.get("data-website")
         )
-        fingerprint = "|".join((name.casefold(), date_label.casefold(), location.casefold()))
+        fingerprint = "|".join(
+            (name.casefold(), date_label.casefold(), location.casefold())
+        )
         external_id = hashlib.sha256(fingerprint.encode("utf-8")).hexdigest()[:32]
-        entity_id = f"event:todaydowhat:{external_id}"
-        description = self.original_description(name, location, date_label)
-        entity = DiscoveryEntity(
-            id=entity_id,
+        price_label = card.get("data-pricelabel", "").strip()
+        is_free = "🆓" in price_label or price_label.casefold() == "free"
+        return AggregationRecord(
+            external_id=external_id,
             entity_type=EntityType.EVENT,
             name=name,
-            description=description,
             address=location,
-            quality_score=0.7,
-        )
-        record = SourceRecord(
-            source_id=SOURCE_ID,
-            external_id=external_id,
-            entity_id=entity_id,
+            generated_description=self.original_description(
+                name, location, date_label
+            ),
             source_url=event_url,
-            raw_payload={
+            raw_facts={
                 "name": name,
                 "location": location,
                 "date_label": date_label,
-                "price_label": card.get("data-pricelabel", ""),
+                "price_label": price_label,
                 "event_url": event_url,
             },
-            verified_at=self.now,
+            starts_at=starts_at,
+            ends_at=ends_at,
+            category="activity",
+            ticketed=False if is_free else None,
+            price_min=0 if is_free else self.price_min(price_label),
+            booking_url=event_url,
         )
-        self.repository.upsert_entity(
-            entity,
-            record,
-            [
-                FieldProvenance(
-                    entity_id=entity_id,
-                    field_name=field,
-                    source_id=SOURCE_ID,
-                    value=value,
-                )
-                for field, value in {
-                    "name": name,
-                    "address": location,
-                }.items()
-            ],
-        )
-        price_label = card.get("data-pricelabel", "").strip()
-        is_free = "🆓" in price_label or price_label.casefold() == "free"
-        self.repository.upsert_event_profile(
-            EventProfile(
-                entity_id=entity_id,
-                starts_at=starts_at,
-                ends_at=ends_at,
-                category="activity",
-                ticketed=False if is_free else None,
-                price_min=0 if is_free else self.price_min(price_label),
-                booking_url=event_url,
-                source_url=event_url,
-                source_id=SOURCE_ID,
-            )
-        )
+
+    def upsert(self, card: dict[str, str]) -> None:
+        self.engine.ingest(SOURCE, self.parse(card))
 
     def parse_date_range(self, label: str) -> tuple[datetime, datetime | None]:
         normalized = label.replace("—", "–").strip()

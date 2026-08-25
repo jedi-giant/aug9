@@ -3,7 +3,7 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Protocol
+from typing import Any, Protocol
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -40,6 +40,10 @@ class AggregationRecord(BaseModel):
     starts_at: datetime | None = None
     ends_at: datetime | None = None
     category: str | None = None
+    organiser: str | None = None
+    ticketed: bool | None = None
+    price_min: float | None = Field(default=None, ge=0)
+    currency: str = "SGD"
     booking_url: str | None = None
 
     @model_validator(mode="after")
@@ -54,7 +58,9 @@ class AggregationRecord(BaseModel):
 
 
 class AggregationAdapter(Protocol):
-    def collect(self) -> Iterable[AggregationRecord]: ...
+    def collect(self) -> Iterable[Any]: ...
+
+    def parse(self, raw: Any) -> AggregationRecord: ...
 
 
 class AggregationGeocoder(Protocol):
@@ -104,11 +110,12 @@ class DataAggregationEngine:
         run = self.repository.start_ingestion(source.id)
         received = upserted = rejected = 0
         try:
-            for record in adapter.collect():
+            for raw in adapter.collect():
                 if received >= self.max_records:
                     break
                 received += 1
                 try:
+                    record = adapter.parse(raw)
                     self.ingest(source, record)
                     upserted += 1
                 except (KeyError, TypeError, ValueError):
@@ -189,6 +196,10 @@ class DataAggregationEngine:
                     starts_at=record.starts_at,
                     ends_at=record.ends_at,
                     category=record.category,
+                    organiser=record.organiser,
+                    ticketed=record.ticketed,
+                    price_min=record.price_min,
+                    currency=record.currency,
                     booking_url=record.booking_url or record.source_url,
                     source_url=record.source_url or source.base_url or "",
                     source_id=source.id,
