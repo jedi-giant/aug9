@@ -52,6 +52,8 @@ def test_imports_minimal_facts_and_discards_publisher_description():
 
     assert (summary.received, summary.upserted, summary.rejected) == (1, 1, 0)
     assert repository.source.permission == SourcePermission.LEGAL_REVIEWED
+    assert repository.source.name == "Source 1"
+    assert repository.source.attribution == "Source 1 (todaydowhat.com)"
     entity, record, _ = repository.entities[0]
     assert entity.name == "Singapore Design Weekend"
     assert "Publisher description" not in entity.description

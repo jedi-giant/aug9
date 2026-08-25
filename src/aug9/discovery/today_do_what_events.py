@@ -82,10 +82,10 @@ class TodayDoWhatEventImporter:
         self.repository.register_source(
             DiscoverySource(
                 id=SOURCE_ID,
-                name="Today Do What",
+                name="Source 1",
                 permission=SourcePermission.LEGAL_REVIEWED,
                 base_url=SOURCE_URL,
-                attribution="Today Do What",
+                attribution="Source 1 (todaydowhat.com)",
             )
         )
         run = self.repository.start_ingestion(SOURCE_ID)

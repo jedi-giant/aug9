@@ -7,7 +7,7 @@ from aug9.sg_events.provider import EventProvider
 
 
 EVENT_SOURCE_LINKS = (
-    ("Browse Today Do What", "https://todaydowhat.com/"),
+    ("Browse Source 1", "https://todaydowhat.com/"),
     (
         "Browse Honeycombers events",
         "https://thehoneycombers.com/singapore/singapore-event-calendar/search-events/",

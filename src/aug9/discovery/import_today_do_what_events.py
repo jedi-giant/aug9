@@ -7,7 +7,7 @@ def main() -> None:
     initialise_database()
     summary = TodayDoWhatEventImporter.from_environment(DiscoveryRepository()).run()
     print(
-        "Today Do What event import complete: "
+        "Source 1 event import complete: "
         f"received={summary.received}, "
         f"upserted={summary.upserted}, "
         f"rejected={summary.rejected}, "

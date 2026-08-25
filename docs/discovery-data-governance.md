@@ -32,7 +32,7 @@ terms or partnership status changes.
 | Hotels Licensing Board dataset | `open_data` | Canonical licensed-hotel location layer |
 | `kangcodex/singapore-skills` | `research_only` | MIT code may be adapted with attribution; audit every upstream source separately |
 | `mayimian123/sg-event` | `research_only` | No repository licence confirmed; use as a source map only |
-| Today Do What | `legal_reviewed` | Counsel-approved minimal factual extraction only; retain attribution and outbound event links, and do not copy descriptions or images |
+| Source 1 (`todaydowhat.com`) | `legal_reviewed` | Counsel-approved minimal factual extraction only; retain domain attribution and outbound event links, and do not copy descriptions or images |
 | Honeycombers | `link_only` | Written permission is required before reproducing or adapting event content |
 | Eventbrite | `link_only` | Use browse links now; upgrade only through an approved API integration under its API terms |
 | Visit Singapore Events Guide | `link_only` | Hyperlinking is allowed; automated copying requires STB's prior written permission |
@@ -133,15 +133,15 @@ STB TIH cannot be used as the launch feed because STB retired it on 31 July
 events. Blogs, aggregators, and the referenced event repositories remain
 `link_only` or `research_only` unless their classification is explicitly
 changed following permission or legal review. When no canonical event matches,
-Aug9 may offer clearly attributed outbound links to Today Do What,
+Aug9 may offer clearly attributed outbound links to Source 1,
 Honeycombers, Eventbrite Singapore, and Visit Singapore. Linked pages remain
 external; their event text, images, ratings, and compilation are not copied
 into Aug9's canonical database.
 
-### Today Do What controlled import
+### Source 1 controlled import
 
 Following Aug9's counsel review, the importer reads only publicly accessible
-activity cards from the Today Do What homepage. It stores the event name,
+activity cards from the Source 1 homepage. It stores the event name,
 location, displayed date and price label, and the public HTTPS event link. It
 does not store the publisher's description, images, or page compilation. Aug9
 generates a short factual description and preserves source attribution.
