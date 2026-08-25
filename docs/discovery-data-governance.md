@@ -27,7 +27,7 @@ terms or partnership status changes.
 |---|---|---|
 | data.gov.sg / NEA hawker centres | `open_data` | Cite the agency and applicable Open Data Licence |
 | OneMap | `open_data` | Use according to OneMap terms and attribution requirements |
-| STB Tourism Information Hub | `research_only` | Promote to `licensed_partner` after API access and terms review |
+| STB Tourism Information Hub | `research_only` | Retired on 31 July 2025; do not build a new integration. Ask STB for the current replacement API or data-access channel |
 | Hotels Licensing Board dataset | `open_data` | Canonical licensed-hotel location layer |
 | `kangcodex/singapore-skills` | `research_only` | MIT code may be adapted with attribution; audit every upstream source separately |
 | `mayimian123/sg-event` | `research_only` | No repository licence confirmed; use as a source map only |
@@ -72,3 +72,19 @@ Each run registers the source, validates Singapore coordinates, upserts records
 idempotently, records field provenance, and stores received/upserted/rejected
 counts. Run it first in a non-production database and review the counts before
 running it as a Railway one-off job.
+
+## Historical food-establishment statistics
+
+Collection 1447 contains annual national aggregates, not individual places.
+Its two datasets are therefore imported into `market_statistics`, never into
+`discovery_entities` and never into customer-facing venue search.
+
+```bash
+uv run aug9-import-food-statistics
+```
+
+The importer stores the source dataset and row identifiers, original payload,
+fetch time, metric, category, period, value, unit, and geography. It is
+idempotent and records every run in `discovery_ingestion_runs`. The public API
+works without credentials for development; production may set
+`DATA_GOV_SG_API_KEY` for the higher authenticated rate limit.

@@ -147,3 +147,24 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
         )
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS market_statistics (
+            source_id TEXT NOT NULL,
+            dataset_id TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            category TEXT,
+            period TEXT NOT NULL,
+            value REAL NOT NULL,
+            unit TEXT NOT NULL,
+            geography TEXT NOT NULL,
+            raw_payload TEXT NOT NULL DEFAULT '{}',
+            fetched_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(source_id, dataset_id, external_id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )
