@@ -3,7 +3,7 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -85,6 +85,7 @@ class DataAggregationEngine:
         geocoder: AggregationGeocoder | None = None,
         now: datetime | None = None,
         max_records: int = 500,
+        on_progress: Callable[[int, int, int], None] | None = None,
     ) -> None:
         if max_records < 1 or max_records > 10_000:
             raise ValueError("max_records must be between 1 and 10000")
@@ -92,6 +93,7 @@ class DataAggregationEngine:
         self.geocoder = geocoder
         self.now = now or datetime.now(UTC)
         self.max_records = max_records
+        self.on_progress = on_progress
 
     def run(
         self,
@@ -120,6 +122,8 @@ class DataAggregationEngine:
                     upserted += 1
                 except (KeyError, TypeError, ValueError):
                     rejected += 1
+                if self.on_progress and (received == 1 or received % 10 == 0):
+                    self.on_progress(received, upserted, rejected)
             completed = self.repository.complete_ingestion(
                 run,
                 records_received=received,
@@ -167,30 +171,30 @@ class DataAggregationEngine:
             "latitude": entity.latitude,
             "longitude": entity.longitude,
         }
-        self.repository.upsert_entity(
-            entity,
-            SourceRecord(
-                source_id=source.id,
-                external_id=external_id,
-                entity_id=entity_id,
-                source_url=record.source_url,
-                raw_payload=record.raw_facts,
-                fetched_at=self.now,
-                verified_at=self.now,
-            ),
-            [
-                FieldProvenance(
-                    entity_id=entity_id,
-                    field_name=field,
-                    source_id=source.id,
-                    value=value,
-                )
-                for field, value in facts.items()
-                if value is not None
-            ],
+        source_record = SourceRecord(
+            source_id=source.id,
+            external_id=external_id,
+            entity_id=entity_id,
+            source_url=record.source_url,
+            raw_payload=record.raw_facts,
+            fetched_at=self.now,
+            verified_at=self.now,
         )
+        provenance = [
+            FieldProvenance(
+                entity_id=entity_id,
+                field_name=field,
+                source_id=source.id,
+                value=value,
+            )
+            for field, value in facts.items()
+            if value is not None
+        ]
         if record.entity_type == EntityType.EVENT:
-            self.repository.upsert_event_profile(
+            self.repository.upsert_event_entity(
+                entity,
+                source_record,
+                provenance,
                 EventProfile(
                     entity_id=entity_id,
                     starts_at=record.starts_at,
@@ -203,8 +207,10 @@ class DataAggregationEngine:
                     booking_url=record.booking_url or record.source_url,
                     source_url=record.source_url or source.base_url or "",
                     source_id=source.id,
-                )
+                ),
             )
+        else:
+            self.repository.upsert_entity(entity, source_record, provenance)
         return entity_id
 
     def resolve_location(self, record: AggregationRecord) -> GeoResolution:

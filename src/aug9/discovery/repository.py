@@ -60,6 +60,59 @@ class DiscoveryRepository:
         record: SourceRecord,
         provenance: list[FieldProvenance],
     ) -> int:
+        self._validate_entity_bundle(entity, record, provenance)
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        try:
+            self._require_ingestable_source(cursor, record.source_id, p)
+            source_record_id = self._upsert_entity_rows(
+                cursor, p, entity, record, provenance
+            )
+            conn.commit()
+            return source_record_id
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def upsert_event_entity(
+        self,
+        entity: DiscoveryEntity,
+        record: SourceRecord,
+        provenance: list[FieldProvenance],
+        profile: EventProfile,
+    ) -> int:
+        self._validate_entity_bundle(entity, record, provenance)
+        if profile.entity_id != entity.id:
+            raise ValueError("Event profile entity_id must match the entity id")
+        if profile.source_id != record.source_id:
+            raise ValueError("Event profile source_id must match the source record")
+
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        try:
+            self._require_ingestable_source(cursor, record.source_id, p)
+            source_record_id = self._upsert_entity_rows(
+                cursor, p, entity, record, provenance
+            )
+            self._upsert_event_profile_row(cursor, p, profile)
+            conn.commit()
+            return source_record_id
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    @staticmethod
+    def _validate_entity_bundle(
+        entity: DiscoveryEntity,
+        record: SourceRecord,
+        provenance: list[FieldProvenance],
+    ) -> None:
         if record.entity_id != entity.id:
             raise ValueError("Source record entity_id must match the entity id")
         if any(item.entity_id != entity.id for item in provenance):
@@ -67,29 +120,16 @@ class DiscoveryRepository:
         if any(item.source_id != record.source_id for item in provenance):
             raise ValueError("Provenance source_id must match the source record")
 
-        conn = database.get_connection()
-        cursor = conn.cursor()
-        p = database.placeholder()
-        try:
-            cursor.execute(
-                f"SELECT permission FROM discovery_sources WHERE id = {p}",
-                (record.source_id,),
-            )
-            source_row = cursor.fetchone()
-            if source_row is None:
-                raise ValueError(f"Unknown discovery source: {record.source_id}")
-            ingestable = {
-                SourcePermission.OPEN_DATA.value,
-                SourcePermission.LICENSED_PARTNER.value,
-                SourcePermission.LEGAL_REVIEWED.value,
-            }
-            if source_row[0] not in ingestable:
-                raise ValueError(
-                    f"Source permission '{source_row[0]}' does not allow ingestion"
-                )
-
-            cursor.execute(
-                f"""
+    @staticmethod
+    def _upsert_entity_rows(
+        cursor,
+        p: str,
+        entity: DiscoveryEntity,
+        record: SourceRecord,
+        provenance: list[FieldProvenance],
+    ) -> int:
+        cursor.execute(
+            f"""
                 INSERT INTO discovery_entities (
                     id, entity_type, name, description, address, postal_code,
                     latitude, longitude, status, quality_score
@@ -105,8 +145,8 @@ class DiscoveryRepository:
                     status = excluded.status,
                     quality_score = excluded.quality_score,
                     updated_at = CURRENT_TIMESTAMP
-                """,
-                (
+            """,
+            (
                     entity.id,
                     entity.entity_type.value,
                     entity.name,
@@ -117,10 +157,10 @@ class DiscoveryRepository:
                     entity.longitude,
                     entity.status,
                     entity.quality_score,
-                ),
-            )
-            cursor.execute(
-                f"""
+            ),
+        )
+        cursor.execute(
+            f"""
                 INSERT INTO discovery_source_records (
                     source_id, external_id, entity_id, source_url, raw_payload,
                     fetched_at, verified_at
@@ -131,8 +171,8 @@ class DiscoveryRepository:
                     raw_payload = excluded.raw_payload,
                     fetched_at = excluded.fetched_at,
                     verified_at = excluded.verified_at
-                """,
-                (
+            """,
+            (
                     record.source_id,
                     record.external_id,
                     record.entity_id,
@@ -140,20 +180,20 @@ class DiscoveryRepository:
                     json.dumps(record.raw_payload, sort_keys=True),
                     record.fetched_at.isoformat(),
                     record.verified_at.isoformat() if record.verified_at else None,
-                ),
-            )
-            cursor.execute(
-                f"""
+            ),
+        )
+        cursor.execute(
+            f"""
                 SELECT id FROM discovery_source_records
                 WHERE source_id = {p} AND external_id = {p}
-                """,
-                (record.source_id, record.external_id),
-            )
-            source_record_id = cursor.fetchone()[0]
+            """,
+            (record.source_id, record.external_id),
+        )
+        source_record_id = cursor.fetchone()[0]
 
-            for item in provenance:
-                cursor.execute(
-                    f"""
+        for item in provenance:
+            cursor.execute(
+                f"""
                     INSERT INTO discovery_field_provenance (
                         entity_id, field_name, source_id, source_record_id, value
                     ) VALUES ({p}, {p}, {p}, {p}, {p})
@@ -161,22 +201,16 @@ class DiscoveryRepository:
                         source_record_id = excluded.source_record_id,
                         value = excluded.value,
                         created_at = CURRENT_TIMESTAMP
-                    """,
-                    (
+                """,
+                (
                         item.entity_id,
                         item.field_name,
                         item.source_id,
                         source_record_id,
                         json.dumps(item.value, sort_keys=True),
-                    ),
-                )
-            conn.commit()
-            return source_record_id
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
+                ),
+            )
+        return source_record_id
 
     def start_ingestion(self, source_id: str) -> IngestionRun:
         run = IngestionRun(id=str(uuid4()), source_id=source_id)
@@ -363,8 +397,18 @@ class DiscoveryRepository:
         p = database.placeholder()
         try:
             self._require_ingestable_source(cursor, profile.source_id, p)
-            cursor.execute(
-                f"""
+            self._upsert_event_profile_row(cursor, p, profile)
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    @staticmethod
+    def _upsert_event_profile_row(cursor, p: str, profile: EventProfile) -> None:
+        cursor.execute(
+            f"""
                 INSERT INTO discovery_event_profiles (
                     entity_id, starts_at, ends_at, category, organiser,
                     ticketed, price_min, currency, booking_url, source_url,
@@ -382,27 +426,21 @@ class DiscoveryRepository:
                     source_url = excluded.source_url,
                     source_id = excluded.source_id,
                     updated_at = CURRENT_TIMESTAMP
-                """,
-                (
-                    profile.entity_id,
-                    profile.starts_at.isoformat(),
-                    profile.ends_at.isoformat() if profile.ends_at else None,
-                    profile.category,
-                    profile.organiser,
-                    int(profile.ticketed) if profile.ticketed is not None else None,
-                    profile.price_min,
-                    profile.currency,
-                    profile.booking_url,
-                    profile.source_url,
-                    profile.source_id,
-                ),
-            )
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
+            """,
+            (
+                profile.entity_id,
+                profile.starts_at.isoformat(),
+                profile.ends_at.isoformat() if profile.ends_at else None,
+                profile.category,
+                profile.organiser,
+                int(profile.ticketed) if profile.ticketed is not None else None,
+                profile.price_min,
+                profile.currency,
+                profile.booking_url,
+                profile.source_url,
+                profile.source_id,
+            ),
+        )
 
     def search_events(
         self,

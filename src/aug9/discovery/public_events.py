@@ -381,6 +381,7 @@ def run_public_event_imports(
     client: httpx.Client,
     *,
     on_source_start: Callable[[str], None] | None = None,
+    on_source_progress: Callable[[str, int, int, int], None] | None = None,
 ) -> list[tuple[str, object]]:
     interval = float(os.getenv("PUBLIC_EVENT_MIN_INTERVAL_SECONDS", "3"))
     http = GovernedHttpClient(client, minimum_interval_seconds=interval)
@@ -391,7 +392,13 @@ def run_public_event_imports(
         adapter = PublicEventAdapter(source, http)
         try:
             summary = DataAggregationEngine(
-                repository, max_records=250
+                repository,
+                max_records=250,
+                on_progress=(
+                    lambda received, upserted, rejected, source_id=source.id:
+                    on_source_progress(source_id, received, upserted, rejected)
+                    if on_source_progress else None
+                ),
             ).run(source.discovery_source(), adapter)
             results.append((source.id, summary))
         except (httpx.HTTPError, ValueError) as exc:

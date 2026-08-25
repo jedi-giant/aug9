@@ -18,6 +18,11 @@ def main() -> None:
             on_source_start=lambda source_id: print(
                 f"{source_id}: starting", flush=True
             ),
+            on_source_progress=lambda source_id, received, upserted, rejected: print(
+                f"{source_id}: progress received={received}, "
+                f"upserted={upserted}, rejected={rejected}",
+                flush=True,
+            ),
         )
     for source_id, summary in results:
         if isinstance(summary, Exception):
