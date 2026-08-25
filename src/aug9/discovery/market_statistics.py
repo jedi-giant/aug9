@@ -46,13 +46,22 @@ class MarketStatisticsImportSummary:
 
 class MarketStatisticsRepository:
     def upsert(self, statistic: MarketStatistic) -> None:
+        self.upsert_many([statistic])
+
+    def upsert_many(self, statistics: list[MarketStatistic]) -> None:
+        if not statistics:
+            return
+        source_ids = {statistic.source_id for statistic in statistics}
+        if len(source_ids) != 1:
+            raise ValueError("Market statistics batch must use one source")
+
         conn = database.get_connection()
         cursor = conn.cursor()
         p = database.placeholder()
         try:
             cursor.execute(
                 f"SELECT permission FROM discovery_sources WHERE id = {p}",
-                (statistic.source_id,),
+                (statistics[0].source_id,),
             )
             row = cursor.fetchone()
             ingestable = {
@@ -61,37 +70,40 @@ class MarketStatisticsRepository:
             }
             if row is None or row[0] not in ingestable:
                 raise ValueError("Market statistic source does not allow ingestion")
-            cursor.execute(
-                f"""
-                INSERT INTO market_statistics (
-                    source_id, dataset_id, external_id, metric, category,
-                    period, value, unit, geography, raw_payload, fetched_at
-                ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
-                ON CONFLICT(source_id, dataset_id, external_id) DO UPDATE SET
-                    metric = excluded.metric,
-                    category = excluded.category,
-                    period = excluded.period,
-                    value = excluded.value,
-                    unit = excluded.unit,
-                    geography = excluded.geography,
-                    raw_payload = excluded.raw_payload,
-                    fetched_at = excluded.fetched_at,
-                    updated_at = CURRENT_TIMESTAMP
-                """,
-                (
-                    statistic.source_id,
-                    statistic.dataset_id,
-                    statistic.external_id,
-                    statistic.metric,
-                    statistic.category,
-                    statistic.period,
-                    statistic.value,
-                    statistic.unit,
-                    statistic.geography,
-                    json.dumps(statistic.raw_payload, sort_keys=True),
-                    statistic.fetched_at.isoformat(),
-                ),
-            )
+            for statistic in statistics:
+                cursor.execute(
+                    f"""
+                    INSERT INTO market_statistics (
+                        source_id, dataset_id, external_id, metric, category,
+                        period, value, unit, geography, raw_payload, fetched_at
+                    ) VALUES (
+                        {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}
+                    )
+                    ON CONFLICT(source_id, dataset_id, external_id) DO UPDATE SET
+                        metric = excluded.metric,
+                        category = excluded.category,
+                        period = excluded.period,
+                        value = excluded.value,
+                        unit = excluded.unit,
+                        geography = excluded.geography,
+                        raw_payload = excluded.raw_payload,
+                        fetched_at = excluded.fetched_at,
+                        updated_at = CURRENT_TIMESTAMP
+                    """,
+                    (
+                        statistic.source_id,
+                        statistic.dataset_id,
+                        statistic.external_id,
+                        statistic.metric,
+                        statistic.category,
+                        statistic.period,
+                        statistic.value,
+                        statistic.unit,
+                        statistic.geography,
+                        json.dumps(statistic.raw_payload, sort_keys=True),
+                        statistic.fetched_at.isoformat(),
+                    ),
+                )
             conn.commit()
         except Exception:
             conn.rollback()
@@ -140,15 +152,18 @@ class FoodEstablishmentStatisticsImporter:
         received = upserted = rejected = 0
         try:
             fetched_at = datetime.now(UTC)
+            statistics: list[MarketStatistic] = []
             for dataset_id in FOOD_ESTABLISHMENTS_DATASETS:
                 for row in self.fetch_rows(dataset_id):
                     received += 1
                     try:
-                        statistic = self.normalise(dataset_id, row, fetched_at)
-                        self.statistics_repository.upsert(statistic)
-                        upserted += 1
+                        statistics.append(
+                            self.normalise(dataset_id, row, fetched_at)
+                        )
                     except (KeyError, TypeError, ValueError):
                         rejected += 1
+            self.statistics_repository.upsert_many(statistics)
+            upserted = len(statistics)
             self.discovery_repository.complete_ingestion(
                 run,
                 records_received=received,
