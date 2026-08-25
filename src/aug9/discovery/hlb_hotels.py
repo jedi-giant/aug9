@@ -187,100 +187,115 @@ class HlbHotelImporter:
         cursor = conn.cursor()
         p = database.placeholder()
         fetched_at = datetime.now(UTC).isoformat()
+        source_url = (
+            "https://data.gov.sg/datasets/"
+            f"{HLB_HOTELS_DATASET_ID}/view"
+        )
         try:
-            for hotel in hotels:
-                entity = hotel.entity
-                cursor.execute(
-                    f"""
-                    INSERT INTO discovery_entities (
-                        id, entity_type, name, description, address, postal_code,
-                        latitude, longitude, status, quality_score
-                    ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
-                    ON CONFLICT(id) DO UPDATE SET
-                        entity_type = excluded.entity_type,
-                        name = excluded.name,
-                        description = excluded.description,
-                        postal_code = excluded.postal_code,
-                        latitude = excluded.latitude,
-                        longitude = excluded.longitude,
-                        status = excluded.status,
-                        quality_score = excluded.quality_score,
-                        updated_at = CURRENT_TIMESTAMP
-                    """,
+            cursor.executemany(
+                f"""
+                INSERT INTO discovery_entities (
+                    id, entity_type, name, description, address, postal_code,
+                    latitude, longitude, status, quality_score
+                ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                ON CONFLICT(id) DO UPDATE SET
+                    entity_type = excluded.entity_type,
+                    name = excluded.name,
+                    description = excluded.description,
+                    postal_code = excluded.postal_code,
+                    latitude = excluded.latitude,
+                    longitude = excluded.longitude,
+                    status = excluded.status,
+                    quality_score = excluded.quality_score,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                [
                     (
-                        entity.id, entity.entity_type.value, entity.name,
-                        entity.description, entity.address, entity.postal_code,
-                        entity.latitude, entity.longitude, entity.status,
-                        entity.quality_score,
-                    ),
-                )
-                cursor.execute(
-                    f"""
-                    INSERT INTO discovery_source_records (
-                        source_id, external_id, entity_id, source_url,
-                        raw_payload, fetched_at, verified_at
-                    ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p})
-                    ON CONFLICT(source_id, external_id) DO UPDATE SET
-                        entity_id = excluded.entity_id,
-                        source_url = excluded.source_url,
-                        raw_payload = excluded.raw_payload,
-                        fetched_at = excluded.fetched_at
-                    """,
+                        hotel.entity.id, hotel.entity.entity_type.value,
+                        hotel.entity.name, hotel.entity.description,
+                        hotel.entity.address, hotel.entity.postal_code,
+                        hotel.entity.latitude, hotel.entity.longitude,
+                        hotel.entity.status, hotel.entity.quality_score,
+                    )
+                    for hotel in hotels
+                ],
+            )
+            cursor.executemany(
+                f"""
+                INSERT INTO discovery_source_records (
+                    source_id, external_id, entity_id, source_url,
+                    raw_payload, fetched_at, verified_at
+                ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p})
+                ON CONFLICT(source_id, external_id) DO UPDATE SET
+                    entity_id = excluded.entity_id,
+                    source_url = excluded.source_url,
+                    raw_payload = excluded.raw_payload,
+                    fetched_at = excluded.fetched_at
+                """,
+                [
                     (
-                        HLB_HOTELS_SOURCE_ID, hotel.external_id, entity.id,
-                        "https://data.gov.sg/datasets/"
-                        f"{HLB_HOTELS_DATASET_ID}/view",
+                        HLB_HOTELS_SOURCE_ID, hotel.external_id,
+                        hotel.entity.id, source_url,
                         json.dumps(hotel.raw_payload, sort_keys=True),
                         fetched_at, None,
-                    ),
-                )
-                cursor.execute(
-                    f"""
-                    SELECT id FROM discovery_source_records
-                    WHERE source_id = {p} AND external_id = {p}
-                    """,
-                    (HLB_HOTELS_SOURCE_ID, hotel.external_id),
-                )
-                source_record_id = cursor.fetchone()[0]
+                    )
+                    for hotel in hotels
+                ],
+            )
+            cursor.execute(
+                f"""
+                SELECT id, external_id FROM discovery_source_records
+                WHERE source_id = {p}
+                """,
+                (HLB_HOTELS_SOURCE_ID,),
+            )
+            record_ids = {external_id: row_id for row_id, external_id in cursor}
+            provenance_rows = []
+            for hotel in hotels:
                 for field_name in (
                     "name", "description", "postal_code", "latitude",
                     "longitude", "status",
                 ):
-                    value = getattr(entity, field_name)
-                    if value is None:
-                        continue
-                    cursor.execute(
-                        f"""
-                        INSERT INTO discovery_field_provenance (
-                            entity_id, field_name, source_id,
-                            source_record_id, value
-                        ) VALUES ({p}, {p}, {p}, {p}, {p})
-                        ON CONFLICT(entity_id, field_name, source_id) DO UPDATE SET
-                            source_record_id = excluded.source_record_id,
-                            value = excluded.value,
-                            created_at = CURRENT_TIMESTAMP
-                        """,
-                        (
-                            entity.id, field_name, HLB_HOTELS_SOURCE_ID,
-                            source_record_id, json.dumps(value),
-                        ),
-                    )
-                cursor.execute(
-                    f"""
-                    INSERT INTO discovery_hotel_profiles (
-                        entity_id, room_count, source_updated_at, source_id
-                    ) VALUES ({p}, {p}, {p}, {p})
-                    ON CONFLICT(entity_id) DO UPDATE SET
-                        room_count = excluded.room_count,
-                        source_updated_at = excluded.source_updated_at,
-                        source_id = excluded.source_id,
-                        updated_at = CURRENT_TIMESTAMP
-                    """,
+                    value = getattr(hotel.entity, field_name)
+                    if value is not None:
+                        provenance_rows.append(
+                            (
+                                hotel.entity.id, field_name,
+                                HLB_HOTELS_SOURCE_ID,
+                                record_ids[hotel.external_id], json.dumps(value),
+                            )
+                        )
+            cursor.executemany(
+                f"""
+                INSERT INTO discovery_field_provenance (
+                    entity_id, field_name, source_id, source_record_id, value
+                ) VALUES ({p}, {p}, {p}, {p}, {p})
+                ON CONFLICT(entity_id, field_name, source_id) DO UPDATE SET
+                    source_record_id = excluded.source_record_id,
+                    value = excluded.value,
+                    created_at = CURRENT_TIMESTAMP
+                """,
+                provenance_rows,
+            )
+            cursor.executemany(
+                f"""
+                INSERT INTO discovery_hotel_profiles (
+                    entity_id, room_count, source_updated_at, source_id
+                ) VALUES ({p}, {p}, {p}, {p})
+                ON CONFLICT(entity_id) DO UPDATE SET
+                    room_count = excluded.room_count,
+                    source_updated_at = excluded.source_updated_at,
+                    source_id = excluded.source_id,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                [
                     (
-                        entity.id, hotel.room_count, hotel.source_updated_at,
-                        HLB_HOTELS_SOURCE_ID,
-                    ),
-                )
+                        hotel.entity.id, hotel.room_count,
+                        hotel.source_updated_at, HLB_HOTELS_SOURCE_ID,
+                    )
+                    for hotel in hotels
+                ],
+            )
             conn.commit()
         except Exception:
             conn.rollback()
