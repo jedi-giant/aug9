@@ -23,6 +23,16 @@ def extract_entities(
         if location.lower() in user_input.lower():
             entities["location"] = location
 
+    lowered = user_input.lower()
+    matched_locations = [
+        location
+        for location in known_locations
+        if location.lower() in lowered
+    ]
+    if "from" in lowered and "to" in lowered and len(matched_locations) >= 2:
+        entities["origin"] = matched_locations[0]
+        entities["destination"] = matched_locations[1]
+
     return entities
 
 def create_plan(
@@ -61,6 +71,8 @@ def create_plan(
             "walk",
             "go",
             "get to",
+            "get from",
+            "how do i get",
             "route",
         ]
     ):

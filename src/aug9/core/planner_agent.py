@@ -34,6 +34,7 @@ Available capabilities:
 
 - food: recommend food places
 - weather: provide weather information
+- transport: provide routes between places
 
 Return a structured plan.
 
@@ -41,8 +42,10 @@ Use:
 
 - food when the user asks about eating, meals, hawker centres, restaurants
 - weather when the user asks about rain, forecast, weather
+- transport when the user asks how to travel, walk, or get from one place to another
 
 Extract location into entities.location.
+For transport, extract both entities.origin and entities.destination.
 
 For locations:
 - Return only the place name.

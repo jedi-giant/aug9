@@ -39,4 +39,12 @@ def compose_response(
                     f"{weather.weather.forecast}."
                 )
 
+    transport = execution.outputs.get("transport")
+
+    if transport and getattr(transport, "success", False):
+        route = transport.data.get("route", {})
+        summary = route.get("summary") or transport.summary
+        if summary:
+            messages.append(summary)
+
     return " ".join(messages)

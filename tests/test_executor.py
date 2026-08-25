@@ -6,6 +6,7 @@ from aug9.core.skill_registry import SkillRegistry
 from aug9.models import LocationSearchResult, SearchStatus, Weather, WeatherResult
 from aug9.sg_place.skill import SgPlaceSkill
 from aug9.sg_weather.skill import SgWeatherSkill
+from aug9.sg_transport.skill import SgTransportSkill
 
 
 class FakePlaceProvider:
@@ -21,6 +22,21 @@ class FakeWeatherProvider:
         return WeatherResult(
             status=SearchStatus.SUCCESS,
             weather=Weather(forecast="Fair"),
+        )
+
+
+class FakeRouteProvider:
+    def route(self, origin: Place, destination: Place):
+        from aug9.models import Route, RouteResult
+
+        return RouteResult(
+            status=SearchStatus.SUCCESS,
+            route=Route(
+                origin=origin.name,
+                destination=destination.name,
+                steps=["Bayfront Avenue"],
+                summary=f"Walk from {origin.name} to {destination.name}.",
+            ),
         )
 
 
@@ -103,3 +119,20 @@ def test_executor_runs_food_capability():
         result.outputs["food"].status.value
         == "success"
     )
+
+
+def test_executor_routes_transport_through_registry():
+    registry = SkillRegistry()
+    registry.register(SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()))
+    plan = Plan(
+        intent="Get from Maxwell to Marina Bay Sands",
+        required_capabilities=["transport"],
+        entities={
+            "origin": "Maxwell Food Centre",
+            "destination": "Marina Bay Sands",
+        },
+    )
+
+    result = execute_plan(plan, UserContext(), registry=registry)
+
+    assert result.outputs["transport"].success is True

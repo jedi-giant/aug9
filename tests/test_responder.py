@@ -69,3 +69,23 @@ def test_response_supports_registered_weather_skill_result():
     )
 
     assert compose_response(result) == "Weather forecast: Windy."
+
+
+def test_response_supports_registered_transport_skill_result():
+    result = ExecutionResult(
+        plan=Plan(intent="route", required_capabilities=["transport"]),
+        outputs={
+            "transport": SkillResult(
+                success=True,
+                data={
+                    "route": {
+                        "summary": "Walk from Maxwell Food Centre to Marina Bay Sands."
+                    }
+                },
+            )
+        },
+    )
+
+    assert compose_response(result) == (
+        "Walk from Maxwell Food Centre to Marina Bay Sands."
+    )
