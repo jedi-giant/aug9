@@ -96,7 +96,6 @@ def test_skill_offers_attributed_external_guides_when_catalog_is_empty():
 
     assert result.success is False
     assert [action.label for action in result.actions] == [
-        "Browse Source 1",
         "Browse Honeycombers events",
         "Browse Visit Singapore events",
     ]

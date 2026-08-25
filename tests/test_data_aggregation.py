@@ -137,9 +137,10 @@ def test_expired_events_are_archived(repository):
     assert repository.get_entity(entity_id).status == "archived"
 
 
-def test_schema_initialisation_archives_retired_eventbrite_entities(repository):
+@pytest.mark.parametrize("source_id", ["eventbrite_api", "today_do_what"])
+def test_schema_initialisation_archives_retired_entities(repository, source_id):
     retired = DiscoverySource(
-        id="eventbrite_api",
+        id=source_id,
         name="Retired source",
         permission=SourcePermission.LICENSED_PARTNER,
         base_url="https://example.org",

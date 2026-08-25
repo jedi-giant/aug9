@@ -212,7 +212,7 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
         """
         UPDATE discovery_sources
         SET active = 0, updated_at = CURRENT_TIMESTAMP
-        WHERE id = 'eventbrite_api'
+        WHERE id IN ('eventbrite_api', 'today_do_what')
         """
     )
     cursor.execute(
@@ -222,7 +222,7 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
         WHERE status = 'active'
           AND id IN (
               SELECT entity_id FROM discovery_source_records
-              WHERE source_id = 'eventbrite_api'
+              WHERE source_id IN ('eventbrite_api', 'today_do_what')
           )
         """
     )

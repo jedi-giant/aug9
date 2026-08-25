@@ -32,7 +32,6 @@ terms or partnership status changes.
 | Hotels Licensing Board dataset | `open_data` | Canonical licensed-hotel location layer |
 | `kangcodex/singapore-skills` | `research_only` | MIT code may be adapted with attribution; audit every upstream source separately |
 | `mayimian123/sg-event` | `research_only` | No repository licence confirmed; use as a source map only |
-| Source 1 (`todaydowhat.com`) | `legal_reviewed` | Counsel-approved minimal factual extraction only; retain domain attribution and outbound event links, and do not copy descriptions or images |
 | Honeycombers | `link_only` | Written permission is required before reproducing or adapting event content |
 | Visit Singapore Events Guide | `link_only` | Hyperlinking is allowed; automated copying requires STB's prior written permission |
 | ieatishootipost | `link_only` | Content requires express permission or a licence |
@@ -132,28 +131,9 @@ STB TIH cannot be used as the launch feed because STB retired it on 31 July
 events. Blogs, aggregators, and the referenced event repositories remain
 `link_only` or `research_only` unless their classification is explicitly
 changed following permission or legal review. When no canonical event matches,
-Aug9 may offer clearly attributed outbound links to Source 1,
-Honeycombers and Visit Singapore. Linked pages remain
-external; their event text, images, ratings, and compilation are not copied
-into Aug9's canonical database.
-
-### Source 1 controlled import
-
-Following Aug9's counsel review, the importer reads only publicly accessible
-activity cards from the Source 1 homepage. It stores the event name,
-location, displayed date and price label, and the public HTTPS event link. It
-does not store the publisher's description, images, or page compilation. Aug9
-generates a short factual description and preserves source attribution.
-
-```bash
-uv run aug9-import-today-do-what-events
-```
-
-The importer makes one page request per run, caps each run at 100 cards,
-rejects expired or malformed records, and does not bypass authentication,
-access controls, or anti-bot measures. Run it no more than once daily unless
-counsel and the source relationship support a different cadence. Remove or
-deactivate disputed records promptly through the established takedown process.
+Aug9 may offer clearly attributed outbound links to Honeycombers and Visit
+Singapore. Linked pages remain external; their event text, images, ratings,
+and compilation are not copied into Aug9's canonical database.
 
 ## Data aggregation engine
 
@@ -182,6 +162,6 @@ Run source importers first and the expiry job afterwards. Delivery continues
 through the existing discovery repository, skills, API, Base44 interface, and
 future Telegram adapter, keeping collection concerns out of public contracts.
 
-The retired Eventbrite integration is deactivated during schema initialization.
-Previously imported entities are archived rather than deleted so ingestion and
-provenance audit records remain available.
+Retired integrations, currently Eventbrite and Source 1, are deactivated during
+schema initialization. Previously imported entities are archived rather than
+deleted so ingestion and provenance audit records remain available.
