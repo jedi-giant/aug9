@@ -93,11 +93,12 @@ def build_product_analytics_report(
     capabilities: Counter[str] = Counter()
     campaigns: Counter[str] = Counter()
     for row in rows:
-        if row[2] == "query_submitted":
+        if row[2] == "result_generated":
             try:
                 capabilities.update(json.loads(row[3] or "[]"))
             except (json.JSONDecodeError, TypeError):
                 continue
+        if row[2] == "query_submitted":
             if row[5]:
                 campaigns[row[5]] += 1
 

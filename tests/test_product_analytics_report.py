@@ -43,6 +43,7 @@ def test_builds_prompt_free_activation_report():
         ProductEventType.RESULT_GENERATED,
         event_id="result-1",
         task_id="task-1",
+        capabilities=["hawkers", "place_resolution"],
     )
     log(
         ProductEventType.ACTION_CLICK,
@@ -62,6 +63,13 @@ def test_builds_prompt_free_activation_report():
         user_id="user-2",
         capabilities=["weather"],
     )
+    log(
+        ProductEventType.RESULT_GENERATED,
+        event_id="result-2",
+        task_id="task-2",
+        user_id="user-2",
+        capabilities=["weather"],
+    )
 
     report = build_product_analytics_report(
         days=7,
@@ -70,12 +78,12 @@ def test_builds_prompt_free_activation_report():
 
     assert report.landing_views == 1
     assert report.queries_submitted == 2
-    assert report.results_generated == 1
+    assert report.results_generated == 2
     assert report.successful_tasks == 1
     assert report.active_users == 2
     assert report.first_query_conversion_rate == 1.0
     assert report.successful_task_rate == 0.5
-    assert report.action_click_rate == 1.0
+    assert report.action_click_rate == 0.5
     assert report.positive_feedback_rate == 1.0
     assert report.capability_demand == {
         "hawkers": 1,
