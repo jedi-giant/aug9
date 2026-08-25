@@ -9,10 +9,26 @@ def plan(
 ):
 
     if PLANNER_MODE == "llm":
-        return create_llm_plan(
+        llm_plan = create_llm_plan(
             user_input,
             memory,
         )
+        rule_plan = create_plan(user_input)
+
+        llm_plan.required_capabilities = list(
+            dict.fromkeys(
+                [
+                    *llm_plan.required_capabilities,
+                    *rule_plan.required_capabilities,
+                ]
+            )
+        )
+
+        for name, value in rule_plan.entities.items():
+            if getattr(llm_plan.entities, name, None) is None:
+                setattr(llm_plan.entities, name, value)
+
+        return llm_plan
 
     return create_plan(
         user_input
