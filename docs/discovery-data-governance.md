@@ -104,3 +104,15 @@ uv run aug9-import-hlb-hotels
 address rather than a verified public website. Neither field is retained in the
 stored raw payload. All hotel records are written in one transaction to keep
 production imports idempotent and efficient.
+
+Hotel addresses are enriched separately through OneMap so HLB location facts
+and SLA address facts retain independent provenance. The job authenticates
+once and processes at most 50 hotels per run by default:
+
+```bash
+uv run aug9-enrich-hotel-addresses
+```
+
+Set `HOTEL_ADDRESS_ENRICHMENT_LIMIT` between 1 and 100 to change the batch size.
+Only exact postal-code matches are accepted. Existing HLB coordinates are not
+overwritten, and completed hotels are skipped on subsequent runs.

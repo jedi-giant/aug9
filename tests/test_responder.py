@@ -117,3 +117,17 @@ def test_response_supports_registered_hawker_skill_result():
     )
 
     assert compose_response(result) == "Hawker centres: Maxwell Food Centre."
+
+
+def test_response_supports_registered_hotel_skill_result():
+    result = ExecutionResult(
+        plan=Plan(intent="hotels", required_capabilities=["hotels"]),
+        outputs={
+            "hotels": SkillResult(
+                success=True,
+                data={"places": [{"name": "Hotel Bencoolen"}]},
+            )
+        },
+    )
+
+    assert compose_response(result) == "Licensed hotels: Hotel Bencoolen."

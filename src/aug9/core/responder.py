@@ -33,6 +33,16 @@ def compose_response(
         elif getattr(hawkers, "summary", None):
             messages.append(hawkers.summary)
 
+    hotels = execution.outputs.get("hotels")
+
+    if hotels:
+        if getattr(hotels, "success", False):
+            names = [place["name"] for place in hotels.data.get("places", [])]
+            if names:
+                messages.append("Licensed hotels: " + ", ".join(names) + ".")
+        elif getattr(hotels, "summary", None):
+            messages.append(hotels.summary)
+
     weather = execution.outputs.get("weather")
 
     if weather:

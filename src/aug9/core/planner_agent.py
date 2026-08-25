@@ -36,6 +36,7 @@ Available capabilities:
 - weather: provide weather information
 - transport: provide routes between places
 - hawkers: discover Singapore hawker centres
+- hotels: discover licensed Singapore hotels
 
 Return a structured plan.
 
@@ -45,6 +46,7 @@ Use:
 - weather when the user asks about rain, forecast, weather
 - transport when the user asks how to travel, walk, or get from one place to another
 - hawkers when the user asks to find or list hawker centres
+- hotels when the user asks to find or list hotels or accommodation
 
 Extract location into entities.location.
 For transport, extract both entities.origin and entities.destination.

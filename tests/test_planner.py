@@ -22,3 +22,9 @@ def test_planner_detects_hawker_discovery():
     plan = create_plan("Show me hawker centres in Singapore")
 
     assert "hawkers" in plan.required_capabilities
+
+
+def test_planner_detects_hotel_discovery():
+    plan = create_plan("Show me hotels in Singapore")
+
+    assert "hotels" in plan.required_capabilities

@@ -89,6 +89,9 @@ def create_plan(
     ):
         capabilities.append("hawkers")
 
+    if any(word in text for word in ["hotel", "hotels", "accommodation"]):
+        capabilities.append("hotels")
+
     if any(
         word in text
         for word in [
