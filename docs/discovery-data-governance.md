@@ -165,3 +165,35 @@ future Telegram adapter, keeping collection concerns out of public contracts.
 Retired integrations, currently Eventbrite and Source 1, are deactivated during
 schema initialization. Previously imported entities are archived rather than
 deleted so ingestion and provenance audit records remain available.
+
+## Counsel-approved public event collection
+
+The multi-source public event job covers Visit Singapore, Honeycombers,
+SETHLUI.com, Miss Tam Chiak, HeritageSG, DanielFoodDiary.com,
+ieatishootipost, Eventbrite, Ticketmaster Singapore, Peatix, SISTIC, and Today
+Do What. Each is registered separately as `legal_reviewed`; approval for one
+source never enables another source implicitly.
+
+```bash
+uv run aug9-import-public-events
+```
+
+The collector checks each site's robots policy, stays within an explicit HTTPS
+host boundary, waits at least three seconds between requests to the same host,
+limits pages and response sizes, and continues when one source is unavailable.
+Set `PUBLIC_EVENT_MIN_INTERVAL_SECONDS` to a value greater than or equal to 1;
+the production recommendation is 3 or higher. Schedule no more than one run per
+day initially.
+
+Only schema.org Event objects and the existing factual activity-card format are
+accepted. Stored fields are limited to event name, dates, venue/address, postal
+code, price, and source/booking URL. Publisher descriptions, article text,
+images, reviews, author/performer profiles, email addresses, social handles,
+and other personal data are discarded. Aug9 generates its own short factual
+description. Pages without usable event structure produce zero records instead
+of triggering broad article extraction.
+
+Facebook Events remains disabled until Aug9 has an approved Facebook API
+connection. The collector does not automate login, simulate a user session, or
+bypass access controls. A source blocked by robots or redirected outside its
+approved host boundary is recorded as a failed ingestion and skipped.
