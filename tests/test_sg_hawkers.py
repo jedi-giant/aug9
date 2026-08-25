@@ -1,6 +1,6 @@
 from aug9.core.context import UserContext
 from aug9.core.models import Place
-from aug9.sg_hawkers.provider import FoodCatalogHawkerProvider
+from aug9.sg_hawkers.provider import CuratedHawkerProvider
 from aug9.sg_hawkers.skill import SgHawkersSkill
 
 
@@ -9,10 +9,23 @@ class FakeHawkerProvider:
         return [Place(name="Maxwell Food Centre", place_type="hawker_centre")]
 
 
-def test_catalog_provider_deduplicates_hawker_centres():
-    places = FoodCatalogHawkerProvider().discover()
+def test_catalog_provider_loads_curated_hawker_centres():
+    places = CuratedHawkerProvider().discover()
 
-    assert [place.name for place in places] == ["Maxwell Food Centre"]
+    assert len(places) == 8
+    assert {place.name for place in places} >= {
+        "Maxwell Food Centre",
+        "Tiong Bahru Market",
+        "Newton Food Centre",
+    }
+    assert all(place.latitude is not None for place in places)
+    assert all(place.longitude is not None for place in places)
+
+
+def test_catalog_provider_filters_by_location_name():
+    places = CuratedHawkerProvider().discover("Newton")
+
+    assert [place.name for place in places] == ["Newton Food Centre"]
 
 
 def test_sg_hawkers_returns_structured_places():

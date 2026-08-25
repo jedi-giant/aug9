@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Maxwell Food Centre",
+    "place_type": "hawker_centre",
+    "address": "1 Kadayanallur Street, Singapore 069184",
+    "postal_code": "069184",
+    "latitude": 1.280331,
+    "longitude": 103.844747
+  },
+  {
+    "name": "Tiong Bahru Market",
+    "place_type": "hawker_centre",
+    "address": "30 Seng Poh Road, Singapore 168898",
+    "postal_code": "168898",
+    "latitude": 1.2847855982,
+    "longitude": 103.8321815466
+  },
+  {
+    "name": "Golden Mile Food Centre",
+    "place_type": "hawker_centre",
+    "address": "505 Beach Road, Singapore 199583",
+    "postal_code": "199583",
+    "latitude": 1.3031417531,
+    "longitude": 103.8638776157
+  },
+  {
+    "name": "Dunman Food Centre",
+    "place_type": "hawker_centre",
+    "address": "271 Onan Road, Singapore 424768",
+    "postal_code": "424768",
+    "latitude": 1.309417888,
+    "longitude": 103.9018254079
+  },
+  {
+    "name": "Newton Food Centre",
+    "place_type": "hawker_centre",
+    "address": "500 Clemenceau Avenue North, Singapore 229495",
+    "postal_code": "229495",
+    "latitude": 1.3119155204,
+    "longitude": 103.8395697287
+  },
+  {
+    "name": "Adam Road Food Centre",
+    "place_type": "hawker_centre",
+    "address": "2 Adam Road, Singapore 289876",
+    "postal_code": "289876",
+    "latitude": 1.3241598522,
+    "longitude": 103.814165924
+  },
+  {
+    "name": "Commonwealth Crescent Market",
+    "place_type": "hawker_centre",
+    "address": "31 Commonwealth Crescent, Singapore 149644",
+    "postal_code": "149644",
+    "latitude": 1.3069001324,
+    "longitude": 103.8003672714
+  },
+  {
+    "name": "Beo Crescent Market",
+    "place_type": "hawker_centre",
+    "address": "38A Beo Crescent, Singapore 169982",
+    "postal_code": "169982",
+    "latitude": 1.2888308916,
+    "longitude": 103.827353892
+  }
+]
