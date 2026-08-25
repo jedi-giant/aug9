@@ -132,6 +132,7 @@ Planned before further capability expansion:
 - Landing-to-first-query and seven-day retention measurement
 - Founder-led weekly build-in-public reporting
 - Registration-free first value
+- Private aggregate activation scorecard
 
 ## Food Intelligence ✅
 

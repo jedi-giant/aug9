@@ -110,6 +110,15 @@ action clicks, feedback, sharing, and explicit task completion. Product-event
 analytics deliberately do not accept raw prompt or free-text fields. See the
 [product requirements](docs/product-requirements.md).
 
+Generate a private aggregate activation scorecard from the Railway database:
+
+```bash
+uv run aug9-report-product-analytics --days 7
+```
+
+The report contains aggregate counts and rates only. It does not print prompts,
+anonymous visitor IDs, session IDs, or task IDs.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Keep credentials and personal data out
