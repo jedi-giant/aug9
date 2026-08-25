@@ -1,0 +1,65 @@
+# Developing an Aug9 skill
+
+An Aug9 skill owns one user-facing Singapore capability while keeping external
+data access behind a provider boundary.
+
+## 1. Choose a capability
+
+Capabilities describe what the planner needs, not which vendor supplies it.
+Prefer `events` or `parking` over names such as `vendor_events_api`.
+
+## 2. Create the package
+
+Use this structure:
+
+```text
+src/aug9/sg_example/
+├── __init__.py
+├── provider.py
+└── skill.py
+tests/test_sg_example.py
+skills/sg-example/SKILL.md
+```
+
+`provider.py` defines the interface and provider-specific implementation.
+`skill.py` translates planner entities and user context into a `SkillResult`.
+
+## 3. Implement the contract
+
+Subclass `Aug9Skill` and define `name`, `description`, `capabilities`, and
+`execute`. Successful results should provide a concise `summary`; structured
+data belongs in `data`, and safe user actions belong in `actions`.
+
+Return `success=False` for expected no-result or provider-failure states. Do
+not fabricate provider data.
+
+## 4. Register and route
+
+Register the skill in `core/default_skills.py`. If the capability is new, add
+planner detection and place it in the executor's dependency-aware execution
+order. Preserve existing capability names when replacing a legacy handler.
+
+## 5. Test without the network
+
+Inject a fake provider and cover:
+
+- capability matching
+- successful structured output
+- no-result behavior
+- provider failure behavior
+- action construction, if present
+- compatibility with related capabilities
+
+Mark tests that intentionally call a live service with `@pytest.mark.integration`.
+
+## 6. Document and verify
+
+Complete the skill's `SKILL.md`, document any environment variables in
+`.env.example`, and run:
+
+```bash
+uv run pytest -m "not integration"
+```
+
+For API-visible changes, add a contract test and verify the deployed `/chat`
+endpoint before updating a frontend client.

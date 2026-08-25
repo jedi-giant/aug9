@@ -1,0 +1,11 @@
+from typing import Protocol
+
+
+class ExampleProvider(Protocol):
+    def search(self, query: str) -> list[dict]: ...
+
+
+class LiveExampleProvider:
+    def search(self, query: str) -> list[dict]:
+        """Call the external source and translate its response here."""
+        raise NotImplementedError

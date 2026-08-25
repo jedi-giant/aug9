@@ -1,0 +1,37 @@
+from typing import Any
+
+from aug9.core.context import UserContext
+from aug9.core.skill import Aug9Skill, SkillResult
+
+from .provider import ExampleProvider
+
+
+class SgExampleSkill(Aug9Skill):
+    name = "sg_example"
+    description = "Replace with a concise capability description"
+
+    def __init__(self, provider: ExampleProvider):
+        self._provider = provider
+
+    @property
+    def capabilities(self) -> list[str]:
+        return ["example"]
+
+    def execute(
+        self,
+        context: UserContext,
+        entities: dict[str, Any],
+    ) -> SkillResult:
+        query = str(entities.get("query") or "").strip()
+        if not query:
+            return SkillResult(success=False, summary="A query is required.")
+
+        results = self._provider.search(query)
+        if not results:
+            return SkillResult(success=False, summary="No results found.")
+
+        return SkillResult(
+            success=True,
+            data={"results": results},
+            summary=f"Found {len(results)} result(s).",
+        )

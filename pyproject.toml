@@ -1,7 +1,7 @@
 [project]
 name = "aug9"
 version = "0.1.0"
-description = "Add your description here"
+description = "Open-source Singapore personal agent powered by trusted local data"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

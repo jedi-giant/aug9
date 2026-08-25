@@ -4,6 +4,14 @@ from aug9.cli import main
 from aug9.core.models import Place
 from aug9.models import LocationSearchResult, SearchStatus
 
+ONEMAP_ENV = {
+    "ONEMAP_BASE_URL": "https://example.test",
+    "ONEMAP_EMAIL": "test@example.test",
+    "ONEMAP_PASSWORD": "test-password",
+}
+
+
+@patch.dict("os.environ", ONEMAP_ENV)
 @patch("aug9.cli.search_location")
 @patch("aug9.cli.get_token")
 @patch("sys.argv", ["aug9", "Maxwell Food Centre"])
@@ -28,6 +36,8 @@ def test_main_prints_location(mock_get_token, mock_search_location, capsys):
 
     assert "MAXWELL FOOD CENTRE" in captured.out
 
+
+@patch.dict("os.environ", ONEMAP_ENV)
 @patch("aug9.cli.search_location")
 @patch("aug9.cli.get_token")
 @patch("sys.argv", ["aug9", "xyzabcnotaplace123"])
@@ -45,6 +55,8 @@ def test_main_prints_no_results(mock_get_token, mock_search_location, capsys):
 
     assert 'No location found for "xyzabcnotaplace123".' in captured.out
 
+
+@patch.dict("os.environ", ONEMAP_ENV)
 @patch("aug9.cli.search_location")
 @patch("aug9.cli.get_token")
 @patch("sys.argv", ["aug9", "Maxwell Food Centre"])
