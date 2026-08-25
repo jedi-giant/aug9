@@ -5,7 +5,6 @@ import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
-from urllib.parse import urljoin, urlparse
 
 import httpx
 from pydantic import BaseModel
@@ -20,7 +19,7 @@ FOOD_ESTABLISHMENTS_DATASETS = (
     "d_dbf37846568f6a5595b4f16f110b4619",
     "d_6188a67536a7a12751ee690e96b506fa",
 )
-DATASET_API_ROOT = "https://api-production.data.gov.sg"
+DATASTORE_URL = "https://data.gov.sg/api/action/datastore_search"
 
 
 class MarketStatistic(BaseModel):
@@ -170,24 +169,19 @@ class FoodEstablishmentStatisticsImporter:
             raise
 
     def fetch_rows(self, dataset_id: str) -> list[dict[str, Any]]:
-        path = f"/v2/public/api/datasets/{dataset_id}/list-rows"
-        url = urljoin(DATASET_API_ROOT, path)
-        rows: list[dict[str, Any]] = []
-        while url:
-            response = self.client.get(url)
-            response.raise_for_status()
-            payload = response.json()
-            if payload.get("code") != 0:
-                raise ValueError("data.gov.sg returned an unsuccessful response")
-            data = payload.get("data")
-            page_rows = data.get("rows") if isinstance(data, dict) else None
-            if not isinstance(page_rows, list):
-                raise ValueError("data.gov.sg response does not contain rows")
-            rows.extend(page_rows)
-            next_query = (data.get("links") or {}).get("next")
-            url = f"{urljoin(DATASET_API_ROOT, path)}?{next_query}" if next_query else ""
-            if url and urlparse(url).hostname != "api-production.data.gov.sg":
-                raise ValueError("data.gov.sg returned an unexpected next page")
+        response = self.client.get(
+            DATASTORE_URL,
+            params={"resource_id": dataset_id, "limit": 1000},
+        )
+        response.raise_for_status()
+        payload = response.json()
+        result = payload.get("result")
+        rows = result.get("records") if isinstance(result, dict) else None
+        if payload.get("success") is not True or not isinstance(rows, list):
+            raise ValueError("data.gov.sg response does not contain records")
+        total = result.get("total")
+        if isinstance(total, int) and total > len(rows):
+            raise ValueError("data.gov.sg dataset exceeds the bulk import limit")
         return rows
 
     @staticmethod
@@ -202,7 +196,7 @@ class FoodEstablishmentStatisticsImporter:
         value = float(row["value"])
         if value < 0:
             raise ValueError("Statistic value cannot be negative")
-        external_id = str(row.get("vault_id") or "").strip()
+        external_id = str(row.get("vault_id") or row.get("_id") or "").strip()
         if not external_id:
             raise ValueError("Statistic is missing its source row id")
         category = str(row.get("level_2") or "").strip() or None

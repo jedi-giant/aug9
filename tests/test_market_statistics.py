@@ -5,7 +5,7 @@ import pytest
 
 from aug9.core import database
 from aug9.discovery.market_statistics import (
-    DATASET_API_ROOT,
+    DATASTORE_URL,
     FOOD_ESTABLISHMENTS_DATASETS,
     FoodEstablishmentStatisticsImporter,
 )
@@ -24,22 +24,24 @@ def test_food_statistics_importer_keeps_aggregates_out_of_discovery(repository):
     first_dataset, second_dataset = FOOD_ESTABLISHMENTS_DATASETS
     responses = {
         first_dataset: [{
-            "vault_id": "1", "year": "1993",
+            "_id": 1, "year": "1993",
             "level_1": "Total Licensed Food Establishments", "value": "20642",
         }],
         second_dataset: [{
-            "vault_id": "1", "year": "1993",
+            "_id": 1, "year": "1993",
             "level_1": "Total Licensed Food Establishments",
             "level_2": "Food Shops", "value": "7469",
         }],
     }
 
     def handler(request: httpx.Request) -> httpx.Response:
-        dataset_id = request.url.path.split("/")[-2]
+        dataset_id = request.url.params["resource_id"]
         return httpx.Response(200, json={
-            "code": 0,
-            "data": {"rows": responses[dataset_id], "links": {}},
-            "errorMsg": "",
+            "success": True,
+            "result": {
+                "records": responses[dataset_id],
+                "total": len(responses[dataset_id]),
+            },
         })
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
@@ -69,48 +71,43 @@ def test_food_statistics_importer_keeps_aggregates_out_of_discovery(repository):
     assert json.loads(rows[0][6])["year"] == "1993"
 
 
-def test_food_statistics_importer_follows_pagination(repository):
+def test_food_statistics_importer_uses_single_bulk_request(repository):
     calls: list[str] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         calls.append(str(request.url))
-        cursor = request.url.params.get("idCursor[value]")
-        if cursor is None:
-            rows = [{
-                "vault_id": "1", "year": "2016",
-                "level_1": "Total Licensed Food Establishments", "value": "1",
-            }]
-            links = {"next": "idCursor%5Bvalue%5D=1"}
-        else:
-            rows = [{
-                "vault_id": "2", "year": "2017",
-                "level_1": "Total Licensed Food Establishments", "value": "2",
-            }]
-            links = {}
-        return httpx.Response(
-            200, json={"code": 0, "data": {"rows": rows, "links": links}}
-        )
+        rows = [
+            {"vault_id": "1", "year": "2016",
+             "level_1": "Total Licensed Food Establishments", "value": "1"},
+            {"vault_id": "2", "year": "2017",
+             "level_1": "Total Licensed Food Establishments", "value": "2"},
+        ]
+        return httpx.Response(200, json={
+            "success": True,
+            "result": {"records": rows, "total": 2},
+        })
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
     importer = FoodEstablishmentStatisticsImporter(repository, client=client)
     rows = importer.fetch_rows(FOOD_ESTABLISHMENTS_DATASETS[0])
 
     assert len(rows) == 2
-    assert len(calls) == 2
-    assert calls[0].startswith(DATASET_API_ROOT)
+    assert len(calls) == 1
+    assert calls[0].startswith(DATASTORE_URL)
+    assert "limit=1000" in calls[0]
 
 
 def test_food_statistics_importer_rejects_bad_rows(repository):
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={
-            "code": 0,
-            "data": {
-                "rows": [{
+            "success": True,
+            "result": {
+                "records": [{
                     "vault_id": "bad", "year": "unknown",
                     "level_1": "Total Licensed Food Establishments",
                     "value": "not-a-number",
                 }],
-                "links": {},
+                "total": 1,
             },
         })
 
