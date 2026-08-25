@@ -51,6 +51,17 @@ class DatabaseHawkerProvider:
             return self.fallback.discover(query)
 
         if not entities:
+            if query:
+                try:
+                    canonical_records = self.repository.search_entities(
+                        None,
+                        entity_type=EntityType.HAWKER_CENTRE.value,
+                        limit=1,
+                    )
+                except (psycopg.Error, sqlite3.Error):
+                    return self.fallback.discover(query)
+                if canonical_records:
+                    return []
             return self.fallback.discover(query)
 
         return [

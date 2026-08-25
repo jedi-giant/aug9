@@ -9,7 +9,7 @@ from aug9.sg_hawkers.provider import HawkerProvider
 
 class SgHawkersSkill(Aug9Skill):
     name = "sg_hawkers"
-    description = "Discover hawker centres in Aug9's curated Singapore catalog"
+    description = "Discover active Singapore hawker centres from governed data"
     version = "0.1.0"
 
     def __init__(self, provider: HawkerProvider) -> None:
@@ -29,7 +29,7 @@ class SgHawkersSkill(Aug9Skill):
         if not places:
             return SkillResult(
                 success=False,
-                summary="No hawker centres are available in the current catalog.",
+                summary="No matching active hawker centres were found.",
             )
 
         return SkillResult(

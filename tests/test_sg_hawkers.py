@@ -20,15 +20,18 @@ class FakeHawkerProvider:
 
 
 class FakeDiscoveryRepository:
-    def __init__(self, entities=None, error=None) -> None:
+    def __init__(self, entities=None, error=None, results=None) -> None:
         self.entities = entities or []
         self.error = error
+        self.results = results
         self.calls = []
 
     def search_entities(self, query, *, entity_type, limit):
         self.calls.append((query, entity_type, limit))
         if self.error:
             raise self.error
+        if self.results is not None:
+            return self.results.get(query, self.entities)
         return self.entities
 
 
@@ -92,6 +95,32 @@ def test_database_provider_falls_back_when_database_is_unavailable():
 
     assert [place.name for place in places] == ["Maxwell Food Centre"]
     assert fallback.queries == ["Newton"]
+
+
+def test_database_provider_does_not_fall_back_for_unmatched_query():
+    canonical = DiscoveryEntity(
+        id="hawker:123",
+        entity_type=EntityType.HAWKER_CENTRE,
+        name="Adam Road Food Centre",
+    )
+    repository = FakeDiscoveryRepository(
+        entities=[canonical],
+        results={"Anchorvale Village": []},
+    )
+    fallback = FakeHawkerProvider()
+    provider = DatabaseHawkerProvider(
+        repository=repository,
+        fallback=fallback,
+    )
+
+    places = provider.discover("Anchorvale Village")
+
+    assert places == []
+    assert fallback.queries == []
+    assert repository.calls == [
+        ("Anchorvale Village", EntityType.HAWKER_CENTRE.value, 12),
+        (None, EntityType.HAWKER_CENTRE.value, 1),
+    ]
 
 
 def test_sg_hawkers_returns_structured_places():
