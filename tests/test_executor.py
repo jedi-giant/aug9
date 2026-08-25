@@ -1,10 +1,11 @@
 from aug9.core.context import UserContext
-from aug9.core.executor import CAPABILITIES, execute_plan
+from aug9.core.executor import execute_plan
 from aug9.core.planner import Plan
 from aug9.core.models import Place
 from aug9.core.skill_registry import SkillRegistry
 from aug9.models import LocationSearchResult, SearchStatus, Weather, WeatherResult
 from aug9.sg_place.skill import SgPlaceSkill
+from aug9.sg_weather.skill import SgWeatherSkill
 
 
 class FakePlaceProvider:
@@ -12,6 +13,14 @@ class FakePlaceProvider:
         return LocationSearchResult(
             status=SearchStatus.SUCCESS,
             location=Place(name=query),
+        )
+
+
+class FakeWeatherProvider:
+    def forecast(self, place: Place) -> WeatherResult:
+        return WeatherResult(
+            status=SearchStatus.SUCCESS,
+            weather=Weather(forecast="Fair"),
         )
 
 
@@ -32,18 +41,9 @@ def test_executor_routes_place_resolution_through_registry():
         == "Maxwell Food Centre"
     )
 
-def test_executor_runs_weather_capability(monkeypatch):
-
-    monkeypatch.setitem(
-        CAPABILITIES,
-        "weather",
-        {
-            "handler": lambda context, entities: WeatherResult(
-                status=SearchStatus.SUCCESS,
-                weather=Weather(forecast="Fair"),
-            )
-        },
-    )
+def test_executor_runs_weather_capability():
+    registry = SkillRegistry()
+    registry.register(SgWeatherSkill(FakeWeatherProvider()))
 
     plan = Plan(
         intent="Check weather at Maxwell",
@@ -66,13 +66,12 @@ def test_executor_runs_weather_capability(monkeypatch):
     result = execute_plan(
         plan,
         context,
+        registry=registry,
     )
 
     assert "weather" in result.outputs
-    assert (
-        result.outputs["weather"].status.value
-        == "success"
-    )
+    assert result.outputs["weather"].success is True
+    assert result.outputs["weather"].data["weather"]["forecast"] == "Fair"
 
 def test_executor_runs_food_capability():
 

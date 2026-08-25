@@ -26,6 +26,12 @@ def compose_response(
     weather = execution.outputs.get("weather")
 
     if weather:
+        if getattr(weather, "success", False):
+            forecast = weather.data.get("weather", {}).get("forecast")
+            if forecast:
+                messages.append(
+                    f"Weather forecast: {forecast}."
+                )
         if hasattr(weather, "weather"):
             if weather.weather:
                 messages.append(

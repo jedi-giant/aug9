@@ -6,7 +6,7 @@ from aug9.core.models import Place
 from aug9.models import SearchStatus
 from aug9.weather import get_weather
 
-@patch("aug9.weather.httpx.get")
+@patch("aug9.sg_weather.provider.httpx.get")
 def test_get_weather_returns_network_error(mock_get):
     mock_get.side_effect = httpx.RequestError(
         "Network unavailable"
@@ -26,7 +26,7 @@ def test_get_weather_returns_network_error(mock_get):
     assert result.status == SearchStatus.NETWORK_ERROR
     assert result.message == "Network unavailable"
 
-@patch("aug9.weather.httpx.get")
+@patch("aug9.sg_weather.provider.httpx.get")
 def test_get_weather_returns_api_error(mock_get):
     mock_response = Mock()
 
@@ -52,7 +52,7 @@ def test_get_weather_returns_api_error(mock_get):
     assert result.status == SearchStatus.API_ERROR
     assert "HTTP 500" in result.message
 
-@patch("aug9.weather.httpx.get")
+@patch("aug9.sg_weather.provider.httpx.get")
 def test_get_weather_returns_forecast_for_nearest_area(mock_get):
     mock_response = Mock()
 

@@ -1,6 +1,5 @@
 from aug9.core.context import UserContext
 from aug9.food import get_food_recommendations
-from aug9.weather import get_weather
 
 def execute_food(
     context: UserContext,
@@ -35,15 +34,4 @@ def execute_food(
     return get_food_recommendations(
         location,
         preferences,
-    )
-
-def execute_weather(
-    context: UserContext,
-    entities: dict[str, str],
-):
-    if context.current_place is None:
-        return "No location available"
-
-    return get_weather(
-        context.current_place
     )

@@ -9,6 +9,7 @@ from aug9.models import (
     SearchStatus,
 )
 from aug9.core.models import Place
+from aug9.core.skill import SkillResult
 
 
 def test_response_combines_food_and_weather():
@@ -54,3 +55,17 @@ def test_response_combines_food_and_weather():
 
     assert "Tian Tian Chicken Rice" in response
     assert "Partly cloudy" in response
+
+
+def test_response_supports_registered_weather_skill_result():
+    result = ExecutionResult(
+        plan=Plan(intent="weather", required_capabilities=["weather"]),
+        outputs={
+            "weather": SkillResult(
+                success=True,
+                data={"weather": {"forecast": "Windy"}},
+            )
+        },
+    )
+
+    assert compose_response(result) == "Weather forecast: Windy."
