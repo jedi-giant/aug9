@@ -1,9 +1,49 @@
 from aug9.core.context import UserContext
-from aug9.core.executor import execute_plan
+from aug9.core.executor import CAPABILITIES, execute_plan
 from aug9.core.planner import Plan
 from aug9.core.models import Place
+from aug9.core.skill_registry import SkillRegistry
+from aug9.models import LocationSearchResult, SearchStatus, Weather, WeatherResult
+from aug9.sg_place.skill import SgPlaceSkill
 
-def test_executor_runs_weather_capability():
+
+class FakePlaceProvider:
+    def search(self, query: str) -> LocationSearchResult:
+        return LocationSearchResult(
+            status=SearchStatus.SUCCESS,
+            location=Place(name=query),
+        )
+
+
+def test_executor_routes_place_resolution_through_registry():
+    registry = SkillRegistry()
+    registry.register(SgPlaceSkill(FakePlaceProvider()))
+    plan = Plan(
+        intent="Find Maxwell",
+        required_capabilities=["place_resolution"],
+        entities={"location": "Maxwell Food Centre"},
+    )
+
+    result = execute_plan(plan, UserContext(), registry=registry)
+
+    assert result.outputs["place_resolution"].success is True
+    assert (
+        result.outputs["place_resolution"].data["place"]["name"]
+        == "Maxwell Food Centre"
+    )
+
+def test_executor_runs_weather_capability(monkeypatch):
+
+    monkeypatch.setitem(
+        CAPABILITIES,
+        "weather",
+        {
+            "handler": lambda context, entities: WeatherResult(
+                status=SearchStatus.SUCCESS,
+                weather=Weather(forecast="Fair"),
+            )
+        },
+    )
 
     plan = Plan(
         intent="Check weather at Maxwell",

@@ -1,18 +1,6 @@
 from aug9.core.context import UserContext
 from aug9.food import get_food_recommendations
 from aug9.weather import get_weather
-from aug9.core.context import UserContext
-from aug9.onemap import get_token, search_location
-
-
-def execute_place_resolution(
-    context: UserContext,
-    entities,
-):
-    if context.current_place is not None:
-        return context.current_place
-
-    return None
 
 def execute_food(
     context: UserContext,

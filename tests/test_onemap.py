@@ -6,7 +6,7 @@ from aug9.onemap import search_location
 from aug9.onemap import get_token, search_location
 from aug9.models import SearchStatus
 
-@patch("aug9.onemap.httpx.get")
+@patch("aug9.sg_place.provider.httpx.get")
 def test_search_location_retries_without_singapore_suffix(mock_get):
     first_response = Mock()
     first_response.json.return_value = {
@@ -44,7 +44,7 @@ def test_search_location_retries_without_singapore_suffix(mock_get):
     assert result.location.name == "MAXWELL FOOD CENTRE"
     assert mock_get.call_count == 2
 
-@patch("aug9.onemap.httpx.post")
+@patch("aug9.sg_place.provider.httpx.post")
 def test_get_token_returns_none_on_http_error(mock_post):
     mock_response = Mock()
     mock_response.status_code = 401
@@ -65,7 +65,7 @@ def test_get_token_returns_none_on_http_error(mock_post):
 
     assert token is None
 
-@patch("aug9.onemap.httpx.post")
+@patch("aug9.sg_place.provider.httpx.post")
 def test_get_token_returns_token(mock_post):
     mock_response = Mock()
 
@@ -84,7 +84,7 @@ def test_get_token_returns_token(mock_post):
 
     assert token == "fake-token"
 
-@patch("aug9.onemap.httpx.post")
+@patch("aug9.sg_place.provider.httpx.post")
 def test_get_token_returns_none_on_network_error(mock_post):
     mock_post.side_effect = httpx.RequestError(
         "Network unavailable"
@@ -98,7 +98,7 @@ def test_get_token_returns_none_on_network_error(mock_post):
 
     assert token is None
 
-@patch("aug9.onemap.httpx.get")
+@patch("aug9.sg_place.provider.httpx.get")
 def test_search_location_returns_location(mock_get):
     mock_response = Mock()
 
@@ -130,7 +130,7 @@ def test_search_location_returns_location(mock_get):
     assert result.location.postal_code == "069184"
     assert isinstance(result.location.latitude, float)
 
-@patch("aug9.onemap.httpx.get")
+@patch("aug9.sg_place.provider.httpx.get")
 def test_search_location_returns_none_when_no_results(mock_get):
     mock_response = Mock()
 
@@ -150,7 +150,7 @@ def test_search_location_returns_none_when_no_results(mock_get):
     assert result.status == SearchStatus.NO_RESULTS
     assert result.location is None
 
-@patch("aug9.onemap.httpx.get")
+@patch("aug9.sg_place.provider.httpx.get")
 def test_search_location_returns_none_on_network_error(mock_get):
     mock_get.side_effect = httpx.RequestError(
         "Network unavailable"
