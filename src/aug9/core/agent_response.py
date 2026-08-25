@@ -24,8 +24,14 @@ def compose_agent_response(execution: ExecutionResult) -> AgentResponse:
         if output.data:
             skill_data[capability] = output.data
 
+    metadata: dict[str, Any] = {
+        "requested_capabilities": execution.plan.required_capabilities,
+    }
+    if skill_data:
+        metadata["skills"] = skill_data
+
     return AgentResponse(
         response=compose_response(execution),
         actions=actions,
-        metadata={"skills": skill_data} if skill_data else {},
+        metadata=metadata,
     )

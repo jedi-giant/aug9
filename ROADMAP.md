@@ -118,6 +118,21 @@ Potential data sources:
 
 # v0.3 — Singapore Discovery
 
+## GTM Activation & Learning — In progress
+
+North star:
+
+`Weekly Singapore Tasks Successfully Completed`
+
+Planned before further capability expansion:
+
+- Anonymous acquisition and task-event tracking
+- Stable task IDs across result, action, and feedback events
+- Action-click and explicit helpfulness completion signals
+- Landing-to-first-query and seven-day retention measurement
+- Founder-led weekly build-in-public reporting
+- Registration-free first value
+
 ## Food Intelligence ✅
 
 Capability:

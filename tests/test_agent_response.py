@@ -29,3 +29,4 @@ def test_agent_response_collects_actions_and_skill_metadata():
     assert result.metadata["skills"]["transport"]["route"]["summary"] == (
         "Walk to Marina Bay Sands."
     )
+    assert result.metadata["requested_capabilities"] == ["transport"]

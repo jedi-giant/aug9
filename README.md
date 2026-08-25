@@ -90,7 +90,8 @@ Discovery-data contributors must also follow the
 
 ## API compatibility
 
-`POST /chat` accepts `user_id`, `session_id`, and `message`. Its response is:
+`POST /chat` accepts `user_id`, `session_id`, `message`, and an optional
+client-generated `task_id`. Its response is:
 
 ```json
 {
@@ -102,6 +103,12 @@ Discovery-data contributors must also follow the
 
 Clients may rely on `response`. `actions` and `metadata` are additive and may
 be empty.
+
+`metadata.task_id` links the generated result to subsequent product events.
+Clients can send bounded, prompt-free activation events to `POST /events` for
+action clicks, feedback, sharing, and explicit task completion. Product-event
+analytics deliberately do not accept raw prompt or free-text fields. See the
+[product requirements](docs/product-requirements.md).
 
 ## Contributing
 
