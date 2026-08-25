@@ -158,6 +158,15 @@ Planned:
 
 ## Events Intelligence
 
+Runtime foundation: ✅
+
+- Governed event profiles and provider separation
+- Date, category, and location filtering
+- Planner, registry, executor, response, and action integration
+- Source and booking links with provenance boundaries
+
+Launch-data feed: pending a current open-data or licensed partner source
+
 Capability:
 
 `sg-events`

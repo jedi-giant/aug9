@@ -28,3 +28,9 @@ def test_planner_detects_hotel_discovery():
     plan = create_plan("Show me hotels in Singapore")
 
     assert "hotels" in plan.required_capabilities
+
+
+def test_planner_detects_event_discovery():
+    plan = create_plan("What events are happening this weekend?")
+
+    assert "events" in plan.required_capabilities

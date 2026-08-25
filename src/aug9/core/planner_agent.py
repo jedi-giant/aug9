@@ -37,6 +37,7 @@ Available capabilities:
 - transport: provide routes between places
 - hawkers: discover Singapore hawker centres
 - hotels: discover licensed Singapore hotels
+- events: discover upcoming Singapore activities and events
 
 Return a structured plan.
 
@@ -47,8 +48,11 @@ Use:
 - transport when the user asks how to travel, walk, or get from one place to another
 - hawkers when the user asks to find or list hawker centres
 - hotels when the user asks to find or list hotels or accommodation
+- events when the user asks what to do, or for events, activities, concerts,
+  exhibitions, festivals, or weekend plans
 
 Extract location into entities.location.
+Extract a broad event category into entities.category when clearly requested.
 For transport, extract both entities.origin and entities.destination.
 
 For locations:

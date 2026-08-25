@@ -22,6 +22,7 @@ def execute_plan(
         "place_resolution",
         "hawkers",
         "hotels",
+        "events",
         "food",
         "weather",
         "transport",

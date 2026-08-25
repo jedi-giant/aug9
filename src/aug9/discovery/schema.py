@@ -181,3 +181,29 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
         )
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS discovery_event_profiles (
+            entity_id TEXT PRIMARY KEY,
+            starts_at TIMESTAMP NOT NULL,
+            ends_at TIMESTAMP,
+            category TEXT,
+            organiser TEXT,
+            ticketed INTEGER,
+            price_min REAL,
+            currency TEXT NOT NULL DEFAULT 'SGD',
+            booking_url TEXT,
+            source_url TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(entity_id) REFERENCES discovery_entities(id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS discovery_event_profiles_starts_at_idx
+        ON discovery_event_profiles(starts_at)
+        """
+    )

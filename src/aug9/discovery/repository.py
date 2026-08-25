@@ -6,6 +6,7 @@ from aug9.core import database
 from aug9.discovery.models import (
     DiscoveryEntity,
     DiscoverySource,
+    EventProfile,
     FieldProvenance,
     FoodProfile,
     IngestionRun,
@@ -354,6 +355,118 @@ class DiscoveryRepository:
             raise
         finally:
             conn.close()
+
+    def upsert_event_profile(self, profile: EventProfile) -> None:
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        try:
+            self._require_ingestable_source(cursor, profile.source_id, p)
+            cursor.execute(
+                f"""
+                INSERT INTO discovery_event_profiles (
+                    entity_id, starts_at, ends_at, category, organiser,
+                    ticketed, price_min, currency, booking_url, source_url,
+                    source_id
+                ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                ON CONFLICT(entity_id) DO UPDATE SET
+                    starts_at = excluded.starts_at,
+                    ends_at = excluded.ends_at,
+                    category = excluded.category,
+                    organiser = excluded.organiser,
+                    ticketed = excluded.ticketed,
+                    price_min = excluded.price_min,
+                    currency = excluded.currency,
+                    booking_url = excluded.booking_url,
+                    source_url = excluded.source_url,
+                    source_id = excluded.source_id,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (
+                    profile.entity_id,
+                    profile.starts_at.isoformat(),
+                    profile.ends_at.isoformat() if profile.ends_at else None,
+                    profile.category,
+                    profile.organiser,
+                    int(profile.ticketed) if profile.ticketed is not None else None,
+                    profile.price_min,
+                    profile.currency,
+                    profile.booking_url,
+                    profile.source_url,
+                    profile.source_id,
+                ),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def search_events(
+        self,
+        *,
+        query: str | None = None,
+        starts_after: datetime | None = None,
+        starts_before: datetime | None = None,
+        category: str | None = None,
+        limit: int = 12,
+    ) -> list[tuple[DiscoveryEntity, EventProfile]]:
+        if limit < 1 or limit > 100:
+            raise ValueError("limit must be between 1 and 100")
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        filters = ["e.status = 'active'", "e.entity_type = 'event'"]
+        parameters: list[object] = []
+        if query:
+            filters.append(f"(LOWER(e.name) LIKE {p} OR LOWER(e.address) LIKE {p})")
+            value = f"%{query.casefold().strip()}%"
+            parameters.extend((value, value))
+        if starts_after:
+            filters.append(f"COALESCE(ep.ends_at, ep.starts_at) >= {p}")
+            parameters.append(starts_after.isoformat())
+        if starts_before:
+            filters.append(f"ep.starts_at < {p}")
+            parameters.append(starts_before.isoformat())
+        if category:
+            filters.append(f"LOWER(ep.category) = {p}")
+            parameters.append(category.casefold().strip())
+        parameters.append(limit)
+        cursor.execute(
+            f"""
+            SELECT {', '.join('e.' + item.strip() for item in self._ENTITY_COLUMNS.split(','))},
+                   ep.starts_at, ep.ends_at, ep.category, ep.organiser,
+                   ep.ticketed, ep.price_min, ep.currency, ep.booking_url,
+                   ep.source_url, ep.source_id
+            FROM discovery_entities e
+            JOIN discovery_event_profiles ep ON ep.entity_id = e.id
+            WHERE {' AND '.join(filters)}
+            ORDER BY ep.starts_at ASC, e.quality_score DESC
+            LIMIT {p}
+            """,
+            tuple(parameters),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        results = []
+        for row in rows:
+            entity = self._entity_from_row(row[:10])
+            profile = EventProfile(
+                entity_id=entity.id,
+                starts_at=row[10],
+                ends_at=row[11],
+                category=row[12],
+                organiser=row[13],
+                ticketed=bool(row[14]) if row[14] is not None else None,
+                price_min=row[15],
+                currency=row[16],
+                booking_url=row[17],
+                source_url=row[18],
+                source_id=row[19],
+            )
+            results.append((entity, profile))
+        return results
 
     def replace_opening_hours(
         self,

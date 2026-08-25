@@ -61,6 +61,26 @@ class OpeningPeriod(BaseModel):
     source_id: str
 
 
+class EventProfile(BaseModel):
+    entity_id: str
+    starts_at: datetime
+    ends_at: datetime | None = None
+    category: str | None = None
+    organiser: str | None = None
+    ticketed: bool | None = None
+    price_min: float | None = Field(default=None, ge=0)
+    currency: str = "SGD"
+    booking_url: str | None = None
+    source_url: str
+    source_id: str
+
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if self.ends_at is not None and self.ends_at < self.starts_at:
+            raise ValueError("ends_at must be greater than or equal to starts_at")
+        return self
+
+
 class DiscoverySource(BaseModel):
     id: str
     name: str

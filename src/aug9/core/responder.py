@@ -43,6 +43,16 @@ def compose_response(
         elif getattr(hotels, "summary", None):
             messages.append(hotels.summary)
 
+    events = execution.outputs.get("events")
+
+    if events:
+        if getattr(events, "success", False):
+            names = [item["name"] for item in events.data.get("events", [])]
+            if names:
+                messages.append("Upcoming events: " + ", ".join(names) + ".")
+        elif getattr(events, "summary", None):
+            messages.append(events.summary)
+
     weather = execution.outputs.get("weather")
 
     if weather:

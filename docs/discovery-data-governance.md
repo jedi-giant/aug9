@@ -116,3 +116,15 @@ uv run aug9-enrich-hotel-addresses
 Set `HOTEL_ADDRESS_ENRICHMENT_LIMIT` between 1 and 100 to change the batch size.
 Only exact postal-code matches are accepted. Existing HLB coordinates are not
 overwritten, and completed hotels are skipped on subsequent runs.
+
+## Upcoming events
+
+The `sg_events` runtime reads only canonical event records whose source is
+classified as `open_data` or `licensed_partner`. Event profiles retain start
+and end times, category, organiser, ticketing and price metadata, and the
+official source or booking URL. Expired records are excluded by the runtime.
+
+STB TIH cannot be used as the launch feed because STB retired it on 31 July
+2025. Historical data.gov.sg arts datasets must not be presented as upcoming
+events. Blogs, aggregators, and the referenced event repositories remain
+`link_only` or `research_only` until Aug9 receives compatible reuse permission.

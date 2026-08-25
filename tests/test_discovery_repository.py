@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
@@ -8,6 +9,7 @@ from aug9.discovery.models import (
     DiscoveryEntity,
     DiscoverySource,
     EntityType,
+    EventProfile,
     FieldProvenance,
     FoodProfile,
     OpeningPeriod,
@@ -274,3 +276,51 @@ def test_food_profile_relationship_tags_and_hours(repository):
     assert profile == ("hawker_stall", 4.0, 8.0)
     assert tags == [("cuisine", "Singaporean"), ("dish", "chicken rice")]
     assert hours == (1, "10:00", "19:30")
+
+
+def test_event_profile_is_filtered_by_date_category_and_location(repository):
+    repository.register_source(
+        DiscoverySource(
+            id="official_events",
+            name="Official events partner",
+            permission=SourcePermission.LICENSED_PARTNER,
+        )
+    )
+    starts_at = datetime(2030, 8, 23, 11, 0, tzinfo=UTC)
+    entity = DiscoveryEntity(
+        id="event:night-festival",
+        entity_type=EntityType.EVENT,
+        name="Singapore Night Festival",
+        address="Bras Basah",
+    )
+    repository.upsert_entity(
+        entity,
+        SourceRecord(
+            source_id="official_events",
+            external_id="night-festival",
+            entity_id=entity.id,
+        ),
+        [],
+    )
+    repository.upsert_event_profile(
+        EventProfile(
+            entity_id=entity.id,
+            starts_at=starts_at,
+            ends_at=starts_at + timedelta(hours=4),
+            category="festival",
+            source_url="https://example.gov.sg/night-festival",
+            source_id="official_events",
+        )
+    )
+
+    matches = repository.search_events(
+        query="Bras Basah",
+        starts_after=starts_at - timedelta(days=1),
+        starts_before=starts_at + timedelta(days=1),
+        category="festival",
+    )
+
+    assert len(matches) == 1
+    assert matches[0][0].name == "Singapore Night Festival"
+    assert matches[0][1].booking_url is None
+    assert repository.search_events(category="sports") == []

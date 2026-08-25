@@ -93,6 +93,15 @@ def create_plan(
         capabilities.append("hotels")
 
     if any(
+        phrase in text
+        for phrase in [
+            "event", "events", "activity", "activities", "what to do",
+            "things to do", "weekend", "concert", "exhibition", "festival",
+        ]
+    ):
+        capabilities.append("events")
+
+    if any(
         word in text
         for word in [
             "eat",

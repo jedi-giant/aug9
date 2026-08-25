@@ -4,6 +4,7 @@ from aug9.sg_weather import DataGovSgWeatherProvider, SgWeatherSkill
 from aug9.sg_transport import OsrmRouteProvider, SgTransportSkill
 from aug9.sg_hawkers import DatabaseHawkerProvider, SgHawkersSkill
 from aug9.sg_hotels import DatabaseHotelProvider, SgHotelsSkill
+from aug9.sg_events import DatabaseEventProvider, SgEventsSkill
 
 
 def register_default_skills(registry: SkillRegistry = skill_registry) -> SkillRegistry:
@@ -22,4 +23,6 @@ def register_default_skills(registry: SkillRegistry = skill_registry) -> SkillRe
         registry.register(SgHawkersSkill(DatabaseHawkerProvider()))
     if registry.get("sg_hotels") is None:
         registry.register(SgHotelsSkill(DatabaseHotelProvider()))
+    if registry.get("sg_events") is None:
+        registry.register(SgEventsSkill(DatabaseEventProvider()))
     return registry
