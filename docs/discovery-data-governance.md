@@ -58,3 +58,17 @@ Organic recommendation quality and commercial eligibility are separate.
 Referral or sponsored actions must identify the partner and carry an explicit
 user-facing disclosure. Paying partners do not silently receive higher organic
 ranking.
+
+## Official NEA hawker import
+
+The NEA importer uses the official data.gov.sg GeoJSON download flow and is
+explicitly invoked; it does not run during API startup or chat requests.
+
+```bash
+uv run aug9-import-nea-hawkers
+```
+
+Each run registers the source, validates Singapore coordinates, upserts records
+idempotently, records field provenance, and stores received/upserted/rejected
+counts. Run it first in a non-production database and review the counts before
+running it as a Railway one-off job.

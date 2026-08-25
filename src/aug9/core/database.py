@@ -4,7 +4,6 @@ from pathlib import Path
 
 import psycopg
 
-from aug9.core.embeddings import create_embedding
 from aug9.discovery.schema import initialise_discovery_schema
 
 
@@ -284,6 +283,8 @@ def save_memory(
 
     # Create embedding only after the memory transaction
     # has been committed and closed.
+    from aug9.core.embeddings import create_embedding
+
     embedding = create_embedding(
         value
     )

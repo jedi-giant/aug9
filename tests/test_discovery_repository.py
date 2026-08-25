@@ -1,5 +1,6 @@
 import json
 
+import httpx
 import pytest
 
 from aug9.core import database
@@ -12,6 +13,7 @@ from aug9.discovery.models import (
     SourceRecord,
 )
 from aug9.discovery.repository import DiscoveryRepository
+from aug9.discovery.nea_hawkers import DATASET_URL, NeaHawkerImporter
 
 
 @pytest.fixture
@@ -150,3 +152,46 @@ def test_ingestion_run_records_counts(repository):
     assert completed.status == "completed"
     assert completed.completed_at is not None
     assert row == ("completed", 120, 118, 2)
+
+
+def test_nea_hawker_importer_upserts_valid_features(repository):
+    download_url = "https://blobs.data.gov.sg/hawkers.geojson"
+    valid_feature = {
+        "type": "Feature",
+        "geometry": {"type": "Point", "coordinates": [103.844747, 1.280331]},
+        "properties": {
+            "OBJECTID": 123,
+            "NAME": "Maxwell Food Centre",
+            "ADDRESS_MYENV": "1 Kadayanallur Street, Singapore 069184",
+            "ADDRESSPOSTALCODE": "069184",
+            "STATUS": "Existing",
+        },
+    }
+    invalid_feature = {
+        "type": "Feature",
+        "geometry": {"type": "Point", "coordinates": [0, 0]},
+        "properties": {"OBJECTID": 999, "NAME": "Invalid"},
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if str(request.url) == DATASET_URL:
+            return httpx.Response(200, json={"data": {"url": download_url}})
+        if str(request.url) == download_url:
+            return httpx.Response(
+                200,
+                json={
+                    "type": "FeatureCollection",
+                    "features": [valid_feature, invalid_feature],
+                },
+            )
+        return httpx.Response(404)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    summary = NeaHawkerImporter(repository, client).run()
+    matches = repository.search_entities("Maxwell")
+
+    assert summary.received == 2
+    assert summary.upserted == 1
+    assert summary.rejected == 1
+    assert matches[0].postal_code == "069184"
+    assert matches[0].status == "active"
