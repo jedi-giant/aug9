@@ -62,6 +62,19 @@ def test_sg_transport_requires_both_places():
     assert result.summary == "Both origin and destination are required."
 
 
+def test_sg_transport_recovers_endpoints_from_intent():
+    result = SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()).execute(
+        UserContext(
+            intent="How do I get from Maxwell Food Centre to Marina Bay Sands?"
+        ),
+        {},
+    )
+
+    assert result.success is True
+    assert result.data["route"]["origin"] == "Maxwell Food Centre"
+    assert result.data["route"]["destination"] == "Marina Bay Sands"
+
+
 @patch("aug9.sg_transport.provider.calculate_route")
 def test_osrm_provider_contains_network_errors(mock_calculate_route):
     mock_calculate_route.side_effect = httpx.RequestError("OSRM unavailable")

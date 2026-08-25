@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from aug9.core.context import UserContext
@@ -30,8 +31,12 @@ class SgTransportSkill(Aug9Skill):
         context: UserContext,
         entities: dict[str, Any],
     ) -> SkillResult:
-        origin = self._resolve(entities.get("origin")) or context.current_place
-        destination = self._resolve(entities.get("destination"))
+        intent_origin, intent_destination = self._extract_endpoints(context.intent)
+        origin_query = entities.get("origin") or intent_origin
+        destination_query = entities.get("destination") or intent_destination
+
+        origin = self._resolve(origin_query) or context.current_place
+        destination = self._resolve(destination_query)
         if destination is None and entities.get("location"):
             destination = self._resolve(entities.get("location"))
 
@@ -65,3 +70,16 @@ class SgTransportSkill(Aug9Skill):
         if result.status != SearchStatus.SUCCESS:
             return None
         return result.location
+
+    @staticmethod
+    def _extract_endpoints(intent: str | None) -> tuple[str | None, str | None]:
+        if not intent:
+            return None, None
+        match = re.search(
+            r"\bfrom\s+(.+?)\s+to\s+(.+?)(?:[?.!]|$)",
+            intent,
+            flags=re.IGNORECASE,
+        )
+        if match is None:
+            return None, None
+        return match.group(1).strip(), match.group(2).strip()
