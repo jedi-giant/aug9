@@ -1,4 +1,5 @@
 import hashlib
+import html as html_module
 import json
 import os
 import re
@@ -227,6 +228,8 @@ class PublicEventAdapter:
                     events.append(self._activity_event(card, url))
                 except ValueError:
                     continue
+            if self.source.id == "visit_singapore_public":
+                events.extend(self._visit_singapore_events(html, url))
             for link in parser.links:
                 candidate = urljoin(url, link).split("#", 1)[0]
                 parsed = urlparse(candidate)
@@ -238,6 +241,61 @@ class PublicEventAdapter:
                     and candidate not in queue
                 ):
                     queue.append(candidate)
+        return events
+
+    @staticmethod
+    def _visit_singapore_events(
+        html: str, source_url: str
+    ) -> list[dict[str, object]]:
+        decoded = html_module.unescape(html)
+        markers = list(re.finditer(r'"cardTitle_t":"', decoded))
+        events: list[dict[str, object]] = []
+        for index, marker in enumerate(markers[:250]):
+            end = markers[index + 1].start() if index + 1 < len(markers) else len(decoded)
+            segment = decoded[marker.start():end]
+
+            def field_value(field: str) -> str | None:
+                match = re.search(rf'"{field}":"((?:\\.|[^"\\])*)"', segment)
+                if not match:
+                    return None
+                try:
+                    return json.loads(f'"{match.group(1)}"')
+                except json.JSONDecodeError:
+                    return match.group(1)
+
+            name = field_value("cardTitle_t")
+            start = field_value("eventStartDate")
+            end_date = field_value("eventEndDate")
+            event_url = field_value("ctaUrl")
+            if not name or not start or not event_url:
+                continue
+            try:
+                starts_at = datetime.strptime(start, "%m-%d-%Y").replace(tzinfo=UTC)
+                ends_at = (
+                    datetime.strptime(end_date, "%m-%d-%Y")
+                    .replace(hour=23, minute=59, second=59, tzinfo=UTC)
+                    if end_date else None
+                )
+            except ValueError:
+                continue
+            resolved_url = urljoin(source_url, event_url)
+            parsed_url = urlparse(resolved_url)
+            if parsed_url.scheme != "https" or not parsed_url.netloc:
+                continue
+            events.append(
+                {
+                    "@type": "Event",
+                    "name": name,
+                    "startDate": starts_at.isoformat(),
+                    "endDate": ends_at.isoformat() if ends_at else None,
+                    "location": {
+                        "name": "Singapore",
+                        "address": {"addressCountry": "SG"},
+                    },
+                    "url": resolved_url,
+                    "_source_url": source_url,
+                }
+            )
         return events
 
     def parse(self, raw: dict[str, object]) -> AggregationRecord:

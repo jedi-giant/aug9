@@ -122,3 +122,23 @@ def test_activity_cards_use_only_factual_fields(monkeypatch):
     assert record.name == "Night Market"
     assert record.starts_at.day == 28
     assert "desc" not in record.raw_facts
+
+
+def test_visit_singapore_encoded_cards_are_parsed_as_facts():
+    html = """
+    <div data-cards='[{&#34;cardTitle_t&#34;:&#34;Harbour Festival&#34;,
+      &#34;cardDescription_t&#34;:&#34;Publisher prose is excluded&#34;,
+      &#34;ctaUrl&#34;:&#34;https://tickets.example/festival&#34;,
+      &#34;eventStartDate&#34;:&#34;09-01-2026&#34;,
+      &#34;eventEndDate&#34;:&#34;09-03-2026&#34;}]'></div>
+    """
+
+    events = PublicEventAdapter._visit_singapore_events(
+        html,
+        "https://www.visitsingapore.com/whats-happening/all-happenings/",
+    )
+
+    assert len(events) == 1
+    assert events[0]["name"] == "Harbour Festival"
+    assert events[0]["startDate"] == "2026-09-01T00:00:00+00:00"
+    assert "description" not in events[0]

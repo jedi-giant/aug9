@@ -1,7 +1,7 @@
 import hashlib
 import re
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any, Callable, Protocol
 
@@ -73,6 +73,7 @@ class AggregationSummary:
     upserted: int
     rejected: int
     run_id: str
+    rejection_reasons: dict[str, int] = field(default_factory=dict)
 
 
 class DataAggregationEngine:
@@ -111,6 +112,7 @@ class DataAggregationEngine:
         self.repository.register_source(source)
         run = self.repository.start_ingestion(source.id)
         received = upserted = rejected = 0
+        rejection_reasons: dict[str, int] = {}
         try:
             for raw in adapter.collect():
                 if received >= self.max_records:
@@ -120,8 +122,10 @@ class DataAggregationEngine:
                     record = adapter.parse(raw)
                     self.ingest(source, record)
                     upserted += 1
-                except (KeyError, TypeError, ValueError):
+                except (KeyError, TypeError, ValueError) as exc:
                     rejected += 1
+                    reason = f"{type(exc).__name__}: {str(exc)[:160]}"
+                    rejection_reasons[reason] = rejection_reasons.get(reason, 0) + 1
                 if self.on_progress and (received == 1 or received % 10 == 0):
                     self.on_progress(received, upserted, rejected)
             completed = self.repository.complete_ingestion(
@@ -139,7 +143,13 @@ class DataAggregationEngine:
                 error=type(exc).__name__,
             )
             raise
-        return AggregationSummary(received, upserted, rejected, completed.id)
+        return AggregationSummary(
+            received,
+            upserted,
+            rejected,
+            completed.id,
+            rejection_reasons,
+        )
 
     def ingest(self, source: DiscoverySource, record: AggregationRecord) -> str:
         name = self.clean_text(record.name)
