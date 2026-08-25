@@ -88,3 +88,19 @@ fetch time, metric, category, period, value, unit, and geography. It is
 idempotent and records every run in `discovery_ingestion_runs`. The public API
 works without credentials for development; production may set
 `DATA_GOV_SG_API_KEY` for the higher authenticated rate limit.
+
+## Official HLB hotel import
+
+The Hotels Licensing Board GeoJSON is imported as canonical hotel entities and
+hotel profiles. The importer retains official names, source IDs, postal codes,
+coordinates, room counts, and source-update timestamps.
+
+```bash
+uv run aug9-import-hlb-hotels
+```
+
+`KEEPERNAME` is excluded because it can contain personal information.
+`HYPERLINK` is also excluded because the published field may contain an email
+address rather than a verified public website. Neither field is retained in the
+stored raw payload. All hotel records are written in one transaction to keep
+production imports idempotent and efficient.

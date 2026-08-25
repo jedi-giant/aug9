@@ -168,3 +168,16 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
         )
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS discovery_hotel_profiles (
+            entity_id TEXT PRIMARY KEY,
+            room_count INTEGER,
+            source_updated_at TEXT,
+            source_id TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(entity_id) REFERENCES discovery_entities(id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )
