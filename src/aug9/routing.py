@@ -1,4 +1,3 @@
-from aug9.core.models import Place
 from aug9.models import Route, RouteResult, SearchStatus
 from aug9.osrm import get_walking_route
 
@@ -39,18 +38,8 @@ def calculate_route(
     return RouteResult(
         status=SearchStatus.SUCCESS,
         route=Route(
-            origin=Place(
-                name=origin_name,
-                place_type="location",
-                latitude=origin_latitude,
-                longitude=origin_longitude,
-            ),
-            destination=Place(
-                name=destination_name,
-                place_type="location",
-                latitude=destination_latitude,
-                longitude=destination_longitude,
-            ),
+            origin=origin_name,
+            destination=destination_name,
             steps=steps,
             summary=summary,
             distance_meters=distance_meters,
