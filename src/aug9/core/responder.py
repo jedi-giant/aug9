@@ -41,10 +41,13 @@ def compose_response(
 
     transport = execution.outputs.get("transport")
 
-    if transport and getattr(transport, "success", False):
-        route = transport.data.get("route", {})
-        summary = route.get("summary") or transport.summary
-        if summary:
-            messages.append(summary)
+    if transport:
+        if getattr(transport, "success", False):
+            route = transport.data.get("route", {})
+            summary = route.get("summary") or transport.summary
+            if summary:
+                messages.append(summary)
+        elif getattr(transport, "summary", None):
+            messages.append(transport.summary)
 
     return " ".join(messages)

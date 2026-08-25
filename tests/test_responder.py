@@ -89,3 +89,17 @@ def test_response_supports_registered_transport_skill_result():
     assert compose_response(result) == (
         "Walk from Maxwell Food Centre to Marina Bay Sands."
     )
+
+
+def test_response_surfaces_transport_failure_summary():
+    result = ExecutionResult(
+        plan=Plan(intent="route", required_capabilities=["transport"]),
+        outputs={
+            "transport": SkillResult(
+                success=False,
+                summary="Unable to resolve the route destination.",
+            )
+        },
+    )
+
+    assert compose_response(result) == "Unable to resolve the route destination."
