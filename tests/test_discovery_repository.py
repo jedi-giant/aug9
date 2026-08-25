@@ -9,6 +9,9 @@ from aug9.discovery.models import (
     DiscoverySource,
     EntityType,
     FieldProvenance,
+    FoodProfile,
+    OpeningPeriod,
+    RelationshipType,
     SourcePermission,
     SourceRecord,
 )
@@ -195,3 +198,79 @@ def test_nea_hawker_importer_upserts_valid_features(repository):
     assert summary.rejected == 1
     assert matches[0].postal_code == "069184"
     assert matches[0].status == "active"
+
+
+def test_food_profile_relationship_tags_and_hours(repository):
+    register_nea(repository)
+    parent = DiscoveryEntity(
+        id="hawker:maxwell",
+        entity_type=EntityType.HAWKER_CENTRE,
+        name="Maxwell Food Centre",
+    )
+    stall = DiscoveryEntity(
+        id="stall:tian-tian",
+        entity_type=EntityType.FOOD_STALL,
+        name="Tian Tian Hainanese Chicken Rice",
+    )
+    for entity in (parent, stall):
+        repository.upsert_entity(
+            entity,
+            SourceRecord(
+                source_id="nea_hawkers",
+                external_id=entity.id,
+                entity_id=entity.id,
+            ),
+            [],
+        )
+
+    repository.add_relationship(
+        parent.id,
+        stall.id,
+        RelationshipType.CONTAINS,
+        source_id="nea_hawkers",
+    )
+    repository.upsert_food_profile(
+        FoodProfile(
+            entity_id=stall.id,
+            venue_kind="hawker_stall",
+            price_min=4,
+            price_max=8,
+            dietary_attributes=["contains_meat"],
+        ),
+        source_id="nea_hawkers",
+        tags={"cuisine": ["Singaporean"], "dish": ["chicken rice"]},
+    )
+    repository.replace_opening_hours(
+        stall.id,
+        [
+            OpeningPeriod(
+                entity_id=stall.id,
+                day_of_week=1,
+                opens_at="10:00",
+                closes_at="19:30",
+                source_id="nea_hawkers",
+            )
+        ],
+        source_id="nea_hawkers",
+    )
+
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM discovery_entity_relationships")
+    relationship_count = cursor.fetchone()[0]
+    cursor.execute(
+        "SELECT venue_kind, price_min, price_max FROM discovery_food_profiles"
+    )
+    profile = cursor.fetchone()
+    cursor.execute("SELECT category, tag FROM discovery_entity_tags ORDER BY category")
+    tags = cursor.fetchall()
+    cursor.execute(
+        "SELECT day_of_week, opens_at, closes_at FROM discovery_opening_hours"
+    )
+    hours = cursor.fetchone()
+    conn.close()
+
+    assert relationship_count == 1
+    assert profile == ("hawker_stall", 4.0, 8.0)
+    assert tags == [("cuisine", "Singaporean"), ("dish", "chicken rice")]
+    assert hours == (1, "10:00", "19:30")

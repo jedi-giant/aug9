@@ -85,3 +85,65 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
         )
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS discovery_entity_relationships (
+            parent_entity_id TEXT NOT NULL,
+            child_entity_id TEXT NOT NULL,
+            relationship_type TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(parent_entity_id, child_entity_id, relationship_type),
+            FOREIGN KEY(parent_entity_id) REFERENCES discovery_entities(id),
+            FOREIGN KEY(child_entity_id) REFERENCES discovery_entities(id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS discovery_food_profiles (
+            entity_id TEXT PRIMARY KEY,
+            venue_kind TEXT NOT NULL,
+            price_min REAL,
+            price_max REAL,
+            currency TEXT NOT NULL DEFAULT 'SGD',
+            dietary_attributes TEXT NOT NULL DEFAULT '[]',
+            reservation_url TEXT,
+            source_id TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(entity_id) REFERENCES discovery_entities(id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS discovery_entity_tags (
+            entity_id TEXT NOT NULL,
+            tag TEXT NOT NULL,
+            category TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(entity_id, tag, category),
+            FOREIGN KEY(entity_id) REFERENCES discovery_entities(id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )
+    cursor.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS discovery_opening_hours (
+            id {id_column},
+            entity_id TEXT NOT NULL,
+            day_of_week INTEGER NOT NULL,
+            opens_at TEXT NOT NULL,
+            closes_at TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(entity_id, day_of_week, opens_at, closes_at, source_id),
+            FOREIGN KEY(entity_id) REFERENCES discovery_entities(id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )

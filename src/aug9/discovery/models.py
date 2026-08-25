@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 def utc_now() -> datetime:
@@ -26,6 +26,39 @@ class EntityType(StrEnum):
     HOTEL = "hotel"
     ATTRACTION = "attraction"
     TOUR = "tour"
+
+
+class RelationshipType(StrEnum):
+    CONTAINS = "contains"
+    LOCATED_IN = "located_in"
+
+
+class FoodProfile(BaseModel):
+    entity_id: str
+    venue_kind: str
+    price_min: float | None = Field(default=None, ge=0)
+    price_max: float | None = Field(default=None, ge=0)
+    currency: str = "SGD"
+    dietary_attributes: list[str] = Field(default_factory=list)
+    reservation_url: str | None = None
+
+    @model_validator(mode="after")
+    def validate_price_range(self):
+        if (
+            self.price_min is not None
+            and self.price_max is not None
+            and self.price_max < self.price_min
+        ):
+            raise ValueError("price_max must be greater than or equal to price_min")
+        return self
+
+
+class OpeningPeriod(BaseModel):
+    entity_id: str
+    day_of_week: int = Field(ge=0, le=6)
+    opens_at: str
+    closes_at: str
+    source_id: str
 
 
 class DiscoverySource(BaseModel):

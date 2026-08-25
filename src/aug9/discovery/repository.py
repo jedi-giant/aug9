@@ -7,7 +7,10 @@ from aug9.discovery.models import (
     DiscoveryEntity,
     DiscoverySource,
     FieldProvenance,
+    FoodProfile,
     IngestionRun,
+    OpeningPeriod,
+    RelationshipType,
     SourceRecord,
     SourcePermission,
 )
@@ -255,6 +258,165 @@ class DiscoveryRepository:
         row = cursor.fetchone()
         conn.close()
         return self._entity_from_row(row) if row else None
+
+    def upsert_food_profile(
+        self,
+        profile: FoodProfile,
+        *,
+        source_id: str,
+        tags: dict[str, list[str]] | None = None,
+    ) -> None:
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        try:
+            self._require_ingestable_source(cursor, source_id, p)
+            cursor.execute(
+                f"""
+                INSERT INTO discovery_food_profiles (
+                    entity_id, venue_kind, price_min, price_max, currency,
+                    dietary_attributes, reservation_url, source_id
+                ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                ON CONFLICT(entity_id) DO UPDATE SET
+                    venue_kind = excluded.venue_kind,
+                    price_min = excluded.price_min,
+                    price_max = excluded.price_max,
+                    currency = excluded.currency,
+                    dietary_attributes = excluded.dietary_attributes,
+                    reservation_url = excluded.reservation_url,
+                    source_id = excluded.source_id,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (
+                    profile.entity_id,
+                    profile.venue_kind,
+                    profile.price_min,
+                    profile.price_max,
+                    profile.currency,
+                    json.dumps(profile.dietary_attributes),
+                    profile.reservation_url,
+                    source_id,
+                ),
+            )
+            if tags is not None:
+                cursor.execute(
+                    f"DELETE FROM discovery_entity_tags WHERE entity_id = {p}",
+                    (profile.entity_id,),
+                )
+                for category, values in tags.items():
+                    for value in values:
+                        cursor.execute(
+                            f"""
+                            INSERT INTO discovery_entity_tags (
+                                entity_id, tag, category, source_id
+                            ) VALUES ({p}, {p}, {p}, {p})
+                            """,
+                            (profile.entity_id, value, category, source_id),
+                        )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def add_relationship(
+        self,
+        parent_entity_id: str,
+        child_entity_id: str,
+        relationship_type: RelationshipType,
+        *,
+        source_id: str,
+    ) -> None:
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        try:
+            self._require_ingestable_source(cursor, source_id, p)
+            cursor.execute(
+                f"""
+                INSERT INTO discovery_entity_relationships (
+                    parent_entity_id, child_entity_id, relationship_type, source_id
+                ) VALUES ({p}, {p}, {p}, {p})
+                ON CONFLICT(parent_entity_id, child_entity_id, relationship_type)
+                DO UPDATE SET source_id = excluded.source_id
+                """,
+                (
+                    parent_entity_id,
+                    child_entity_id,
+                    relationship_type.value,
+                    source_id,
+                ),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def replace_opening_hours(
+        self,
+        entity_id: str,
+        periods: list[OpeningPeriod],
+        *,
+        source_id: str,
+    ) -> None:
+        if any(item.entity_id != entity_id for item in periods):
+            raise ValueError("Opening-period entity IDs must match")
+        if any(item.source_id != source_id for item in periods):
+            raise ValueError("Opening-period source IDs must match")
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        try:
+            self._require_ingestable_source(cursor, source_id, p)
+            cursor.execute(
+                f"""
+                DELETE FROM discovery_opening_hours
+                WHERE entity_id = {p} AND source_id = {p}
+                """,
+                (entity_id, source_id),
+            )
+            for period in periods:
+                cursor.execute(
+                    f"""
+                    INSERT INTO discovery_opening_hours (
+                        entity_id, day_of_week, opens_at, closes_at, source_id
+                    ) VALUES ({p}, {p}, {p}, {p}, {p})
+                    """,
+                    (
+                        entity_id,
+                        period.day_of_week,
+                        period.opens_at,
+                        period.closes_at,
+                        source_id,
+                    ),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    @staticmethod
+    def _require_ingestable_source(cursor, source_id: str, p: str) -> None:
+        cursor.execute(
+            f"SELECT permission FROM discovery_sources WHERE id = {p}",
+            (source_id,),
+        )
+        row = cursor.fetchone()
+        allowed = {
+            SourcePermission.OPEN_DATA.value,
+            SourcePermission.LICENSED_PARTNER.value,
+        }
+        if row is None:
+            raise ValueError(f"Unknown discovery source: {source_id}")
+        if row[0] not in allowed:
+            raise ValueError(
+                f"Source permission '{row[0]}' does not allow ingestion"
+            )
 
     def search_entities(
         self,
