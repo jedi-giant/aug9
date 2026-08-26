@@ -139,6 +139,12 @@ class OneMapRouteProvider:
         else:
             itinerary = data["plan"]["itineraries"][0]
             legs = itinerary.get("legs", [])
+            if mode == "public_transport" and not any(
+                str(leg.get("mode", "")).upper()
+                not in {"", "WALK", "BICYCLE"}
+                for leg in legs
+            ):
+                raise ValueError("OneMap returned no public transport leg")
             steps = []
             for leg in legs:
                 from_name = (leg.get("from") or {}).get("name")

@@ -220,6 +220,40 @@ def test_onemap_provider_parses_native_public_transport_route(mock_get):
     assert params["mode"] == "TRANSIT"
 
 
+@patch("aug9.sg_transport.provider.httpx.get")
+def test_onemap_provider_rejects_walking_only_transit_result(mock_get):
+    response = mock_get.return_value
+    response.raise_for_status.return_value = None
+    response.json.return_value = {
+        "plan": {
+            "itineraries": [
+                {
+                    "duration": 2400,
+                    "walkDistance": 3300,
+                    "legs": [
+                        {
+                            "mode": "WALK",
+                            "from": {"name": "Origin"},
+                            "to": {"name": "Destination"},
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+    provider = OneMapRouteProvider(FakeOneMap())
+    places = FakePlaceProvider()
+
+    result = provider.route_for_mode(
+        places.search("Maxwell Food Centre").location,
+        places.search("Marina Bay Sands").location,
+        "public_transport",
+    )
+
+    assert result.status == SearchStatus.API_ERROR
+    assert result.route is None
+
+
 class ModeAwareRouteProvider:
     def __init__(self):
         self.mode = None
