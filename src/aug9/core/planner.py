@@ -81,6 +81,12 @@ def create_plan(
         for word in [
             "walk",
             "go",
+            "travel",
+            "directions",
+            "public transport",
+            "transit",
+            "mrt",
+            "bus",
             "get to",
             "get from",
             "how do i get",
@@ -148,15 +154,18 @@ def create_plan(
     if travel_mode:
         entities["travel_mode"] = travel_mode
 
-    if any(
+    explicit_food_request = any(
         word in text
         for word in [
-            "eat",
-            "food",
-            "lunch",
-            "dinner",
+            "eat", "lunch", "dinner", "restaurant", "recommend food",
         ]
-    ):
+    )
+    incidental_food_place_name = (
+        "food" in text
+        and "transport" in capabilities
+        and not explicit_food_request
+    )
+    if ("food" in text or explicit_food_request) and not incidental_food_place_name:
         capabilities.append("food")
 
     return Plan(

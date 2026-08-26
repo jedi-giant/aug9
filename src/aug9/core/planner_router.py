@@ -24,6 +24,16 @@ def plan(
             )
         )
 
+        if (
+            "transport" in rule_plan.required_capabilities
+            and "food" not in rule_plan.required_capabilities
+        ):
+            llm_plan.required_capabilities = [
+                capability
+                for capability in llm_plan.required_capabilities
+                if capability != "food"
+            ]
+
         for name, value in rule_plan.entities.items():
             if getattr(llm_plan.entities, name, None) is None:
                 setattr(llm_plan.entities, name, value)

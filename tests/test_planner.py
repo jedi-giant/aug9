@@ -54,3 +54,14 @@ def test_planner_extracts_explicit_transport_mode():
 
     assert "transport" in plan.required_capabilities
     assert plan.entities["travel_mode"] == "cycle"
+
+
+def test_planner_treats_food_centre_as_a_transport_location():
+    plan = create_plan(
+        "Give me public transport directions from Maxwell Food Centre "
+        "to Gardens by the Bay Flower Dome."
+    )
+
+    assert "transport" in plan.required_capabilities
+    assert "food" not in plan.required_capabilities
+    assert plan.entities["travel_mode"] == "public_transport"
