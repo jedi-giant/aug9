@@ -87,6 +87,10 @@ visitor_session_rate_limiter = RateLimiter(
     requests_per_minute=30,
     requests_per_day=500,
 )
+visitor_session_global_rate_limiter = RateLimiter(
+    requests_per_minute=120,
+    requests_per_day=10000,
+)
 product_event_rate_limiter = RateLimiter(
     requests_per_minute=60,
     requests_per_day=2000,

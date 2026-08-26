@@ -11,6 +11,7 @@ from aug9.api.rate_limit import (
     RateLimitExceeded,
     product_event_rate_limiter,
     rate_limiter,
+    visitor_session_global_rate_limiter,
     visitor_session_rate_limiter,
 )
 from aug9.api.visitor_identity import (
@@ -140,6 +141,7 @@ def rate_limit_error(error: RateLimitExceeded, message: str) -> HTTPException:
 def create_visitor_session(request: Request):
     client_host = request.client.host if request.client else "unknown"
     try:
+        visitor_session_global_rate_limiter.check("visitor-session-global")
         visitor_session_rate_limiter.check(f"network:{client_host}")
         return VisitorSessionResponse(
             visitor_token=issue_visitor_token(),

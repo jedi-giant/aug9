@@ -137,6 +137,11 @@ def test_invalid_visitor_token_returns_401(monkeypatch):
 
 def test_visitor_session_issues_token(monkeypatch):
     monkeypatch.setenv("AUG9_VISITOR_TOKEN_SECRET", VISITOR_SECRET)
+    monkeypatch.setattr(
+        main.visitor_session_global_rate_limiter,
+        "check",
+        lambda key: None,
+    )
     monkeypatch.setattr(main.visitor_session_rate_limiter, "check", lambda key: None)
 
     response = main.create_visitor_session(request_from())
@@ -148,6 +153,11 @@ def test_visitor_session_issues_token(monkeypatch):
 def test_visitor_session_rate_limit_uses_client_network(monkeypatch):
     captured = {}
     monkeypatch.setattr(
+        main.visitor_session_global_rate_limiter,
+        "check",
+        lambda key: captured.update(global_key=key),
+    )
+    monkeypatch.setattr(
         main.visitor_session_rate_limiter,
         "check",
         lambda key: captured.update(key=key),
@@ -157,13 +167,19 @@ def test_visitor_session_rate_limit_uses_client_network(monkeypatch):
     main.create_visitor_session(request_from("198.51.100.20"))
 
     assert captured["key"] == "network:198.51.100.20"
+    assert captured["global_key"] == "visitor-session-global"
 
 
 def test_visitor_session_rate_limit_returns_429(monkeypatch):
     def reject(key):
         raise main.RateLimitExceeded(retry_after_seconds=12)
 
-    monkeypatch.setattr(main.visitor_session_rate_limiter, "check", reject)
+    monkeypatch.setattr(main.visitor_session_global_rate_limiter, "check", reject)
+    monkeypatch.setattr(
+        main.visitor_session_rate_limiter,
+        "check",
+        lambda key: None,
+    )
 
     with pytest.raises(HTTPException) as error:
         main.create_visitor_session(request_from())
