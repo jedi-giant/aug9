@@ -28,7 +28,7 @@ OFFICIAL_SERVICES = (
         agency="Government Technology Agency",
         description="Official Singpass support and account information.",
         url="https://www.singpass.gov.sg/main/",
-        topics=("singpass", "login", "digital identity", "account"),
+        topics=("singpass", "singpass login", "digital identity"),
     ),
     GovernmentService(
         name="CPF member services",
@@ -85,7 +85,7 @@ class OfficialGovernmentServiceProvider:
         normalized_query = query.casefold()
         stop_words = {
             "about", "called", "help", "how", "matter", "the", "very", "what",
-            "where", "with",
+            "singapore", "where", "with",
         }
         terms = {
             term.strip(".,?!")
@@ -103,4 +103,9 @@ class OfficialGovernmentServiceProvider:
             if score:
                 scored.append((score, service))
         scored.sort(key=lambda item: (-item[0], item[1].name))
-        return [service for _, service in scored[:limit]]
+        if not scored:
+            return []
+        relevance_floor = max(2, scored[0][0] - 2)
+        return [
+            service for score, service in scored if score >= relevance_floor
+        ][:limit]

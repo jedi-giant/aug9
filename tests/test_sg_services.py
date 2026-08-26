@@ -7,6 +7,7 @@ def test_official_provider_matches_passport_service():
 
     assert services[0].agency == "Immigration & Checkpoints Authority"
     assert str(services[0].url).startswith("https://www.ica.gov.sg/")
+    assert len(services) == 1
 
 
 def test_services_skill_returns_structured_official_actions():
@@ -18,6 +19,7 @@ def test_services_skill_returns_structured_official_actions():
     assert result.data["services"][0]["agency"] == "Central Provident Fund Board"
     assert result.actions[0].metadata["capability"] == "services"
     assert result.actions[0].url.startswith("https://www.cpf.gov.sg/")
+    assert len(result.actions) == 1
 
 
 def test_services_skill_falls_back_to_lifesg_for_unknown_request():
