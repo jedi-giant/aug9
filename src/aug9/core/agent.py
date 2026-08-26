@@ -104,5 +104,7 @@ def run_aug9(
         print(trace.model_dump_json(indent=2))
 
     if structured:
-        return compose_agent_response(execution)
+        agent_response = compose_agent_response(execution)
+        agent_response.metadata["timings_ms"] = timings_ms
+        return agent_response
     return response

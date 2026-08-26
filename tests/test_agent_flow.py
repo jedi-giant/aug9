@@ -44,3 +44,20 @@ def test_aug9_full_flow(
 
     assert "Tian Tian" in response
     _mock_extract_memories.assert_not_called()
+
+    structured = run_aug9(
+        "What should I eat at Maxwell Food Centre?",
+        user_id="test_user",
+        session_id="test_session",
+        structured=True,
+    )
+
+    assert set(structured.metadata["timings_ms"]) == {
+        "memory",
+        "memory_load",
+        "planning",
+        "context",
+        "execution",
+        "response",
+        "total",
+    }
