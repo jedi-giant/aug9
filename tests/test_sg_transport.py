@@ -280,3 +280,45 @@ def test_explicit_cycling_request_uses_native_cycle_mode():
     assert provider.mode == "cycle"
     assert result.data["recommended_mode"] == "cycle"
     assert "travelmode=bicycling" in result.actions[0].url
+
+
+class WalkingOnlyTransitProvider:
+    def route_for_mode(self, origin, destination, mode):
+        return RouteResult(
+            status=SearchStatus.API_ERROR,
+            message="OneMap returned no public transport leg",
+        )
+
+    def route(self, origin, destination):
+        return RouteResult(
+            status=SearchStatus.SUCCESS,
+            route=Route(
+                origin=origin.name,
+                destination=destination.name,
+                steps=["Walk-only fallback step"],
+                summary=f"Walk from {origin.name} to {destination.name}.",
+                distance_meters=3302,
+                duration_minutes=39.6,
+            ),
+        )
+
+
+def test_transit_fallback_does_not_surface_walking_summary():
+    result = SgTransportSkill(
+        FakePlaceProvider(), WalkingOnlyTransitProvider()
+    ).execute(
+        UserContext(intent="Give me public transport directions."),
+        {
+            "origin": "Maxwell Food Centre",
+            "destination": "Marina Bay Sands",
+            "travel_mode": "public_transport",
+        },
+    )
+
+    assert result.data["recommended_mode"] == "public_transport"
+    assert result.summary == (
+        "Maxwell Food Centre to Marina Bay Sands is about 3.3 km. "
+        "Open public transport directions for the current transit options."
+    )
+    assert not result.summary.startswith("Walk from")
+    assert "travelmode=transit" in result.actions[0].url

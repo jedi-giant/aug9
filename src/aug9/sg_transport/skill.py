@@ -106,6 +106,17 @@ class SgTransportSkill(Aug9Skill):
             "cycle": "Open cycling directions",
         }.get(recommended_mode, "Open directions")
 
+        if used_mode_fallback and selected_mode == "public_transport":
+            distance_text = (
+                f" is about {distance / 1000:.1f} km"
+                if distance is not None
+                else ""
+            )
+            summary = (
+                f"{origin.name} to {destination.name}{distance_text}. "
+                "Open public transport directions for the current transit options."
+            )
+
         if (
             explicit_mode is None
             and policy_distance is not None
