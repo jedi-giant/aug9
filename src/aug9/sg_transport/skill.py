@@ -10,6 +10,10 @@ from aug9.sg_place.provider import PlaceProvider
 from aug9.sg_transport.provider import RouteProvider
 
 
+MAX_RECOMMENDED_WALK_METERS = 1500.0
+LONG_TRANSIT_JOURNEY_METERS = 5000.0
+
+
 class SgTransportSkill(Aug9Skill):
     name = "sg_transport"
     description = "Provide walking routes between Singapore places"
@@ -55,26 +59,74 @@ class SgTransportSkill(Aug9Skill):
         if result.status != SearchStatus.SUCCESS or result.route is None:
             return SkillResult(success=False, summary=result.message)
 
+        distance = result.route.distance_meters
+        recommended_mode = "walk"
+        summary = result.route.summary
+        travel_mode = "walking"
+        action_label = "Open walking directions"
+
+        if distance is not None and distance > MAX_RECOMMENDED_WALK_METERS:
+            recommended_mode = "public_transport"
+            travel_mode = "transit"
+            action_label = "Open public transport directions"
+            distance_km = distance / 1000
+            if distance > LONG_TRANSIT_JOURNEY_METERS:
+                summary = (
+                    f"{origin.name} to {destination.name} is about "
+                    f"{distance_km:.1f} km. Public transport is recommended; "
+                    "taxi or private hire is an alternative."
+                )
+            else:
+                summary = (
+                    f"{origin.name} to {destination.name} is about "
+                    f"{distance_km:.1f} km. Public transport is recommended "
+                    "instead of walking."
+                )
+
+        route_data = result.route.model_dump()
+        route_data["summary"] = summary
+        actions = [
+            SkillAction(
+                type="open_url",
+                label=action_label,
+                url=self._directions_url(origin.name, destination.name, travel_mode),
+                metadata={
+                    "capability": "transport",
+                    "travel_mode": recommended_mode,
+                },
+            )
+        ]
+        if distance is not None and distance > LONG_TRANSIT_JOURNEY_METERS:
+            actions.append(
+                SkillAction(
+                    type="open_url",
+                    label="Open taxi or driving directions",
+                    url=self._directions_url(origin.name, destination.name, "driving"),
+                    metadata={
+                        "capability": "transport",
+                        "travel_mode": "taxi_or_drive",
+                    },
+                )
+            )
+
         return SkillResult(
             success=True,
             data={
-                "route": result.route.model_dump(),
+                "route": route_data,
                 "status": result.status.value,
+                "recommended_mode": recommended_mode,
             },
-            summary=result.route.summary,
-            actions=[
-                SkillAction(
-                    type="open_url",
-                    label="Open directions",
-                    url=(
-                        "https://www.google.com/maps/dir/?api=1"
-                        f"&origin={quote_plus(origin.name)}"
-                        f"&destination={quote_plus(destination.name)}"
-                        "&travelmode=walking"
-                    ),
-                    metadata={"capability": "transport"},
-                )
-            ],
+            summary=summary,
+            actions=actions,
+        )
+
+    @staticmethod
+    def _directions_url(origin: str, destination: str, travel_mode: str) -> str:
+        return (
+            "https://www.google.com/maps/dir/?api=1"
+            f"&origin={quote_plus(origin)}"
+            f"&destination={quote_plus(destination)}"
+            f"&travelmode={travel_mode}"
         )
 
     def _resolve(self, query: Any) -> Place | None:

@@ -51,6 +51,9 @@ def test_sg_transport_resolves_places_and_returns_route():
     assert result.success is True
     assert result.data["route"]["destination"] == "Marina Bay Sands"
     assert result.data["route"]["duration_minutes"] == 24
+    assert result.data["recommended_mode"] == "public_transport"
+    assert result.actions[0].label == "Open public transport directions"
+    assert "travelmode=transit" in result.actions[0].url
 
 
 def test_sg_transport_requires_both_places():
@@ -86,3 +89,58 @@ def test_osrm_provider_contains_network_errors(mock_calculate_route):
 
     assert result.status == SearchStatus.NETWORK_ERROR
     assert result.message == "OSRM unavailable"
+
+
+class ShortRouteProvider:
+    def route(self, origin: Place, destination: Place) -> RouteResult:
+        return RouteResult(
+            status=SearchStatus.SUCCESS,
+            route=Route(
+                origin=origin.name,
+                destination=destination.name,
+                steps=[],
+                summary="Short walk.",
+                distance_meters=900,
+                duration_minutes=12,
+            ),
+        )
+
+
+class LongRouteProvider:
+    def route(self, origin: Place, destination: Place) -> RouteResult:
+        return RouteResult(
+            status=SearchStatus.SUCCESS,
+            route=Route(
+                origin=origin.name,
+                destination=destination.name,
+                steps=[],
+                summary="Long walk.",
+                distance_meters=6200,
+                duration_minutes=77.5,
+            ),
+        )
+
+
+def test_short_route_remains_a_walking_recommendation():
+    result = SgTransportSkill(FakePlaceProvider(), ShortRouteProvider()).execute(
+        UserContext(),
+        {"origin": "Maxwell Food Centre", "destination": "Marina Bay Sands"},
+    )
+
+    assert result.data["recommended_mode"] == "walk"
+    assert result.actions[0].label == "Open walking directions"
+    assert "travelmode=walking" in result.actions[0].url
+
+
+def test_long_route_recommends_transit_and_offers_taxi_alternative():
+    result = SgTransportSkill(FakePlaceProvider(), LongRouteProvider()).execute(
+        UserContext(),
+        {"origin": "Maxwell Food Centre", "destination": "Marina Bay Sands"},
+    )
+
+    assert result.data["recommended_mode"] == "public_transport"
+    assert "Public transport is recommended" in result.summary
+    assert [action.metadata["travel_mode"] for action in result.actions] == [
+        "public_transport",
+        "taxi_or_drive",
+    ]
