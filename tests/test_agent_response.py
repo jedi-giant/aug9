@@ -30,3 +30,15 @@ def test_agent_response_collects_actions_and_skill_metadata():
         "Walk to Marina Bay Sands."
     )
     assert result.metadata["requested_capabilities"] == ["transport"]
+    assert result.metadata["capability_outcomes"] == {"transport": "matched"}
+
+
+def test_agent_response_records_unmatched_outcome_without_prompt_data():
+    execution = ExecutionResult(
+        plan=Plan(intent="unknown service", required_capabilities=["services"]),
+        outputs={"services": SkillResult(success=False, summary="No match")},
+    )
+
+    result = compose_agent_response(execution)
+
+    assert result.metadata["capability_outcomes"] == {"services": "unmatched"}

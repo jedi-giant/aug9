@@ -6,6 +6,7 @@ from aug9.core import database
 from aug9.core.product_analytics import (
     ProductEvent,
     ProductEventType,
+    TaskStatus,
     log_product_event,
 )
 from aug9.core.product_analytics_report import build_product_analytics_report
@@ -69,6 +70,7 @@ def test_builds_prompt_free_activation_report():
         task_id="task-2",
         user_id="user-2",
         capabilities=["weather"],
+        task_status=TaskStatus.FAILED,
     )
 
     report = build_product_analytics_report(
@@ -89,6 +91,12 @@ def test_builds_prompt_free_activation_report():
         "hawkers": 1,
         "place_resolution": 1,
         "weather": 1,
+    }
+    assert report.failed_results_by_capability == {"weather": 1}
+    assert report.capability_result_success_rate == {
+        "hawkers": 1.0,
+        "place_resolution": 1.0,
+        "weather": 0.0,
     }
     assert report.campaign_sources == {"linkedin": 1}
 

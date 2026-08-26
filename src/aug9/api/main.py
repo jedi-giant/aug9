@@ -94,6 +94,12 @@ def chat(
         task_id = request.task_id or str(uuid4())
         result.metadata["task_id"] = task_id
         capabilities = result.metadata.get("requested_capabilities", [])
+        capability_outcomes = result.metadata.get("capability_outcomes", {})
+        result_status = (
+            TaskStatus.FAILED
+            if "unmatched" in capability_outcomes.values()
+            else TaskStatus.ANSWER_GENERATED
+        )
 
         latency_ms = int(
             (
@@ -119,7 +125,7 @@ def chat(
                 session_id=request.session_id,
                 event_type=ProductEventType.RESULT_GENERATED,
                 capabilities=capabilities,
-                task_status=TaskStatus.ANSWER_GENERATED,
+                task_status=result_status,
             )
         )
 

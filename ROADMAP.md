@@ -202,7 +202,7 @@ Next:
 
 - Expanded official service coverage and topic taxonomy ✅
 - Automated official-link health report ✅
-- Evaluate service-task completion and failed-intent analytics
+- Service-task outcomes and failed-intent analytics ✅
 
 Capability:
 

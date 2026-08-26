@@ -21,6 +21,8 @@ class ProductAnalyticsReport:
     action_click_rate: float | None
     positive_feedback_rate: float | None
     capability_demand: dict[str, int]
+    failed_results_by_capability: dict[str, int]
+    capability_result_success_rate: dict[str, float | None]
     campaign_sources: dict[str, int]
 
     def to_dict(self) -> dict:
@@ -64,7 +66,8 @@ def build_product_analytics_report(
             event_type,
             capabilities,
             helpful,
-            campaign_source
+            campaign_source,
+            task_status
         FROM product_events
         WHERE created_at >= {p}
           AND created_at < {p}
@@ -91,11 +94,15 @@ def build_product_analytics_report(
     }
 
     capabilities: Counter[str] = Counter()
+    failed_capabilities: Counter[str] = Counter()
     campaigns: Counter[str] = Counter()
     for row in rows:
         if row[2] == "result_generated":
             try:
-                capabilities.update(json.loads(row[3] or "[]"))
+                event_capabilities = json.loads(row[3] or "[]")
+                capabilities.update(event_capabilities)
+                if row[6] == "failed":
+                    failed_capabilities.update(event_capabilities)
             except (json.JSONDecodeError, TypeError):
                 continue
         if row[2] == "query_submitted":
@@ -127,5 +134,10 @@ def build_product_analytics_report(
         action_click_rate=_rate(action_clicks, results_generated),
         positive_feedback_rate=_rate(positive_feedback, len(feedback_rows)),
         capability_demand=dict(capabilities.most_common()),
+        failed_results_by_capability=dict(failed_capabilities.most_common()),
+        capability_result_success_rate={
+            capability: _rate(count - failed_capabilities[capability], count)
+            for capability, count in capabilities.most_common()
+        },
         campaign_sources=dict(campaigns.most_common()),
     )

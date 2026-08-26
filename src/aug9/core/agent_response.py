@@ -16,10 +16,12 @@ class AgentResponse(BaseModel):
 def compose_agent_response(execution: ExecutionResult) -> AgentResponse:
     actions: list[SkillAction] = []
     skill_data: dict[str, Any] = {}
+    capability_outcomes: dict[str, str] = {}
 
     for capability, output in execution.outputs.items():
         if not isinstance(output, SkillResult):
             continue
+        capability_outcomes[capability] = "matched" if output.success else "unmatched"
         actions.extend(output.actions)
         if output.data:
             skill_data[capability] = output.data
@@ -29,6 +31,8 @@ def compose_agent_response(execution: ExecutionResult) -> AgentResponse:
     }
     if skill_data:
         metadata["skills"] = skill_data
+    if capability_outcomes:
+        metadata["capability_outcomes"] = capability_outcomes
 
     return AgentResponse(
         response=compose_response(execution),
