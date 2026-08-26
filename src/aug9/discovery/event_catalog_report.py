@@ -14,6 +14,7 @@ class EventCatalogReport:
     latest_end: str | None
     missing_location: int
     missing_postal_code: int
+    missing_coordinates: int
     missing_booking_url: int
     possible_duplicate_groups: int
     recent_failed_runs: int
@@ -31,6 +32,7 @@ class EventCatalogReport:
             "quality": {
                 "missing_location": self.missing_location,
                 "missing_postal_code": self.missing_postal_code,
+                "missing_coordinates": self.missing_coordinates,
                 "missing_booking_url": self.missing_booking_url,
                 "possible_duplicate_groups": self.possible_duplicate_groups,
             },
@@ -74,6 +76,7 @@ def build_event_catalog_report(
         SELECT COUNT(*), MIN(ep.starts_at), MAX(COALESCE(ep.ends_at, ep.starts_at)),
                SUM(CASE WHEN e.address IS NULL OR e.address = '' THEN 1 ELSE 0 END),
                SUM(CASE WHEN e.postal_code IS NULL OR e.postal_code = '' THEN 1 ELSE 0 END),
+               SUM(CASE WHEN e.latitude IS NULL OR e.longitude IS NULL THEN 1 ELSE 0 END),
                SUM(CASE WHEN ep.booking_url IS NULL OR ep.booking_url = '' THEN 1 ELSE 0 END)
         FROM discovery_entities e
         JOIN discovery_event_profiles ep ON ep.entity_id = e.id
@@ -120,7 +123,8 @@ def build_event_catalog_report(
         latest_end=str(totals[2]) if totals[2] is not None else None,
         missing_location=int(totals[3] or 0),
         missing_postal_code=int(totals[4] or 0),
-        missing_booking_url=int(totals[5] or 0),
+        missing_coordinates=int(totals[5] or 0),
+        missing_booking_url=int(totals[6] or 0),
         possible_duplicate_groups=duplicate_groups,
         recent_failed_runs=int(ingestion[0] or 0),
         recent_rejected_records=int(ingestion[1] or 0),

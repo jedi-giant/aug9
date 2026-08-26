@@ -62,6 +62,7 @@ def test_event_catalog_report_summarises_coverage_and_quality(repository):
     assert report.events_by_source == {"eventbrite_public": 1}
     assert report.missing_location == 0
     assert report.missing_postal_code == 1
+    assert report.missing_coordinates == 1
     assert report.missing_booking_url == 0
     assert report.recent_failed_runs == 1
     assert report.recent_rejected_records == 2

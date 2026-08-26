@@ -65,6 +65,45 @@ def test_database_provider_handles_database_failure():
     assert provider.discover() == []
 
 
+def test_database_provider_ranks_geocoded_events_by_proximity():
+    near = DiscoveryEntity(
+        id="event:near",
+        entity_type=EntityType.EVENT,
+        name="Nearby event",
+        latitude=1.281,
+        longitude=103.845,
+    )
+    far = DiscoveryEntity(
+        id="event:far",
+        entity_type=EntityType.EVENT,
+        name="Far event",
+        latitude=1.35,
+        longitude=103.94,
+    )
+    profile_near = EventProfile(
+        entity_id=near.id,
+        starts_at=datetime(2030, 8, 23, tzinfo=UTC),
+        source_url="https://example.gov.sg/near",
+        source_id="official-events",
+    )
+    profile_far = EventProfile(
+        entity_id=far.id,
+        starts_at=datetime(2030, 8, 23, tzinfo=UTC),
+        source_url="https://example.gov.sg/far",
+        source_id="official-events",
+    )
+    repository = FakeRepository(rows=[(far, profile_far), (near, profile_near)])
+
+    listings = DatabaseEventProvider(repository=repository).discover(
+        latitude=1.28,
+        longitude=103.844,
+    )
+
+    assert [listing.name for listing in listings] == ["Nearby event", "Far event"]
+    assert listings[0].distance_km < listings[1].distance_km
+    assert repository.calls[0]["limit"] == 50
+
+
 def test_skill_returns_structured_events_and_official_action():
     result = SgEventsSkill(FakeEventProvider()).execute(
         UserContext(intent="What events are on?"), {}

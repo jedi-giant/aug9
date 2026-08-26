@@ -40,8 +40,12 @@ class SgEventsSkill(Aug9Skill):
             starts_after=starts_after,
             starts_before=starts_before,
             category=entities.get("category"),
+            latitude=(context.current_place.latitude if context.current_place else None),
+            longitude=(context.current_place.longitude if context.current_place else None),
         )
-        if starts_before is not None:
+        if starts_before is not None and not (
+            is_lifeops and context.current_place is not None
+        ):
             listings = sorted(
                 listings,
                 key=lambda item: (
