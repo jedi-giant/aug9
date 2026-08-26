@@ -1,5 +1,7 @@
+import asyncio
+
 import pytest
-from fastapi import HTTPException
+from fastapi import BackgroundTasks, HTTPException
 
 from aug9.api import main
 from aug9.core.agent_response import AgentResponse
@@ -35,11 +37,15 @@ def test_chat_succeeds_when_usage_analytics_write_fails(monkeypatch):
     )
     monkeypatch.setattr(main, "try_log_product_event", lambda event: False)
 
+    background_tasks = BackgroundTasks()
     response = main.chat(
-        main.ChatRequest(user_id="user", session_id="session", message="Hello")
+        main.ChatRequest(user_id="user", session_id="session", message="Hello"),
+        background_tasks,
     )
 
     assert response.response == "Useful answer"
+    assert len(background_tasks.tasks) == 2
+    asyncio.run(background_tasks())
 
 
 def test_chat_returns_stable_503_for_unexpected_dependency_failure(monkeypatch):
@@ -53,7 +59,8 @@ def test_chat_returns_stable_503_for_unexpected_dependency_failure(monkeypatch):
 
     with pytest.raises(HTTPException) as error:
         main.chat(
-            main.ChatRequest(user_id="user", session_id="session", message="Hello")
+            main.ChatRequest(user_id="user", session_id="session", message="Hello"),
+            BackgroundTasks(),
         )
 
     assert error.value.status_code == 503

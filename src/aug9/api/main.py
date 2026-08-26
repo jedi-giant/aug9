@@ -2,7 +2,7 @@ import time
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -100,6 +100,7 @@ def try_log_usage(**kwargs) -> bool:
 )
 def chat(
     request: ChatRequest,
+    background_tasks: BackgroundTasks,
 ):
     started_at = time.perf_counter()
 
@@ -132,7 +133,8 @@ def chat(
             * 1000
         )
 
-        try_log_usage(
+        background_tasks.add_task(
+            try_log_usage,
             user_id=request.user_id,
             session_id=request.session_id,
             message_length=len(
@@ -141,7 +143,8 @@ def chat(
             status="success",
             latency_ms=latency_ms,
         )
-        try_log_product_event(
+        background_tasks.add_task(
+            try_log_product_event,
             ProductEvent(
                 task_id=task_id,
                 user_id=request.user_id,
