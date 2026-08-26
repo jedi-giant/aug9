@@ -1,4 +1,5 @@
 import re
+import math
 from typing import Any
 from urllib.parse import quote_plus
 
@@ -12,6 +13,7 @@ from aug9.sg_transport.provider import RouteProvider
 
 MAX_RECOMMENDED_WALK_METERS = 1500.0
 LONG_TRANSIT_JOURNEY_METERS = 5000.0
+STRAIGHT_LINE_WALK_METERS = 1200.0
 
 
 class SgTransportSkill(Aug9Skill):
@@ -51,26 +53,70 @@ class SgTransportSkill(Aug9Skill):
                 summary="Both origin and destination are required.",
             )
 
+        explicit_mode = self._requested_mode(entities, context.intent)
+        straight_distance = self._straight_distance_meters(origin, destination)
+        selected_mode = explicit_mode or (
+            "walk"
+            if straight_distance is not None
+            and straight_distance <= STRAIGHT_LINE_WALK_METERS
+            else "public_transport"
+        )
+
+        used_mode_fallback = False
         try:
-            result = self.route_provider.route(origin, destination)
+            route_for_mode = getattr(self.route_provider, "route_for_mode", None)
+            if route_for_mode is not None:
+                result = route_for_mode(origin, destination, selected_mode)
+            else:
+                used_mode_fallback = selected_mode != "walk"
+                result = self.route_provider.route(origin, destination)
         except ValueError as exc:
             return SkillResult(success=False, summary=str(exc))
+
+        if (
+            (result.status != SearchStatus.SUCCESS or result.route is None)
+            and selected_mode != "walk"
+        ):
+            used_mode_fallback = True
+            result = self.route_provider.route(origin, destination)
 
         if result.status != SearchStatus.SUCCESS or result.route is None:
             return SkillResult(success=False, summary=result.message)
 
         distance = result.route.distance_meters
-        recommended_mode = "walk"
+        policy_distance = (
+            straight_distance
+            if selected_mode == "public_transport"
+            and not used_mode_fallback
+            and straight_distance is not None
+            else distance
+        )
+        recommended_mode = selected_mode
         summary = result.route.summary
-        travel_mode = "walking"
-        action_label = "Open walking directions"
+        travel_mode = {
+            "walk": "walking",
+            "public_transport": "transit",
+            "drive": "driving",
+            "cycle": "bicycling",
+        }.get(recommended_mode, "transit")
+        action_label = {
+            "walk": "Open walking directions",
+            "public_transport": "Open public transport directions",
+            "drive": "Open driving directions",
+            "cycle": "Open cycling directions",
+        }.get(recommended_mode, "Open directions")
 
-        if distance is not None and distance > MAX_RECOMMENDED_WALK_METERS:
+        if (
+            explicit_mode is None
+            and policy_distance is not None
+            and policy_distance > MAX_RECOMMENDED_WALK_METERS
+            and (selected_mode == "walk" or used_mode_fallback)
+        ):
             recommended_mode = "public_transport"
             travel_mode = "transit"
             action_label = "Open public transport directions"
-            distance_km = distance / 1000
-            if distance > LONG_TRANSIT_JOURNEY_METERS:
+            distance_km = policy_distance / 1000
+            if policy_distance > LONG_TRANSIT_JOURNEY_METERS:
                 summary = (
                     f"{origin.name} to {destination.name} is about "
                     f"{distance_km:.1f} km. Public transport is recommended; "
@@ -96,7 +142,11 @@ class SgTransportSkill(Aug9Skill):
                 },
             )
         ]
-        if distance is not None and distance > LONG_TRANSIT_JOURNEY_METERS:
+        if (
+            recommended_mode == "public_transport"
+            and policy_distance is not None
+            and policy_distance > LONG_TRANSIT_JOURNEY_METERS
+        ):
             actions.append(
                 SkillAction(
                     type="open_url",
@@ -136,6 +186,48 @@ class SgTransportSkill(Aug9Skill):
         if result.status != SearchStatus.SUCCESS:
             return None
         return result.location
+
+    @staticmethod
+    def _requested_mode(entities: dict[str, Any], intent: str | None) -> str | None:
+        requested = str(entities.get("travel_mode") or "").casefold()
+        text = (intent or "").casefold()
+        if requested in {"walk", "walking"} or "walk" in text:
+            return "walk"
+        if requested in {"cycle", "cycling", "bike"} or any(
+            word in text for word in ("cycle", "cycling", "bike")
+        ):
+            return "cycle"
+        if requested in {"drive", "driving", "taxi"} or any(
+            word in text for word in ("drive", "driving", "taxi")
+        ):
+            return "drive"
+        if requested in {"public_transport", "transit", "mrt", "bus"} or any(
+            phrase in text for phrase in ("public transport", "transit", "mrt", "bus")
+        ):
+            return "public_transport"
+        return None
+
+    @staticmethod
+    def _straight_distance_meters(origin: Place, destination: Place) -> float | None:
+        if any(
+            value is None
+            for value in (
+                origin.latitude,
+                origin.longitude,
+                destination.latitude,
+                destination.longitude,
+            )
+        ):
+            return None
+        radius_meters = 6_371_000.0
+        phi1, phi2 = math.radians(origin.latitude), math.radians(destination.latitude)
+        delta_phi = math.radians(destination.latitude - origin.latitude)
+        delta_lambda = math.radians(destination.longitude - origin.longitude)
+        value = (
+            math.sin(delta_phi / 2) ** 2
+            + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+        )
+        return radius_meters * 2 * math.atan2(math.sqrt(value), math.sqrt(1 - value))
 
     @staticmethod
     def _extract_endpoints(intent: str | None) -> tuple[str | None, str | None]:

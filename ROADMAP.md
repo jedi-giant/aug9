@@ -236,6 +236,7 @@ Runtime foundation: ✅
 - Automatic walking route from the starting area to the first event ✅
 - Distance-aware walking guardrail with transit and taxi alternatives ✅
 - Daily OneMap event venue enrichment and proximity ranking ✅
+- Native OneMap multimodal routing with resilient fallback ✅
 
 Capability:
 

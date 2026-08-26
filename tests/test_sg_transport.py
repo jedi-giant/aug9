@@ -2,7 +2,7 @@ from aug9.core.context import UserContext
 from aug9.core.models import Place
 from aug9.models import LocationSearchResult, Route, RouteResult, SearchStatus
 from aug9.sg_transport.skill import SgTransportSkill
-from aug9.sg_transport.provider import OsrmRouteProvider
+from aug9.sg_transport.provider import OneMapRouteProvider, OsrmRouteProvider
 from unittest.mock import patch
 import httpx
 
@@ -124,7 +124,11 @@ class LongRouteProvider:
 def test_short_route_remains_a_walking_recommendation():
     result = SgTransportSkill(FakePlaceProvider(), ShortRouteProvider()).execute(
         UserContext(),
-        {"origin": "Maxwell Food Centre", "destination": "Marina Bay Sands"},
+        {
+            "origin": "Maxwell Food Centre",
+            "destination": "Marina Bay Sands",
+            "travel_mode": "walk",
+        },
     )
 
     assert result.data["recommended_mode"] == "walk"
@@ -144,3 +148,101 @@ def test_long_route_recommends_transit_and_offers_taxi_alternative():
         "public_transport",
         "taxi_or_drive",
     ]
+
+
+class FakeOneMap:
+    base_url = "https://www.onemap.gov.sg"
+    timeout = 10.0
+
+    def authenticate(self):
+        return "token"
+
+
+@patch("aug9.sg_transport.provider.httpx.get")
+def test_onemap_provider_parses_native_walking_route(mock_get):
+    response = mock_get.return_value
+    response.raise_for_status.return_value = None
+    response.json.return_value = {
+        "route_summary": {"total_distance": 900, "total_time": 720},
+        "route_instructions": [["Left", "Road", 0, "", 0, "", "", "", "", "Head left"]],
+    }
+    provider = OneMapRouteProvider(FakeOneMap())
+    places = FakePlaceProvider()
+
+    result = provider.route_for_mode(
+        places.search("Maxwell Food Centre").location,
+        places.search("Marina Bay Sands").location,
+        "walk",
+    )
+
+    assert result.status == SearchStatus.SUCCESS
+    assert result.route.duration_minutes == 12.0
+    assert result.route.steps == ["Head left"]
+    assert mock_get.call_args.kwargs["params"]["routeType"] == "walk"
+
+
+@patch("aug9.sg_transport.provider.httpx.get")
+def test_onemap_provider_parses_native_public_transport_route(mock_get):
+    response = mock_get.return_value
+    response.raise_for_status.return_value = None
+    response.json.return_value = {
+        "plan": {
+            "itineraries": [
+                {
+                    "duration": 1500,
+                    "walkDistance": 450,
+                    "legs": [
+                        {
+                            "mode": "SUBWAY",
+                            "from": {"name": "Maxwell MRT"},
+                            "to": {"name": "Orchard MRT"},
+                            "distance": 5000,
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+    provider = OneMapRouteProvider(FakeOneMap())
+    places = FakePlaceProvider()
+
+    result = provider.route_for_mode(
+        places.search("Maxwell Food Centre").location,
+        places.search("Marina Bay Sands").location,
+        "public_transport",
+    )
+
+    assert result.status == SearchStatus.SUCCESS
+    assert result.route.duration_minutes == 25.0
+    assert result.route.steps == ["Subway: Maxwell MRT to Orchard MRT"]
+    params = mock_get.call_args.kwargs["params"]
+    assert params["routeType"] == "pt"
+    assert params["mode"] == "TRANSIT"
+
+
+class ModeAwareRouteProvider:
+    def __init__(self):
+        self.mode = None
+
+    def route_for_mode(self, origin, destination, mode):
+        self.mode = mode
+        return ShortRouteProvider().route(origin, destination)
+
+    def route(self, origin, destination):
+        return ShortRouteProvider().route(origin, destination)
+
+
+def test_explicit_cycling_request_uses_native_cycle_mode():
+    provider = ModeAwareRouteProvider()
+    result = SgTransportSkill(FakePlaceProvider(), provider).execute(
+        UserContext(intent="Can I cycle there?"),
+        {
+            "origin": "Maxwell Food Centre",
+            "destination": "Marina Bay Sands",
+            "travel_mode": "cycle",
+        },
+    )
+
+    assert provider.mode == "cycle"
+    assert result.data["recommended_mode"] == "cycle"
+    assert "travelmode=bicycling" in result.actions[0].url

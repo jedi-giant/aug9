@@ -47,3 +47,10 @@ def test_planner_detects_expanded_government_service_request():
     plan = create_plan("How do I register my child's birth?")
 
     assert "services" in plan.required_capabilities
+
+
+def test_planner_extracts_explicit_transport_mode():
+    plan = create_plan("Can I cycle from Maxwell Food Centre to Marina Bay Sands?")
+
+    assert "transport" in plan.required_capabilities
+    assert plan.entities["travel_mode"] == "cycle"

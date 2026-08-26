@@ -8,6 +8,7 @@ class PlanEntities(BaseModel):
     category: str | None = None
     service_query: str | None = None
     plan_type: str | None = None
+    travel_mode: str | None = None
 
 
 class LLMPlan(BaseModel):

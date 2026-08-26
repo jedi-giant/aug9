@@ -89,6 +89,19 @@ def create_plan(
     ):
         capabilities.append("transport")
 
+    if any(word in text for word in ["cycle", "cycling", "bike"]):
+        capabilities.append("transport")
+
+    travel_mode = None
+    if any(word in text for word in ["cycle", "cycling", "bike"]):
+        travel_mode = "cycle"
+    elif any(word in text for word in ["drive", "driving", "taxi"]):
+        travel_mode = "drive"
+    elif any(phrase in text for phrase in ["public transport", "transit", "mrt", "bus"]):
+        travel_mode = "public_transport"
+    elif "walk" in text:
+        travel_mode = "walk"
+
     if any(
         phrase in text
         for phrase in [
@@ -132,6 +145,8 @@ def create_plan(
 
     if lifeops_request:
         entities["plan_type"] = "weekend" if "weekend" in text else "day"
+    if travel_mode:
+        entities["travel_mode"] = travel_mode
 
     if any(
         word in text

@@ -64,6 +64,8 @@ Extract a broad event category into entities.category when clearly requested.
 For services, copy the request into entities.service_query.
 For lifeops, set entities.plan_type to day or weekend.
 For transport, extract both entities.origin and entities.destination.
+Extract walk, public_transport, drive, or cycle into entities.travel_mode when
+the user explicitly requests a mode.
 
 For locations:
 - Return only the place name.
