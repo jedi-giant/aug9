@@ -6,7 +6,7 @@ def test_official_provider_matches_passport_service():
     services = OfficialGovernmentServiceProvider().search("How do I renew my passport?")
 
     assert services[0].agency == "Immigration & Checkpoints Authority"
-    assert str(services[0].url).startswith("https://www.ica.gov.sg/")
+    assert str(services[0].url) == "https://www.ica.gov.sg/documents/passport/apply"
     assert len(services) == 1
 
 

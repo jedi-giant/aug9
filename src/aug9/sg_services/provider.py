@@ -20,7 +20,7 @@ OFFICIAL_SERVICES = (
         name="Apply for or renew a Singapore passport",
         agency="Immigration & Checkpoints Authority",
         description="Official ICA information for Singapore passport applications.",
-        url="https://www.ica.gov.sg/documents/passport/singapore-passport",
+        url="https://www.ica.gov.sg/documents/passport/apply",
         topics=("passport", "renew passport", "travel document", "ica"),
     ),
     GovernmentService(

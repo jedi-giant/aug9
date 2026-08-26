@@ -201,7 +201,7 @@ Runtime foundation: ✅
 Next:
 
 - Expand official service coverage and topic taxonomy
-- Add automated official-link health checks
+- Automated official-link health report ✅
 - Evaluate service-task completion and failed-intent analytics
 
 Capability:

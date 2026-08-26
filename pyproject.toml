@@ -28,6 +28,7 @@ aug9-archive-expired-events = "aug9.discovery.archive_expired_events:main"
 aug9-import-public-events = "aug9.discovery.import_public_events:main"
 aug9-refresh-events = "aug9.discovery.refresh_events:main"
 aug9-report-event-catalog = "aug9.discovery.report_event_catalog:main"
+aug9-report-service-catalog = "aug9.sg_services.report_service_catalog:main"
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
