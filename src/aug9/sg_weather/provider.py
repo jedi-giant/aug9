@@ -1,4 +1,5 @@
 import math
+import time
 from typing import Protocol
 
 import httpx
@@ -28,6 +29,8 @@ class DataGovSgWeatherProvider:
     def __init__(self, url: str = WEATHER_URL, *, timeout: float = 10.0) -> None:
         self.url = url
         self.timeout = timeout
+        self._cached_data = None
+        self._cache_expires_at = 0.0
 
     def forecast(self, place: Place) -> WeatherResult:
         if place.latitude is None or place.longitude is None:
@@ -37,8 +40,7 @@ class DataGovSgWeatherProvider:
             )
 
         try:
-            response = httpx.get(self.url, timeout=self.timeout)
-            response.raise_for_status()
+            data = self._load_data()
         except httpx.RequestError as exc:
             return WeatherResult(
                 status=SearchStatus.NETWORK_ERROR,
@@ -50,7 +52,6 @@ class DataGovSgWeatherProvider:
                 message=f"HTTP {exc.response.status_code}",
             )
 
-        data = response.json()["data"]
         areas = data["area_metadata"]
         forecasts = data["items"][0]["forecasts"]
         nearest_area = min(
@@ -72,3 +73,15 @@ class DataGovSgWeatherProvider:
             status=SearchStatus.SUCCESS,
             weather=Weather(forecast=forecast_text),
         )
+
+    def _load_data(self):
+        now = time.monotonic()
+        if self._cached_data is not None and self._cache_expires_at > now:
+            return self._cached_data
+
+        response = httpx.get(self.url, timeout=self.timeout)
+        response.raise_for_status()
+        data = response.json()["data"]
+        self._cached_data = data
+        self._cache_expires_at = now + 600
+        return data

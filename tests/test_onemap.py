@@ -2,8 +2,12 @@ import httpx
 
 from unittest.mock import Mock, patch
 
-from aug9.onemap import search_location
-from aug9.onemap import clear_token_cache, get_token, search_location
+from aug9.onemap import (
+    clear_location_cache,
+    clear_token_cache,
+    get_token,
+    search_location,
+)
 from aug9.models import SearchStatus
 
 @patch("aug9.sg_place.provider.httpx.get")
@@ -110,6 +114,7 @@ def test_get_token_returns_none_on_network_error(mock_post):
 
 @patch("aug9.sg_place.provider.httpx.get")
 def test_search_location_returns_location(mock_get):
+    clear_location_cache()
     mock_response = Mock()
 
     mock_response.json.return_value = {
@@ -140,6 +145,14 @@ def test_search_location_returns_location(mock_get):
     assert result.location.postal_code == "069184"
     assert isinstance(result.location.latitude, float)
 
+    cached = search_location(
+        base_url="https://example.com",
+        token="different-token",
+        query="Maxwell Food Centre",
+    )
+    assert cached.location.name == "MAXWELL FOOD CENTRE"
+    assert mock_get.call_count == 1
+
 @patch("aug9.sg_place.provider.httpx.get")
 def test_search_location_returns_none_when_no_results(mock_get):
     mock_response = Mock()
@@ -162,6 +175,7 @@ def test_search_location_returns_none_when_no_results(mock_get):
 
 @patch("aug9.sg_place.provider.httpx.get")
 def test_search_location_returns_none_on_network_error(mock_get):
+    clear_location_cache()
     mock_get.side_effect = httpx.RequestError(
         "Network unavailable"
     )

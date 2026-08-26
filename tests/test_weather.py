@@ -4,6 +4,7 @@ import httpx
 
 from aug9.core.models import Place
 from aug9.models import SearchStatus
+from aug9.sg_weather.provider import DataGovSgWeatherProvider
 from aug9.weather import get_weather
 
 @patch("aug9.sg_weather.provider.httpx.get")
@@ -103,8 +104,13 @@ def test_get_weather_returns_forecast_for_nearest_area(mock_get):
         longitude=103.8447,
     )
 
-    result = get_weather(place)
+    provider = DataGovSgWeatherProvider()
+    result = provider.forecast(place)
 
     assert result.status == SearchStatus.SUCCESS
     assert result.weather is not None
     assert result.weather.forecast == "Windy"
+
+    cached = provider.forecast(place)
+    assert cached.weather.forecast == "Windy"
+    assert mock_get.call_count == 1
