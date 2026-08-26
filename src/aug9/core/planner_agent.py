@@ -39,6 +39,7 @@ Available capabilities:
 - hotels: discover licensed Singapore hotels
 - events: discover upcoming Singapore activities and events
 - services: find official Singapore government services
+- lifeops: coordinate a multi-capability Singapore day plan
 
 Return a structured plan.
 
@@ -55,10 +56,13 @@ Use:
   HDB, work passes, HealthHub, identity cards, birth registration, marriage,
   driving licences, National Service, school registration, starting a business,
   or another government service
+- lifeops together with events, food, and weather when the user asks Aug9 to
+  plan a day, Saturday, Sunday, weekend, or itinerary
 
 Extract location into entities.location.
 Extract a broad event category into entities.category when clearly requested.
 For services, copy the request into entities.service_query.
+For lifeops, set entities.plan_type to day or weekend.
 For transport, extract both entities.origin and entities.destination.
 
 For locations:

@@ -227,6 +227,13 @@ Planned:
 
 # v0.5 — Personal LifeOps
 
+Runtime foundation: ✅
+
+- Registered `sg-planner` orchestration skill
+- Day and weekend intent recognition
+- Coordinated events, food, and weather execution
+- Location-aware follow-up when a starting area is missing
+
 Capability:
 
 `sg-planner`

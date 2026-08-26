@@ -27,6 +27,7 @@ def execute_plan(
         "food",
         "weather",
         "transport",
+        "lifeops",
     ]
 
     for capability in execution_order:

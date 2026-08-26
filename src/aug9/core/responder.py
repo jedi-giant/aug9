@@ -85,4 +85,14 @@ def compose_response(
         elif getattr(transport, "summary", None):
             messages.append(transport.summary)
 
-    return " ".join(messages)
+    response = " ".join(messages)
+    lifeops = execution.outputs.get("lifeops")
+    if lifeops and getattr(lifeops, "success", False):
+        location_available = lifeops.data.get("location_available", False)
+        if response:
+            response = "Your Singapore day plan: " + response
+        else:
+            response = "I can build your Singapore day plan."
+        if not location_available:
+            response += " Tell me your starting neighbourhood for local food and weather."
+    return response

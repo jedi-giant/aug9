@@ -42,15 +42,26 @@ def create_plan(
     text = user_input.lower()
 
     capabilities = []
+    lifeops_request = any(
+        phrase in text
+        for phrase in [
+            "plan my day", "plan my saturday", "plan my sunday",
+            "plan my weekend", "plan a day", "day itinerary",
+            "weekend itinerary",
+        ]
+    )
+    if lifeops_request:
+        capabilities.extend(["events", "food", "weather", "lifeops"])
+    padded_text = f" {text} "
     if any(
-        word in text
-        for word in [
-            "near",
-            "at",
-            "from",
-            "to",
-            "where",
-            "around",
+        marker in padded_text
+        for marker in [
+            " near ",
+            " at ",
+            " from ",
+            " to ",
+            " where ",
+            " around ",
         ]
     ):
         capabilities.append("place_resolution")
@@ -119,6 +130,9 @@ def create_plan(
     else:
         entities = extract_entities(user_input)
 
+    if lifeops_request:
+        entities["plan_type"] = "weekend" if "weekend" in text else "day"
+
     if any(
         word in text
         for word in [
@@ -132,6 +146,6 @@ def create_plan(
 
     return Plan(
         intent=user_input,
-        required_capabilities=capabilities,
+        required_capabilities=list(dict.fromkeys(capabilities)),
         entities=entities,
     )

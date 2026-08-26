@@ -6,6 +6,8 @@ class PlanEntities(BaseModel):
     origin: str | None = None
     destination: str | None = None
     category: str | None = None
+    service_query: str | None = None
+    plan_type: str | None = None
 
 
 class LLMPlan(BaseModel):
