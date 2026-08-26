@@ -203,3 +203,26 @@ timeout by default, preventing an unavailable or locked database from leaving a
 cron worker hanging indefinitely. These can be adjusted with
 `DATABASE_CONNECT_TIMEOUT_SECONDS`, `DATABASE_LOCK_TIMEOUT_SECONDS`, and
 `DATABASE_STATEMENT_TIMEOUT_SECONDS`.
+
+### Daily production refresh
+
+Production should use one dedicated Railway Cron service, separate from the
+Aug9 API service. Its command imports current events and then archives expired
+events before exiting:
+
+```bash
+uv run aug9-refresh-events
+```
+
+Configure Railway's UTC cron schedule as `0 18 * * *`, which corresponds to
+02:00 Asia/Singapore on the following calendar day. Use one replica, no public
+domain, and restart policy `Never`; an automatic process restart could repeat
+source requests outside the intended once-daily cadence. Reference the private
+PostgreSQL `DATABASE_URL` from the existing database service and set
+`PUBLIC_EVENT_MIN_INTERVAL_SECONDS=5`.
+
+Railway skips a scheduled execution if the previous one is still active, so the
+cron deployment must reach `Daily event refresh complete` and exit. Configure
+Railway deployment/crash alerts and review the per-source ingestion summaries.
+Do not place this command in the web service's startup or pre-deploy command,
+because deployments and restarts would then cause unscheduled collection.
