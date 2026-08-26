@@ -81,11 +81,6 @@ PUBLIC_EVENT_SOURCES = (
         ("www.eventbrite.sg",), ("/e/",), max_pages=3,
     ),
     PublicEventSource(
-        "ticketmaster_public", "Ticketmaster Singapore",
-        "https://www.ticketmaster.sg/", ("www.ticketmaster.sg",),
-        ("/activity/detail/",),
-    ),
-    PublicEventSource(
         "peatix_public", "Peatix", "https://peatix.com/search?country=SG",
         ("peatix.com",), ("/event/",),
     ),
@@ -98,13 +93,6 @@ PUBLIC_EVENT_SOURCES = (
         ("todaydowhat.com",), ("/event", "/activity"), max_pages=3,
     ),
 )
-
-DISABLED_EVENT_SOURCES = {
-    "facebook_events": (
-        "Requires an approved Facebook API integration; public-page crawling "
-        "must not simulate login or bypass access controls."
-    ),
-}
 
 
 class StructuredDataParser(HTMLParser):

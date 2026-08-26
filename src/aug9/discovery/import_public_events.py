@@ -1,11 +1,7 @@
 import httpx
 
 from aug9.core.database import initialise_database
-from aug9.discovery.public_events import (
-    DISABLED_EVENT_SOURCES,
-    USER_AGENT,
-    run_public_event_imports,
-)
+from aug9.discovery.public_events import USER_AGENT, run_public_event_imports
 from aug9.discovery.repository import DiscoveryRepository
 
 
@@ -38,8 +34,6 @@ def main() -> None:
         )
         for reason, count in summary.rejection_reasons.items():
             print(f"{source_id}: rejected_reason count={count} reason={reason}")
-    for source_id, reason in DISABLED_EVENT_SOURCES.items():
-        print(f"{source_id}: disabled={reason}")
 
 
 if __name__ == "__main__":

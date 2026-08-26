@@ -170,9 +170,9 @@ deleted so ingestion and provenance audit records remain available.
 
 The multi-source public event job covers Visit Singapore, Honeycombers,
 SETHLUI.com, Miss Tam Chiak, HeritageSG, DanielFoodDiary.com,
-ieatishootipost, Eventbrite, Ticketmaster Singapore, Peatix, SISTIC, and Today
-Do What. Each is registered separately as `legal_reviewed`; approval for one
-source never enables another source implicitly.
+ieatishootipost, Eventbrite, Peatix, SISTIC, and Today Do What. Each is
+registered separately as `legal_reviewed`; approval for one source never
+enables another source implicitly.
 
 ```bash
 uv run aug9-import-public-events
@@ -193,10 +193,9 @@ and other personal data are discarded. Aug9 generates its own short factual
 description. Pages without usable event structure produce zero records instead
 of triggering broad article extraction.
 
-Facebook Events remains disabled until Aug9 has an approved Facebook API
-connection. The collector does not automate login, simulate a user session, or
-bypass access controls. A source blocked by robots or redirected outside its
-approved host boundary is recorded as a failed ingestion and skipped.
+A source blocked by robots or redirected outside its approved host boundary is
+recorded as a failed ingestion and skipped. Ticketmaster and Facebook Events
+are not configured as collection sources.
 
 The job prints a `starting` line before each source. PostgreSQL connections use
 a 10-second connection timeout, 10-second lock timeout, and 60-second statement
