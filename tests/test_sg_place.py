@@ -63,4 +63,7 @@ def test_sg_place_preserves_provider_failure_message():
     result = SgPlaceSkill(provider).execute(UserContext(), {"location": "Maxwell"})
 
     assert result.success is False
-    assert result.summary == "OneMap unavailable"
+    assert result.summary == (
+        "Singapore place search is temporarily unavailable. "
+        "Please try again shortly."
+    )

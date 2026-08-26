@@ -53,4 +53,7 @@ def test_sg_weather_preserves_provider_failure():
     )
 
     assert result.success is False
-    assert result.summary == "Unavailable"
+    assert result.summary == (
+        "Singapore weather information is temporarily unavailable. "
+        "Please try again shortly."
+    )

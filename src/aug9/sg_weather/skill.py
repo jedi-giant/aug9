@@ -28,7 +28,17 @@ class SgWeatherSkill(Aug9Skill):
 
         result = self.provider.forecast(context.current_place)
         if result.status != SearchStatus.SUCCESS or result.weather is None:
-            return SkillResult(success=False, summary=result.message)
+            if result.status in {
+                SearchStatus.NETWORK_ERROR,
+                SearchStatus.API_ERROR,
+            }:
+                summary = (
+                    "Singapore weather information is temporarily unavailable. "
+                    "Please try again shortly."
+                )
+            else:
+                summary = result.message or "No weather forecast was found."
+            return SkillResult(success=False, summary=summary)
 
         return SkillResult(
             success=True,

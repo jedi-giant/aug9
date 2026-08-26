@@ -7,6 +7,14 @@ def compose_response(
 
     messages = []
 
+    place = execution.outputs.get("place_resolution")
+    if (
+        place
+        and not getattr(place, "success", True)
+        and getattr(place, "summary", None)
+    ):
+        messages.append(place.summary)
+
     food = execution.outputs.get("food")
 
     if food:
@@ -73,6 +81,11 @@ def compose_response(
                     f"Weather forecast: "
                     f"{weather.weather.forecast}."
                 )
+        if (
+            not getattr(weather, "success", True)
+            and getattr(weather, "summary", None)
+        ):
+            messages.append(weather.summary)
 
     transport = execution.outputs.get("transport")
 

@@ -38,7 +38,16 @@ class SgPlaceSkill(Aug9Skill):
 
         result = self.provider.search(str(query))
         if result.status != SearchStatus.SUCCESS or result.location is None:
-            return SkillResult(success=False, summary=result.message)
+            summary = (
+                "Singapore place search is temporarily unavailable. "
+                "Please try again shortly."
+                if result.status in {
+                    SearchStatus.NETWORK_ERROR,
+                    SearchStatus.API_ERROR,
+                }
+                else result.message or "No matching Singapore place was found."
+            )
+            return SkillResult(success=False, summary=summary)
 
         return SkillResult(
             success=True,

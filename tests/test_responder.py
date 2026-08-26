@@ -105,6 +105,30 @@ def test_response_surfaces_transport_failure_summary():
     assert compose_response(result) == "Unable to resolve the route destination."
 
 
+def test_response_surfaces_place_and_weather_failure_summaries():
+    result = ExecutionResult(
+        plan=Plan(
+            intent="weather",
+            required_capabilities=["place_resolution", "weather"],
+        ),
+        outputs={
+            "place_resolution": SkillResult(
+                success=False,
+                summary="Singapore place search is temporarily unavailable.",
+            ),
+            "weather": SkillResult(
+                success=False,
+                summary="Singapore weather information is temporarily unavailable.",
+            ),
+        },
+    )
+
+    response = compose_response(result)
+
+    assert "place search is temporarily unavailable" in response
+    assert "weather information is temporarily unavailable" in response
+
+
 def test_response_supports_registered_hawker_skill_result():
     result = ExecutionResult(
         plan=Plan(intent="hawkers", required_capabilities=["hawkers"]),
