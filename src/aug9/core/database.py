@@ -83,6 +83,21 @@ def placeholder() -> str:
     return "?"
 
 
+def database_is_ready() -> bool:
+    """Run a bounded connection check for deployment readiness probes."""
+    conn = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        return cursor.fetchone()[0] == 1
+    except (psycopg.Error, sqlite3.Error, OSError, ValueError):
+        return False
+    finally:
+        if conn is not None:
+            conn.close()
+
+
 def initialise_database():
     conn = get_connection()
     cursor = conn.cursor()

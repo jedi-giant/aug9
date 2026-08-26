@@ -13,6 +13,7 @@ from aug9.api.rate_limit import (
 from aug9.core.agent import run_aug9
 from aug9.core.skill import SkillAction
 from aug9.core.database import (
+    database_is_ready,
     initialise_database,
     log_usage_event,
 )
@@ -71,6 +72,28 @@ def health_check():
     }
 
 
+@app.get("/health/ready")
+def readiness_check():
+    if not database_is_ready():
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "status": "not_ready",
+                "dependency": "database",
+            },
+        )
+    return {"status": "ready"}
+
+
+def try_log_usage(**kwargs) -> bool:
+    """Keep analytics failures from changing the user-facing API outcome."""
+    try:
+        log_usage_event(**kwargs)
+    except Exception:
+        return False
+    return True
+
+
 @app.post(
     "/chat",
     response_model=ChatResponse,
@@ -109,7 +132,7 @@ def chat(
             * 1000
         )
 
-        log_usage_event(
+        try_log_usage(
             user_id=request.user_id,
             session_id=request.session_id,
             message_length=len(
@@ -144,7 +167,7 @@ def chat(
             * 1000
         )
 
-        log_usage_event(
+        try_log_usage(
             user_id=request.user_id,
             session_id=request.session_id,
             message_length=len(
@@ -184,7 +207,7 @@ def chat(
             * 1000
         )
 
-        log_usage_event(
+        try_log_usage(
             user_id=request.user_id,
             session_id=request.session_id,
             message_length=len(
@@ -197,7 +220,16 @@ def chat(
             ).__name__,
         )
 
-        raise
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "temporarily_unavailable",
+                "message": (
+                    "Aug9 could not complete this request right now. "
+                    "Please try again shortly."
+                ),
+            },
+        ) from error
 
 
 @app.post("/events", response_model=ProductEventResponse)
