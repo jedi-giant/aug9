@@ -41,6 +41,22 @@ class DataGovSgWeatherProvider:
 
         try:
             data = self._load_data()
+            areas = data["area_metadata"]
+            forecasts = data["items"][0]["forecasts"]
+            nearest_area = min(
+                areas,
+                key=lambda area: distance_between(
+                    place.latitude,
+                    place.longitude,
+                    area["label_location"]["latitude"],
+                    area["label_location"]["longitude"],
+                ),
+            )
+            forecast_text = next(
+                item["forecast"]
+                for item in forecasts
+                if item["area"] == nearest_area["name"]
+            )
         except httpx.RequestError as exc:
             return WeatherResult(
                 status=SearchStatus.NETWORK_ERROR,
@@ -51,23 +67,11 @@ class DataGovSgWeatherProvider:
                 status=SearchStatus.API_ERROR,
                 message=f"HTTP {exc.response.status_code}",
             )
-
-        areas = data["area_metadata"]
-        forecasts = data["items"][0]["forecasts"]
-        nearest_area = min(
-            areas,
-            key=lambda area: distance_between(
-                place.latitude,
-                place.longitude,
-                area["label_location"]["latitude"],
-                area["label_location"]["longitude"],
-            ),
-        )
-        forecast_text = next(
-            item["forecast"]
-            for item in forecasts
-            if item["area"] == nearest_area["name"]
-        )
+        except (IndexError, KeyError, StopIteration, TypeError, ValueError):
+            return WeatherResult(
+                status=SearchStatus.API_ERROR,
+                message="Invalid weather response.",
+            )
 
         return WeatherResult(
             status=SearchStatus.SUCCESS,

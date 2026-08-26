@@ -48,10 +48,17 @@ class OneMapProvider:
                 timeout=self.timeout,
             )
             response.raise_for_status()
-        except (httpx.RequestError, httpx.HTTPStatusError):
+            token = response.json().get("access_token")
+        except (
+            httpx.RequestError,
+            httpx.HTTPStatusError,
+            AttributeError,
+            TypeError,
+            ValueError,
+        ):
             return None
 
-        return response.json().get("access_token")
+        return token
 
     def search(self, query: str) -> LocationSearchResult:
         token = self.authenticate()
@@ -82,6 +89,7 @@ class OneMapProvider:
                 timeout=self.timeout,
             )
             response.raise_for_status()
+            results = response.json().get("results", [])
         except httpx.RequestError as exc:
             return LocationSearchResult(
                 status=SearchStatus.NETWORK_ERROR,
@@ -92,8 +100,12 @@ class OneMapProvider:
                 status=SearchStatus.API_ERROR,
                 message=f"HTTP {exc.response.status_code}",
             )
+        except (AttributeError, TypeError, ValueError):
+            return LocationSearchResult(
+                status=SearchStatus.API_ERROR,
+                message="Invalid OneMap response.",
+            )
 
-        results = response.json().get("results", [])
         if not results:
             simplified = query.replace(", Singapore", "").replace(" Singapore", "").strip()
             if simplified != query:
@@ -103,15 +115,19 @@ class OneMapProvider:
                 message=f'No location found for "{query}".',
             )
 
-        first = results[0]
-        return LocationSearchResult(
-            status=SearchStatus.SUCCESS,
-            location=Place(
+        try:
+            first = results[0]
+            location = Place(
                 name=first["SEARCHVAL"],
                 place_type="location",
                 address=first["ADDRESS"],
                 postal_code=first["POSTAL"],
                 latitude=float(first["LATITUDE"]),
                 longitude=float(first["LONGITUDE"]),
-            ),
-        )
+            )
+        except (IndexError, KeyError, TypeError, ValueError):
+            return LocationSearchResult(
+                status=SearchStatus.API_ERROR,
+                message="Invalid OneMap response.",
+            )
+        return LocationSearchResult(status=SearchStatus.SUCCESS, location=location)
