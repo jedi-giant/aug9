@@ -9,6 +9,7 @@ from aug9.sg_place.skill import SgPlaceSkill
 from aug9.sg_weather.skill import SgWeatherSkill
 from aug9.sg_transport.skill import SgTransportSkill
 from aug9.sg_services import OfficialGovernmentServiceProvider, SgServicesSkill
+from aug9.sg_planner import SgPlannerSkill
 
 
 class FakePlaceProvider:
@@ -211,3 +212,29 @@ def test_lifeops_defers_transport_without_starting_location():
     result = execute_plan(plan, UserContext(), registry=registry)
 
     assert "transport" not in result.outputs
+
+
+def test_lifeops_receives_prior_outputs_and_builds_ordered_plan():
+    registry = SkillRegistry()
+    registry.register(FakeEventsSkill())
+    registry.register(SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()))
+    registry.register(SgPlannerSkill())
+    plan = Plan(
+        intent="Plan my Saturday from Maxwell Food Centre",
+        required_capabilities=["events", "transport", "lifeops"],
+        entities={"plan_type": "day"},
+    )
+    context = UserContext(
+        current_place=Place(
+            name="Maxwell Food Centre", latitude=1.28, longitude=103.84
+        )
+    )
+
+    result = execute_plan(plan, context, registry=registry)
+
+    itinerary = result.outputs["lifeops"].data["itinerary"]
+    assert [item["type"] for item in itinerary] == ["start", "event"]
+    assert itinerary[1]["title"] == "Marina Bay event"
+    assert result.outputs["lifeops"].data["transport"]["destination"] == (
+        "Marina Bay Sands"
+    )

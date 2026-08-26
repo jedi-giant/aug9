@@ -37,6 +37,9 @@ def execute_plan(
         if capability not in plan.required_capabilities:
             continue
 
+        if capability == "lifeops":
+            execution_entities["_lifeops_outputs"] = dict(outputs)
+
         if capability == "transport" and is_lifeops:
             if context.current_place is None:
                 continue
