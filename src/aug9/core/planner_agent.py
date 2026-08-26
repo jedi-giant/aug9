@@ -38,6 +38,7 @@ Available capabilities:
 - hawkers: discover Singapore hawker centres
 - hotels: discover licensed Singapore hotels
 - events: discover upcoming Singapore activities and events
+- services: find official Singapore government services
 
 Return a structured plan.
 
@@ -50,9 +51,12 @@ Use:
 - hotels when the user asks to find or list hotels or accommodation
 - events when the user asks what to do, or for events, activities, concerts,
   exhibitions, festivals, or weekend plans
+- services when the user asks about Singapore passports, Singpass, CPF, tax,
+  HDB, work passes, HealthHub, or another government service
 
 Extract location into entities.location.
 Extract a broad event category into entities.category when clearly requested.
+For services, copy the request into entities.service_query.
 For transport, extract both entities.origin and entities.destination.
 
 For locations:

@@ -23,6 +23,7 @@ def execute_plan(
         "hawkers",
         "hotels",
         "events",
+        "services",
         "food",
         "weather",
         "transport",

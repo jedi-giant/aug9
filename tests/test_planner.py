@@ -34,3 +34,10 @@ def test_planner_detects_event_discovery():
     plan = create_plan("What events are happening this weekend?")
 
     assert "events" in plan.required_capabilities
+
+
+def test_planner_detects_government_service_request():
+    plan = create_plan("How do I renew my Singapore passport?")
+
+    assert "services" in plan.required_capabilities
+    assert plan.entities["service_query"] == "How do I renew my Singapore passport?"

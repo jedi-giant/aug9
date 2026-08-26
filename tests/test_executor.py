@@ -7,6 +7,7 @@ from aug9.models import LocationSearchResult, SearchStatus, Weather, WeatherResu
 from aug9.sg_place.skill import SgPlaceSkill
 from aug9.sg_weather.skill import SgWeatherSkill
 from aug9.sg_transport.skill import SgTransportSkill
+from aug9.sg_services import OfficialGovernmentServiceProvider, SgServicesSkill
 
 
 class FakePlaceProvider:
@@ -136,3 +137,18 @@ def test_executor_routes_transport_through_registry():
     result = execute_plan(plan, UserContext(), registry=registry)
 
     assert result.outputs["transport"].success is True
+
+
+def test_executor_routes_services_through_registry():
+    registry = SkillRegistry()
+    registry.register(SgServicesSkill(OfficialGovernmentServiceProvider()))
+    plan = Plan(
+        intent="Help me renew my passport",
+        required_capabilities=["services"],
+        entities={"service_query": "renew passport"},
+    )
+
+    result = execute_plan(plan, UserContext(), registry=registry)
+
+    assert result.outputs["services"].success is True
+    assert result.outputs["services"].actions[0].metadata["capability"] == "services"

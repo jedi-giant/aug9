@@ -53,6 +53,11 @@ def compose_response(
         elif getattr(events, "summary", None):
             messages.append(events.summary)
 
+    services = execution.outputs.get("services")
+
+    if services and getattr(services, "summary", None):
+        messages.append(services.summary)
+
     weather = execution.outputs.get("weather")
 
     if weather:

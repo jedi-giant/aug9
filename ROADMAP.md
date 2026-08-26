@@ -165,7 +165,8 @@ Runtime foundation: ✅
 - Planner, registry, executor, response, and action integration
 - Source and booking links with provenance boundaries
 
-Launch-data feed: pending a current open-data or licensed partner source
+Launch-data feed: ✅ Governed public event aggregation with daily refresh,
+expiry handling, provenance, and quality reporting
 
 Capability:
 
@@ -189,6 +190,19 @@ Planned:
 ---
 
 # v0.4 — Singapore Services Assistant
+
+Runtime foundation: ✅
+
+- Registered `sg-services` skill with provider separation
+- Deterministic routing for common government-service requests
+- Curated official government links only
+- LifeSG fallback and current-requirements notice
+
+Next:
+
+- Expand official service coverage and topic taxonomy
+- Add automated official-link health checks
+- Evaluate service-task completion and failed-intent analytics
 
 Capability:
 

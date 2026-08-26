@@ -102,6 +102,20 @@ def create_plan(
         capabilities.append("events")
 
     if any(
+        phrase in text
+        for phrase in [
+            "passport", "singpass", "cpf", "income tax", "iras", "hdb",
+            "bto", "work pass", "work permit", "government service",
+            "government services", "healthhub",
+        ]
+    ):
+        capabilities.append("services")
+        entities = extract_entities(user_input)
+        entities["service_query"] = user_input
+    else:
+        entities = extract_entities(user_input)
+
+    if any(
         word in text
         for word in [
             "eat",
@@ -115,5 +129,5 @@ def create_plan(
     return Plan(
         intent=user_input,
         required_capabilities=capabilities,
-        entities=extract_entities(user_input),
+        entities=entities,
     )
