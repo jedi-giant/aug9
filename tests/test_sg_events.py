@@ -89,6 +89,52 @@ def test_skill_builds_weekend_window():
     assert call["starts_before"] - call["starts_after"] == __import__("datetime").timedelta(days=2)
 
 
+def test_skill_builds_single_day_saturday_window():
+    provider = FakeEventProvider()
+    SgEventsSkill(provider).execute(
+        UserContext(intent="Plan my Saturday in Singapore"), {}
+    )
+
+    call = provider.calls[0]
+    assert call["starts_after"].weekday() == 5
+    assert call["starts_before"] - call["starts_after"] == __import__("datetime").timedelta(days=1)
+
+
+def test_lifeops_shortlist_prioritises_events_starting_in_window():
+    now = datetime.now(UTC)
+    days_until_saturday = (5 - now.weekday()) % 7
+    saturday = (now + __import__("datetime").timedelta(days=days_until_saturday)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    listings = [
+        EventListing(
+            name="Ongoing exhibition",
+            starts_at=saturday - __import__("datetime").timedelta(days=10),
+            ends_at=saturday,
+            source_url="https://example.gov.sg/ongoing",
+        ),
+        *[
+            EventListing(
+                name=f"Saturday event {index}",
+                starts_at=saturday + __import__("datetime").timedelta(hours=index),
+                source_url=f"https://example.gov.sg/{index}",
+            )
+            for index in range(4)
+        ],
+    ]
+
+    result = SgEventsSkill(FakeEventProvider(listings=listings)).execute(
+        UserContext(intent="Plan my Saturday"), {}
+    )
+
+    assert [item["name"] for item in result.data["events"]] == [
+        "Saturday event 0",
+        "Saturday event 1",
+        "Saturday event 2",
+    ]
+    assert len(result.actions) == 3
+
+
 def test_skill_offers_attributed_external_guides_when_catalog_is_empty():
     result = SgEventsSkill(FakeEventProvider(listings=[])).execute(
         UserContext(intent="What can I do this weekend?"), {}

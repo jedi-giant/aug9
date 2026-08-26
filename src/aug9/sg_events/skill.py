@@ -38,6 +38,18 @@ class SgEventsSkill(Aug9Skill):
             starts_before=starts_before,
             category=entities.get("category"),
         )
+        if starts_before is not None:
+            listings = sorted(
+                listings,
+                key=lambda item: (
+                    item.starts_at < starts_after,
+                    item.starts_at,
+                ),
+            )
+        if "plan my" in (context.intent or "").casefold() or "itinerary" in (
+            context.intent or ""
+        ).casefold():
+            listings = listings[:3]
         if not listings:
             return SkillResult(
                 success=False,
@@ -83,6 +95,13 @@ class SgEventsSkill(Aug9Skill):
                 hour=0, minute=0, second=0, microsecond=0
             )
             return start, start + timedelta(days=2)
+        for weekday_name, weekday_number in (("saturday", 5), ("sunday", 6)):
+            if weekday_name in text:
+                days_until_weekday = (weekday_number - now.weekday()) % 7
+                start = (now + timedelta(days=days_until_weekday)).replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                )
+                return start, start + timedelta(days=1)
         if "today" in text:
             start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             return start, start + timedelta(days=1)
