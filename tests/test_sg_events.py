@@ -135,6 +135,21 @@ def test_lifeops_shortlist_prioritises_events_starting_in_window():
     assert len(result.actions) == 3
 
 
+def test_lifeops_shortlist_accepts_database_timestamps_without_timezone():
+    listing = EventListing(
+        name="Saturday event",
+        starts_at=datetime(2030, 8, 24),
+        source_url="https://example.gov.sg/saturday",
+    )
+
+    result = SgEventsSkill(FakeEventProvider(listings=[listing])).execute(
+        UserContext(intent="Plan my Saturday"), {}
+    )
+
+    assert result.success is True
+    assert result.data["events"][0]["name"] == "Saturday event"
+
+
 def test_skill_offers_attributed_external_guides_when_catalog_is_empty():
     result = SgEventsSkill(FakeEventProvider(listings=[])).execute(
         UserContext(intent="What can I do this weekend?"), {}

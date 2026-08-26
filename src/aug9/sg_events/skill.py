@@ -42,7 +42,7 @@ class SgEventsSkill(Aug9Skill):
             listings = sorted(
                 listings,
                 key=lambda item: (
-                    item.starts_at < starts_after,
+                    item.starts_at.date() < starts_after.date(),
                     item.starts_at,
                 ),
             )
