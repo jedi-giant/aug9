@@ -11,6 +11,12 @@ from aug9.api.rate_limit import (
     RateLimitExceeded,
     rate_limiter,
 )
+from aug9.api.visitor_identity import (
+    VISITOR_TOKEN_LIFETIME_SECONDS,
+    VisitorTokenError,
+    issue_visitor_token,
+    resolve_visitor_identity,
+)
 from aug9.core.agent import run_aug9
 from aug9.core.skill import SkillAction
 from aug9.core.database import (
@@ -65,6 +71,7 @@ class ChatRequest(BaseModel):
     session_id: str = Field(min_length=1, max_length=128)
     message: str = Field(min_length=1, max_length=4000)
     task_id: str | None = Field(default=None, min_length=1, max_length=80)
+    visitor_token: str | None = Field(default=None, min_length=1, max_length=512)
 
 
 class ChatResponse(BaseModel):
@@ -75,6 +82,11 @@ class ChatResponse(BaseModel):
 
 class ProductEventResponse(BaseModel):
     accepted: bool = True
+
+
+class VisitorSessionResponse(BaseModel):
+    visitor_token: str
+    expires_in_seconds: int
 
 
 @app.get("/")
@@ -106,6 +118,14 @@ def try_log_usage(**kwargs) -> bool:
     return True
 
 
+@app.post("/visitor/session", response_model=VisitorSessionResponse)
+def create_visitor_session():
+    return VisitorSessionResponse(
+        visitor_token=issue_visitor_token(),
+        expires_in_seconds=VISITOR_TOKEN_LIFETIME_SECONDS,
+    )
+
+
 @app.post(
     "/chat",
     response_model=ChatResponse,
@@ -115,20 +135,29 @@ def chat(
     background_tasks: BackgroundTasks,
 ):
     started_at = time.perf_counter()
+    effective_user_id = request.user_id
 
     try:
+        visitor = resolve_visitor_identity(
+            request.visitor_token,
+            request.user_id,
+        )
+        effective_user_id = visitor.user_id
         rate_limiter.check(
-            request.user_id
+            visitor.rate_limit_key
         )
 
         result = run_aug9(
             request.message,
-            user_id=request.user_id,
+            user_id=effective_user_id,
             session_id=request.session_id,
             structured=True,
         )
         task_id = request.task_id or str(uuid4())
         result.metadata["task_id"] = task_id
+        if visitor.token:
+            result.metadata["visitor_token"] = visitor.token
+            result.metadata["visitor_identity_verified"] = visitor.verified
         capabilities = result.metadata.get("requested_capabilities", [])
         capability_outcomes = result.metadata.get("capability_outcomes", {})
         result_status = (
@@ -147,7 +176,7 @@ def chat(
 
         background_tasks.add_task(
             try_log_usage,
-            user_id=request.user_id,
+            user_id=effective_user_id,
             session_id=request.session_id,
             message_length=len(
                 request.message
@@ -159,7 +188,7 @@ def chat(
             try_log_product_event,
             ProductEvent(
                 task_id=task_id,
-                user_id=request.user_id,
+                user_id=effective_user_id,
                 session_id=request.session_id,
                 event_type=ProductEventType.RESULT_GENERATED,
                 capabilities=capabilities,
@@ -173,6 +202,15 @@ def chat(
             metadata=result.metadata,
         )
 
+    except VisitorTokenError as error:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "error": "invalid_visitor_token",
+                "message": str(error),
+            },
+        ) from error
+
     except RateLimitExceeded as error:
         latency_ms = int(
             (
@@ -183,7 +221,7 @@ def chat(
         )
 
         try_log_usage(
-            user_id=request.user_id,
+            user_id=effective_user_id,
             session_id=request.session_id,
             message_length=len(
                 request.message
@@ -223,7 +261,7 @@ def chat(
         )
 
         try_log_usage(
-            user_id=request.user_id,
+            user_id=effective_user_id,
             session_id=request.session_id,
             message_length=len(
                 request.message
