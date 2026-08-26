@@ -1,3 +1,7 @@
+import json
+import os
+import time
+
 from aug9.core.context_builder import build_context
 from aug9.core.executor import execute_plan
 from aug9.core.planner_router import plan as create_plan
@@ -5,11 +9,8 @@ from aug9.core.responder import compose_response
 from aug9.core.planner_adapter import llm_plan_to_plan
 from aug9.core.trace import AgentTrace
 from aug9.core.session import get_memory
-from aug9.core.memory_agent import extract_memories
+from aug9.core.memory_agent import extract_memories, should_extract_memories
 from aug9.core.database import save_memory
-from aug9.core.memory_retriever import retrieve_relevant_memory
-from aug9.core.memory_ranker import rank_memories
-from aug9.core.semantic_memory import retrieve_semantic_memories
 from aug9.core.agent_response import AgentResponse, compose_agent_response
 
 
@@ -19,11 +20,13 @@ def run_aug9(
     session_id: str | None = None,
     structured: bool = False,
 ) -> str | AgentResponse:
-    extracted = extract_memories(
-        user_input
-    )
+    request_started = time.perf_counter()
+    stage_started = request_started
+    extracted_memories = []
+    if should_extract_memories(user_input):
+        extracted_memories = extract_memories(user_input).memories
 
-    for memory in extracted.memories:
+    for memory in extracted_memories:
         save_memory(
             user_id,
             memory.category,
@@ -32,83 +35,57 @@ def run_aug9(
             memory.confidence,
             memory.expires,
         )
-
-    memory = get_memory(user_id)
-
-    relevant_memory = retrieve_relevant_memory(
-        memory,
-        user_input,
-    )
-
-    semantic_memories = retrieve_semantic_memories(
-        user_id,
-        user_input,
-    )
-
-    candidate_memories = []
-
-    for category, memories in relevant_memory.preferences.items():
-        for memory_item in memories:
-            candidate_memories.append(
-                {
-                    "category": category,
-                    "value": memory_item.value,
-                    "type": memory_item.memory_type,
-                }
-            )
-
-    existing_values = {
-        item["value"]
-        for item in candidate_memories
+    timings_ms = {
+        "memory": int((time.perf_counter() - stage_started) * 1000),
     }
 
-    for semantic_memory in semantic_memories:
-        if semantic_memory["value"] not in existing_values:
-            candidate_memories.append(
-                {
-                    "category": semantic_memory["category"],
-                    "value": semantic_memory["value"],
-                    "type": semantic_memory["memory_type"],
-                }
-            )
-
-    ranked_memory = rank_memories(
-        user_input,
-        candidate_memories,
+    stage_started = time.perf_counter()
+    memory = get_memory(user_id)
+    timings_ms["memory_load"] = int(
+        (time.perf_counter() - stage_started) * 1000
     )
 
-    ranked_preferences = {}
-
-    for memory_item in ranked_memory.memories:
-        ranked_preferences.setdefault(
-            "memory",
-            []
-        ).append(
-            memory_item.value
-        )
-
+    stage_started = time.perf_counter()
     raw_plan = create_plan(
         user_input,
         memory,
+    )
+    timings_ms["planning"] = int(
+        (time.perf_counter() - stage_started) * 1000
     )
 
     plan = llm_plan_to_plan(
         raw_plan
     )
 
+    stage_started = time.perf_counter()
     context = build_context(
         user_input,
         plan.entities,
         user_id=user_id,
     )
+    timings_ms["context"] = int(
+        (time.perf_counter() - stage_started) * 1000
+    )
 
+    stage_started = time.perf_counter()
     execution = execute_plan(
         plan,
         context,
     )
+    timings_ms["execution"] = int(
+        (time.perf_counter() - stage_started) * 1000
+    )
 
+    stage_started = time.perf_counter()
     response = compose_response(
         execution
+    )
+    timings_ms["response"] = int(
+        (time.perf_counter() - stage_started) * 1000
+    )
+    timings_ms["total"] = int(
+        (time.perf_counter() - request_started) * 1000
     )
 
     trace = AgentTrace(
@@ -117,14 +94,13 @@ def run_aug9(
         context=context,
         execution=execution,
         response=response,
+        timings_ms=timings_ms,
     )
 
-    print("=== Aug9 Trace ===")
-    print(
-        trace.model_dump_json(
-            indent=2
-        )
-    )
+    print(json.dumps({"event": "aug9_request_timing", **timings_ms}))
+    if os.getenv("AUG9_TRACE_ENABLED", "").casefold() in {"1", "true", "yes"}:
+        print("=== Aug9 Trace ===")
+        print(trace.model_dump_json(indent=2))
 
     if structured:
         return compose_agent_response(execution)

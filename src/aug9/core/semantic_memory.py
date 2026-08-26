@@ -9,6 +9,10 @@ def retrieve_semantic_memories(
     user_input: str,
     limit: int = 3,
 ):
+    stored_rows = get_embeddings(user_id)
+    if not stored_rows:
+        return []
+
     query_embedding = create_embedding(user_input)
 
     scored = []
@@ -21,7 +25,7 @@ def retrieve_semantic_memories(
         confidence,
         expires,
         embedding_text,
-    ) in get_embeddings(user_id):
+    ) in stored_rows:
 
         stored_embedding = ast.literal_eval(embedding_text)
 

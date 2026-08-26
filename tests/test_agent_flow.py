@@ -1,18 +1,9 @@
 from unittest.mock import patch
 
 from aug9.core.agent import run_aug9
-from aug9.core.memory_ranker_schema import MemoryRankingResult
 from aug9.core.memory_schema import MemoryExtractionResult
 
 
-@patch(
-    "aug9.core.agent.rank_memories",
-    return_value=MemoryRankingResult(memories=[]),
-)
-@patch(
-    "aug9.core.agent.retrieve_semantic_memories",
-    return_value=[],
-)
 @patch(
     "aug9.core.agent.extract_memories",
     return_value=MemoryExtractionResult(memories=[]),
@@ -23,8 +14,6 @@ def test_aug9_full_flow(
     mock_search,
     mock_token,
     _mock_extract_memories,
-    _mock_semantic_memories,
-    _mock_rank_memories,
 ):
 
     mock_token.return_value = "fake-token"
@@ -54,3 +43,4 @@ def test_aug9_full_flow(
     )
 
     assert "Tian Tian" in response
+    _mock_extract_memories.assert_not_called()

@@ -1,5 +1,23 @@
+import re
+
 from aug9.core.llm import client
 from aug9.core.memory_schema import MemoryExtractionResult
+
+
+MEMORY_PATTERNS = (
+    r"\bremember\b",
+    r"\bdon't forget\b",
+    r"\bdo not forget\b",
+    r"\bi (?:like|love|prefer|dislike|hate|avoid)\b",
+    r"\bi(?:'m| am) (?:allergic|vegetarian|vegan)\b",
+    r"\bmy favou?rite\b",
+    r"\bi (?:live|stay|work) in\b",
+)
+
+
+def should_extract_memories(user_input: str) -> bool:
+    text = user_input.casefold()
+    return any(re.search(pattern, text) for pattern in MEMORY_PATTERNS)
 
 
 def extract_memories(
