@@ -9,11 +9,14 @@ def plan(
 ):
 
     if PLANNER_MODE == "llm":
+        rule_plan = create_plan(user_input)
+        if can_use_rule_plan(rule_plan, memory):
+            return rule_plan
+
         llm_plan = create_llm_plan(
             user_input,
             memory,
         )
-        rule_plan = create_plan(user_input)
 
         llm_plan.required_capabilities = list(
             dict.fromkeys(
@@ -46,3 +49,32 @@ def plan(
     return create_plan(
         user_input
     )
+
+
+def can_use_rule_plan(rule_plan, memory=None) -> bool:
+    capabilities = set(rule_plan.required_capabilities)
+    if not capabilities or "lifeops" in capabilities:
+        return False
+
+    entities = rule_plan.entities
+    remembered_place = getattr(memory, "current_place", None) is not None
+    has_location = bool(entities.get("location") or remembered_place)
+
+    if "transport" in capabilities:
+        has_origin = bool(entities.get("origin") or remembered_place)
+        if not (has_origin and entities.get("destination")):
+            return False
+
+    if capabilities.intersection({"weather", "food"}) and not has_location:
+        return False
+
+    if "place_resolution" in capabilities and not (
+        has_location
+        or (entities.get("origin") and entities.get("destination"))
+    ):
+        return False
+
+    if "services" in capabilities and not entities.get("service_query"):
+        return False
+
+    return True

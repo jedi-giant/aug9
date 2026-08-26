@@ -14,12 +14,11 @@ def test_llm_planner_is_supplemented_by_rule_transport_plan(mock_llm_plan):
     )
 
     result = plan(
-        "How do I get from Maxwell Food Centre to Marina Bay Sands?"
+        "How do I get from Changi Airport to Pulau Ubin?"
     )
 
     assert "transport" in result.required_capabilities
-    assert result.entities.origin == "Maxwell Food Centre"
-    assert result.entities.destination == "Marina Bay Sands"
+    mock_llm_plan.assert_called_once()
 
 
 @patch("aug9.core.planner_router.PLANNER_MODE", "llm")
@@ -35,8 +34,8 @@ def test_rule_transport_intent_removes_incidental_llm_food(mock_llm_plan):
     )
 
     result = plan(
-        "Give me public transport directions from Maxwell Food Centre "
-        "to Gardens by the Bay Flower Dome."
+        "Give me public transport directions from Changi Airport "
+        "to Pulau Ubin."
     )
 
     assert "transport" in result.required_capabilities
@@ -53,7 +52,31 @@ def test_rule_weather_intent_removes_incidental_llm_food(mock_llm_plan):
         entities=PlanEntities(location="Maxwell Food Centre"),
     )
 
-    result = plan("What is the weather at Maxwell Food Centre?")
+    result = plan("Could it rain around where I am staying?")
 
     assert "weather" in result.required_capabilities
     assert "food" not in result.required_capabilities
+
+
+@patch("aug9.core.planner_router.PLANNER_MODE", "llm")
+@patch("aug9.core.planner_router.create_llm_plan")
+def test_confident_weather_request_skips_llm_planner(mock_llm_plan):
+    result = plan("What is the weather at Maxwell Food Centre?")
+
+    assert "weather" in result.required_capabilities
+    assert result.entities["location"] == "Maxwell Food Centre"
+    mock_llm_plan.assert_not_called()
+
+
+@patch("aug9.core.planner_router.PLANNER_MODE", "llm")
+@patch("aug9.core.planner_router.create_llm_plan")
+def test_lifeops_request_keeps_llm_planner(mock_llm_plan):
+    mock_llm_plan.return_value = LLMPlan(
+        intent="plan day",
+        required_capabilities=["events", "lifeops"],
+        entities=PlanEntities(plan_type="day"),
+    )
+
+    plan("Plan my Saturday from Maxwell Food Centre")
+
+    mock_llm_plan.assert_called_once()
