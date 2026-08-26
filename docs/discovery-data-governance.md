@@ -226,3 +226,15 @@ cron deployment must reach `Daily event refresh complete` and exit. Configure
 Railway deployment/crash alerts and review the per-source ingestion summaries.
 Do not place this command in the web service's startup or pre-deploy command,
 because deployments and restarts would then cause unscheduled collection.
+
+After the first scheduled run and periodically thereafter, inspect the
+catalogue without making any source requests:
+
+```bash
+uv run aug9-report-event-catalog
+```
+
+The report shows active upcoming events by source, date coverage, missing
+location/postal/booking fields, possible duplicate groups, and failed or
+rejected public-event ingestion activity from the preceding seven days. Use
+this checkpoint to prioritise source-specific parsers and data enrichment.
