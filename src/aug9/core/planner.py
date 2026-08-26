@@ -1,3 +1,5 @@
+import re
+
 from pydantic import BaseModel, Field
 
 class Plan(BaseModel):
@@ -155,14 +157,15 @@ def create_plan(
         entities["travel_mode"] = travel_mode
 
     explicit_food_request = any(
-        word in text
+        re.search(rf"\b{re.escape(word)}\b", text)
         for word in [
-            "eat", "lunch", "dinner", "restaurant", "recommend food",
+            "eat", "bite", "breakfast", "lunch", "dinner", "restaurant",
+            "cafe", "café", "recommend food",
         ]
     )
     incidental_food_place_name = (
-        "food" in text
-        and "transport" in capabilities
+        any(name in text for name in ("food centre", "food center"))
+        and any(capability != "place_resolution" for capability in capabilities)
         and not explicit_food_request
     )
     if ("food" in text or explicit_food_request) and not incidental_food_place_name:

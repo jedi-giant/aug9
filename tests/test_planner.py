@@ -65,3 +65,19 @@ def test_planner_treats_food_centre_as_a_transport_location():
     assert "transport" in plan.required_capabilities
     assert "food" not in plan.required_capabilities
     assert plan.entities["travel_mode"] == "public_transport"
+
+
+def test_planner_treats_food_centre_as_a_weather_location():
+    plan = create_plan("What is the weather at Maxwell Food Centre?")
+
+    assert "weather" in plan.required_capabilities
+    assert "food" not in plan.required_capabilities
+
+
+def test_planner_preserves_explicit_food_request_with_weather():
+    plan = create_plan(
+        "What is the weather at Maxwell Food Centre and where should I eat?"
+    )
+
+    assert "weather" in plan.required_capabilities
+    assert "food" in plan.required_capabilities

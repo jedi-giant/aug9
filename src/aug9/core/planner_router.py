@@ -25,7 +25,10 @@ def plan(
         )
 
         if (
-            "transport" in rule_plan.required_capabilities
+            any(
+                capability != "place_resolution"
+                for capability in rule_plan.required_capabilities
+            )
             and "food" not in rule_plan.required_capabilities
         ):
             llm_plan.required_capabilities = [

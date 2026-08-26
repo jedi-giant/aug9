@@ -42,3 +42,18 @@ def test_rule_transport_intent_removes_incidental_llm_food(mock_llm_plan):
     assert "transport" in result.required_capabilities
     assert "food" not in result.required_capabilities
     assert result.entities.travel_mode == "public_transport"
+
+
+@patch("aug9.core.planner_router.PLANNER_MODE", "llm")
+@patch("aug9.core.planner_router.create_llm_plan")
+def test_rule_weather_intent_removes_incidental_llm_food(mock_llm_plan):
+    mock_llm_plan.return_value = LLMPlan(
+        intent="weather",
+        required_capabilities=["place_resolution", "weather", "food"],
+        entities=PlanEntities(location="Maxwell Food Centre"),
+    )
+
+    result = plan("What is the weather at Maxwell Food Centre?")
+
+    assert "weather" in result.required_capabilities
+    assert "food" not in result.required_capabilities
