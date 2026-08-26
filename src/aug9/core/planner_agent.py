@@ -56,7 +56,7 @@ Use:
   HDB, work passes, HealthHub, identity cards, birth registration, marriage,
   driving licences, National Service, school registration, starting a business,
   or another government service
-- lifeops together with events, food, and weather when the user asks Aug9 to
+- lifeops together with events, food, weather, and transport when the user asks Aug9 to
   plan a day, Saturday, Sunday, weekend, or itinerary
 
 Extract location into entities.location.

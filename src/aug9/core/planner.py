@@ -51,7 +51,7 @@ def create_plan(
         ]
     )
     if lifeops_request:
-        capabilities.extend(["events", "food", "weather", "lifeops"])
+        capabilities.extend(["events", "food", "weather", "transport", "lifeops"])
     padded_text = f" {text} "
     if any(
         marker in padded_text

@@ -3,6 +3,7 @@ from aug9.core.executor import execute_plan
 from aug9.core.planner import Plan
 from aug9.core.models import Place
 from aug9.core.skill_registry import SkillRegistry
+from aug9.core.skill import Aug9Skill, SkillResult
 from aug9.models import LocationSearchResult, SearchStatus, Weather, WeatherResult
 from aug9.sg_place.skill import SgPlaceSkill
 from aug9.sg_weather.skill import SgWeatherSkill
@@ -38,6 +39,28 @@ class FakeRouteProvider:
                 steps=["Bayfront Avenue"],
                 summary=f"Walk from {origin.name} to {destination.name}.",
             ),
+        )
+
+
+class FakeEventsSkill(Aug9Skill):
+    name = "fake_events"
+    description = "Fake events"
+
+    @property
+    def capabilities(self):
+        return ["events"]
+
+    def execute(self, context, entities):
+        return SkillResult(
+            success=True,
+            data={
+                "events": [
+                    {
+                        "name": "Marina Bay event",
+                        "address": "Marina Bay Sands",
+                    }
+                ]
+            },
         )
 
 
@@ -152,3 +175,39 @@ def test_executor_routes_services_through_registry():
 
     assert result.outputs["services"].success is True
     assert result.outputs["services"].actions[0].metadata["capability"] == "services"
+
+
+def test_lifeops_derives_route_destination_from_first_event():
+    registry = SkillRegistry()
+    registry.register(FakeEventsSkill())
+    registry.register(SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()))
+    plan = Plan(
+        intent="Plan my Saturday from Maxwell Food Centre",
+        required_capabilities=["events", "transport", "lifeops"],
+    )
+    context = UserContext(
+        current_place=Place(
+            name="Maxwell Food Centre", latitude=1.28, longitude=103.84
+        )
+    )
+
+    result = execute_plan(plan, context, registry=registry)
+
+    assert result.outputs["transport"].success is True
+    assert result.outputs["transport"].data["route"]["destination"] == (
+        "Marina Bay Sands"
+    )
+
+
+def test_lifeops_defers_transport_without_starting_location():
+    registry = SkillRegistry()
+    registry.register(FakeEventsSkill())
+    registry.register(SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()))
+    plan = Plan(
+        intent="Plan my Saturday",
+        required_capabilities=["events", "transport", "lifeops"],
+    )
+
+    result = execute_plan(plan, UserContext(), registry=registry)
+
+    assert "transport" not in result.outputs

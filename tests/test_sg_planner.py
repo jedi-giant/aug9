@@ -9,7 +9,7 @@ from aug9.sg_planner import SgPlannerSkill
 def test_day_plan_requests_coordinate_existing_capabilities():
     plan = create_plan("Plan my Saturday in Singapore")
 
-    assert {"events", "food", "weather", "lifeops"}.issubset(
+    assert {"events", "food", "weather", "transport", "lifeops"}.issubset(
         plan.required_capabilities
     )
     assert plan.entities["plan_type"] == "day"

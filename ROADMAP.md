@@ -233,6 +233,7 @@ Runtime foundation: ✅
 - Day and weekend intent recognition
 - Coordinated events, food, and weather execution
 - Location-aware follow-up when a starting area is missing
+- Automatic walking route from the starting area to the first event ✅
 
 Capability:
 

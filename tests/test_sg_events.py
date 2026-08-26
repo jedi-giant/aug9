@@ -98,6 +98,7 @@ def test_skill_builds_single_day_saturday_window():
     call = provider.calls[0]
     assert call["starts_after"].weekday() == 5
     assert call["starts_before"] - call["starts_after"] == __import__("datetime").timedelta(days=1)
+    assert call["query"] is None
 
 
 def test_lifeops_shortlist_prioritises_events_starting_in_window():
