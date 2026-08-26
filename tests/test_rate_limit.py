@@ -70,3 +70,13 @@ def test_old_requests_are_removed():
     assert len(
         limiter._requests["test_user"]
     ) == 1
+
+
+def test_rate_limiter_supports_independent_budgets():
+    limiter = RateLimiter(requests_per_minute=2, requests_per_day=10)
+
+    limiter.check("visitor")
+    limiter.check("visitor")
+
+    with pytest.raises(RateLimitExceeded):
+        limiter.check("visitor")

@@ -14,7 +14,13 @@ class RateLimitExceeded(Exception):
 
 
 class RateLimiter:
-    def __init__(self):
+    def __init__(
+        self,
+        requests_per_minute: int = REQUESTS_PER_MINUTE,
+        requests_per_day: int = REQUESTS_PER_DAY,
+    ):
+        self.requests_per_minute = requests_per_minute
+        self.requests_per_day = requests_per_day
         self._requests: dict[str, deque[datetime]] = defaultdict(deque)
         self._lock = Lock()
 
@@ -39,7 +45,7 @@ class RateLimiter:
                 if timestamp >= minute_cutoff
             )
 
-            if requests_last_minute >= REQUESTS_PER_MINUTE:
+            if requests_last_minute >= self.requests_per_minute:
                 oldest_recent = next(
                     timestamp
                     for timestamp in requests
@@ -59,7 +65,7 @@ class RateLimiter:
                     )
                 )
 
-            if requests_last_day >= REQUESTS_PER_DAY:
+            if requests_last_day >= self.requests_per_day:
                 retry_after = (
                     requests[0]
                     + timedelta(days=1)
@@ -77,3 +83,11 @@ class RateLimiter:
 
 
 rate_limiter = RateLimiter()
+visitor_session_rate_limiter = RateLimiter(
+    requests_per_minute=30,
+    requests_per_day=500,
+)
+product_event_rate_limiter = RateLimiter(
+    requests_per_minute=60,
+    requests_per_day=2000,
+)

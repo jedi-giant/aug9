@@ -3,13 +3,15 @@ import time
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
 from aug9.api.rate_limit import (
     RateLimitExceeded,
+    product_event_rate_limiter,
     rate_limiter,
+    visitor_session_rate_limiter,
 )
 from aug9.api.visitor_identity import (
     VISITOR_TOKEN_LIFETIME_SECONDS,
@@ -122,12 +124,32 @@ def try_log_usage(**kwargs) -> bool:
     return True
 
 
-@app.post("/visitor/session", response_model=VisitorSessionResponse)
-def create_visitor_session():
-    return VisitorSessionResponse(
-        visitor_token=issue_visitor_token(),
-        expires_in_seconds=VISITOR_TOKEN_LIFETIME_SECONDS,
+def rate_limit_error(error: RateLimitExceeded, message: str) -> HTTPException:
+    return HTTPException(
+        status_code=429,
+        detail={
+            "error": "rate_limit_exceeded",
+            "message": message,
+            "retry_after_seconds": error.retry_after_seconds,
+        },
+        headers={"Retry-After": str(error.retry_after_seconds)},
     )
+
+
+@app.post("/visitor/session", response_model=VisitorSessionResponse)
+def create_visitor_session(request: Request):
+    client_host = request.client.host if request.client else "unknown"
+    try:
+        visitor_session_rate_limiter.check(f"network:{client_host}")
+        return VisitorSessionResponse(
+            visitor_token=issue_visitor_token(),
+            expires_in_seconds=VISITOR_TOKEN_LIFETIME_SECONDS,
+        )
+    except RateLimitExceeded as error:
+        raise rate_limit_error(
+            error,
+            "Too many visitor sessions were requested. Please try again shortly.",
+        ) from error
 
 
 @app.post(
@@ -235,25 +257,13 @@ def chat(
             error_type="rate_limit_exceeded",
         )
 
-        raise HTTPException(
-            status_code=429,
-            detail={
-                "error": "rate_limit_exceeded",
-                "message": (
-                    "You've reached the Aug9 "
-                    "public beta usage limit. "
-                    "Please try again shortly."
-                ),
-                "retry_after_seconds": (
-                    error.retry_after_seconds
-                ),
-            },
-            headers={
-                "Retry-After": str(
-                    error.retry_after_seconds
-                )
-            },
-        )
+        raise rate_limit_error(
+            error,
+            (
+                "You've reached the Aug9 public beta usage limit. "
+                "Please try again shortly."
+            ),
+        ) from error
 
     except Exception as error:
         latency_ms = int(
@@ -296,6 +306,7 @@ def product_event(event: ProductEventRequest):
             event.visitor_token,
             event.user_id,
         )
+        product_event_rate_limiter.check(visitor.rate_limit_key)
         event_data = event.model_dump(exclude={"visitor_token"})
         event_data["user_id"] = visitor.user_id
         log_product_event(ProductEvent(**event_data))
@@ -307,4 +318,9 @@ def product_event(event: ProductEventRequest):
                 "error": "invalid_visitor_token",
                 "message": str(error),
             },
+        ) from error
+    except RateLimitExceeded as error:
+        raise rate_limit_error(
+            error,
+            "Too many analytics events were submitted. Please try again shortly.",
         ) from error
