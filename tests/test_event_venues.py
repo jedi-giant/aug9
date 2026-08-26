@@ -109,3 +109,20 @@ def test_event_venue_enrichment_skips_generic_locations(repository):
     ).get_candidates()
 
     assert [candidate.entity_id for candidate in candidates] == ["event:venue"]
+
+
+def test_rejected_venue_is_recorded_and_not_retried(repository):
+    provider = FakeOneMapProvider(
+        LocationSearchResult(status=SearchStatus.NO_RESULTS)
+    )
+    enricher = EventVenueEnricher(repository, provider)
+
+    first = enricher.run()
+    second = enricher.run()
+
+    assert first.received == 1
+    assert first.rejected == 1
+    assert second.received == 0
+    assert provider.queries == [
+        ("RELC International Hotel, 30 Orange Grove Road", "token")
+    ]

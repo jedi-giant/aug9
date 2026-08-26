@@ -43,6 +43,12 @@ class EventVenueMatch:
 
 
 @dataclass(frozen=True)
+class EventVenueRejection:
+    candidate: EventVenueCandidate
+    reason: str
+
+
+@dataclass(frozen=True)
 class EventVenueSummary:
     run_id: str
     received: int
@@ -87,13 +93,15 @@ class EventVenueEnricher:
         candidates = self.get_candidates()
         try:
             if not candidates:
-                self.repository.complete_ingestion(run)
+                self.repository.complete_ingestion(
+                    run, records_received=0, records_upserted=0
+                )
                 return EventVenueSummary(run.id, 0, 0, 0)
             token = self.provider.authenticate()
             if not token:
                 raise RuntimeError("Unable to authenticate with OneMap")
             matches: list[EventVenueMatch] = []
-            rejected = 0
+            rejections: list[EventVenueRejection] = []
             for candidate in candidates:
                 result = self.provider.search_with_token(candidate.address, token)
                 location = result.location
@@ -105,7 +113,12 @@ class EventVenueEnricher:
                     or not (1.1 <= location.latitude <= 1.5)
                     or not (103.6 <= location.longitude <= 104.1)
                 ):
-                    rejected += 1
+                    rejections.append(
+                        EventVenueRejection(
+                            candidate=candidate,
+                            reason=result.status.value,
+                        )
+                    )
                     continue
                 matches.append(
                     EventVenueMatch(
@@ -117,16 +130,23 @@ class EventVenueEnricher:
                         longitude=location.longitude,
                     )
                 )
-            self.upsert_batch(matches)
+            self.upsert_batch(matches, rejections)
             self.repository.complete_ingestion(
                 run,
                 records_received=len(candidates),
                 records_upserted=len(matches),
-                records_rejected=rejected,
+                records_rejected=len(rejections),
             )
-            return EventVenueSummary(run.id, len(candidates), len(matches), rejected)
+            return EventVenueSummary(
+                run.id, len(candidates), len(matches), len(rejections)
+            )
         except Exception as exc:
-            self.repository.complete_ingestion(run, error=type(exc).__name__)
+            self.repository.complete_ingestion(
+                run,
+                records_received=len(candidates),
+                records_upserted=0,
+                error=type(exc).__name__,
+            )
             raise
 
     def get_candidates(self) -> list[EventVenueCandidate]:
@@ -146,18 +166,26 @@ class EventVenueEnricher:
               AND address IS NOT NULL
               AND TRIM(address) != ''
               AND LOWER(TRIM(address)) NOT IN ({generic_placeholders})
+              AND NOT EXISTS (
+                  SELECT 1 FROM discovery_source_records sr
+                  WHERE sr.source_id = {p}
+                    AND sr.external_id = discovery_entities.id
+              )
             ORDER BY updated_at DESC, name ASC
             LIMIT {p}
             """,
-            (*generic, self.limit),
+            (*generic, ONEMAP_EVENT_VENUE_SOURCE_ID, self.limit),
         )
         candidates = [EventVenueCandidate(*row) for row in cursor.fetchall()]
         conn.close()
         return candidates
 
     @staticmethod
-    def upsert_batch(matches: list[EventVenueMatch]) -> None:
-        if not matches:
+    def upsert_batch(
+        matches: list[EventVenueMatch],
+        rejections: list[EventVenueRejection],
+    ) -> None:
+        if not matches and not rejections:
             return
         conn = database.get_connection()
         cursor = conn.cursor()
@@ -249,6 +277,35 @@ class EventVenueEnricher:
                             json.dumps(value),
                         ),
                     )
+            for rejection in rejections:
+                cursor.execute(
+                    f"""
+                    INSERT INTO discovery_source_records (
+                        source_id, external_id, entity_id, source_url,
+                        raw_payload, fetched_at, verified_at
+                    ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, NULL)
+                    ON CONFLICT(source_id, external_id) DO UPDATE SET
+                        entity_id = excluded.entity_id,
+                        raw_payload = excluded.raw_payload,
+                        fetched_at = excluded.fetched_at,
+                        verified_at = NULL
+                    """,
+                    (
+                        ONEMAP_EVENT_VENUE_SOURCE_ID,
+                        rejection.candidate.entity_id,
+                        rejection.candidate.entity_id,
+                        "https://www.onemap.gov.sg",
+                        json.dumps(
+                            {
+                                "query": rejection.candidate.address,
+                                "status": "rejected",
+                                "reason": rejection.reason,
+                            },
+                            sort_keys=True,
+                        ),
+                        fetched_at,
+                    ),
+                )
             conn.commit()
         except Exception:
             conn.rollback()
