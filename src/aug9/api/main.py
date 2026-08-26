@@ -1,10 +1,11 @@
+import os
 import time
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from aug9.api.rate_limit import (
     RateLimitExceeded,
@@ -39,20 +40,31 @@ app = FastAPI(
 )
 
 
+DEFAULT_ALLOWED_ORIGINS = ["https://aug-nudge-now.base44.app"]
+
+
+def configured_allowed_origins() -> list[str]:
+    configured = os.getenv("CORS_ALLOWED_ORIGINS", "")
+    origins = [origin.strip() for origin in configured.split(",") if origin.strip()]
+    return origins or DEFAULT_ALLOWED_ORIGINS
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=configured_allowed_origins(),
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["POST"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
 )
 
 
 class ChatRequest(BaseModel):
-    user_id: str
-    session_id: str
-    message: str
-    task_id: str | None = Field(default=None, max_length=80)
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    user_id: str = Field(min_length=1, max_length=128)
+    session_id: str = Field(min_length=1, max_length=128)
+    message: str = Field(min_length=1, max_length=4000)
+    task_id: str | None = Field(default=None, min_length=1, max_length=80)
 
 
 class ChatResponse(BaseModel):
