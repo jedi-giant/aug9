@@ -96,3 +96,57 @@ def test_planner_skill_builds_structured_itinerary_from_skill_outputs():
     )
     assert result.data["weather"]["forecast"] == "Fair"
     assert result.data["transport"]["summary"] == "Take public transport."
+
+
+def test_planner_orders_nearby_events_and_builds_consecutive_travel_legs():
+    outputs = {
+        "events": SkillResult(
+            success=True,
+            data={
+                "events": [
+                    {
+                        "name": "Far event",
+                        "address": "Sentosa",
+                        "latitude": 1.2494,
+                        "longitude": 103.8303,
+                    },
+                    {
+                        "name": "Near event",
+                        "address": "Tanjong Pagar",
+                        "latitude": 1.2764,
+                        "longitude": 103.8434,
+                    },
+                ]
+            },
+        )
+    }
+
+    result = SgPlannerSkill().execute(
+        UserContext(
+            current_place=Place(
+                name="Maxwell Food Centre",
+                latitude=1.2803,
+                longitude=103.8447,
+            ),
+            intent="Plan my Saturday",
+        ),
+        {"plan_type": "day", "_lifeops_outputs": outputs},
+    )
+
+    itinerary = result.data["itinerary"]
+    assert [item["title"] for item in itinerary[1:]] == [
+        "Near event",
+        "Far event",
+    ]
+    assert [item["scheduled_for"][11:16] for item in itinerary] == [
+        "10:00",
+        "14:00",
+        "17:00",
+    ]
+    assert [leg["recommended_mode"] for leg in result.data["travel_legs"]] == [
+        "walk",
+        "public_transport",
+    ]
+    assert len(result.actions) == 2
+    assert result.actions[1].metadata["leg"] == 2
+    assert "travelmode=transit" in result.actions[1].url
