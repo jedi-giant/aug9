@@ -3,7 +3,7 @@ import httpx
 from unittest.mock import Mock, patch
 
 from aug9.onemap import search_location
-from aug9.onemap import get_token, search_location
+from aug9.onemap import clear_token_cache, get_token, search_location
 from aug9.models import SearchStatus
 
 @patch("aug9.sg_place.provider.httpx.get")
@@ -46,6 +46,7 @@ def test_search_location_retries_without_singapore_suffix(mock_get):
 
 @patch("aug9.sg_place.provider.httpx.post")
 def test_get_token_returns_none_on_http_error(mock_post):
+    clear_token_cache()
     mock_response = Mock()
     mock_response.status_code = 401
 
@@ -67,6 +68,7 @@ def test_get_token_returns_none_on_http_error(mock_post):
 
 @patch("aug9.sg_place.provider.httpx.post")
 def test_get_token_returns_token(mock_post):
+    clear_token_cache()
     mock_response = Mock()
 
     mock_response.json.return_value = {
@@ -84,8 +86,16 @@ def test_get_token_returns_token(mock_post):
 
     assert token == "fake-token"
 
+    assert get_token(
+        base_url="https://example.com",
+        email="test@example.com",
+        password="password",
+    ) == "fake-token"
+    assert mock_post.call_count == 1
+
 @patch("aug9.sg_place.provider.httpx.post")
 def test_get_token_returns_none_on_network_error(mock_post):
+    clear_token_cache()
     mock_post.side_effect = httpx.RequestError(
         "Network unavailable"
     )

@@ -13,6 +13,7 @@ def build_context(
     user_input: str,
     entities: dict[str, str] | None = None,
     user_id: str = "",
+    memory: ConversationState | None = None,
 ) -> UserContext:
 
     load_dotenv()
@@ -36,7 +37,7 @@ def build_context(
     )
 
     if token is None:
-        memory = get_memory(user_id)
+        memory = memory or get_memory(user_id)
 
         return UserContext(
             current_place=memory.current_place,
@@ -61,9 +62,7 @@ def build_context(
             result.location
         )
 
-        existing_memory = get_memory(
-            user_id
-        )
+        existing_memory = memory or get_memory(user_id)
 
         state = ConversationState(
             current_place=place,
@@ -78,17 +77,16 @@ def build_context(
         update_memory(
             user_id,
             state,
+            persist=False,
         )
 
         return UserContext(
             current_place=place,
             intent=user_input,
-            memory=get_memory(user_id),
+            memory=state,
         )
 
-    memory = get_memory(
-        user_id
-    )
+    memory = memory or get_memory(user_id)
 
     return UserContext(
         current_place=memory.current_place,

@@ -57,12 +57,17 @@ def get_memory(
 def update_memory(
     user_id: str,
     state: ConversationState,
+    *,
+    persist: bool = True,
 ) -> None:
 
     # Store temporary/session state separately for each user.
     _sessions[user_id] = state
 
     # Persist long-term preferences to the database.
+    if not persist:
+        return
+
     for category, values in state.preferences.items():
 
         for memory in values:

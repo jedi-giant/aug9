@@ -63,6 +63,7 @@ def run_aug9(
         user_input,
         plan.entities,
         user_id=user_id,
+        memory=memory,
     )
     timings_ms["context"] = int(
         (time.perf_counter() - stage_started) * 1000

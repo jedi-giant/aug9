@@ -24,7 +24,10 @@ class SgPlaceSkill(Aug9Skill):
         entities: dict[str, Any],
     ) -> SkillResult:
         query = entities.get("location")
-        if not query and context.current_place is not None:
+        if context.current_place is not None and (
+            not query
+            or str(query).casefold() == context.current_place.name.casefold()
+        ):
             return SkillResult(
                 success=True,
                 data={"place": context.current_place.model_dump()},

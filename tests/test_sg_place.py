@@ -40,6 +40,18 @@ def test_sg_place_reuses_context_place_without_provider_call():
     assert provider.queries == []
 
 
+def test_sg_place_reuses_matching_resolved_context_with_query():
+    place = Place(name="MAXWELL FOOD CENTRE")
+    provider = FakePlaceProvider(LocationSearchResult(status=SearchStatus.NO_RESULTS))
+
+    result = SgPlaceSkill(provider).execute(
+        UserContext(current_place=place), {"location": "Maxwell Food Centre"}
+    )
+
+    assert result.success is True
+    assert provider.queries == []
+
+
 def test_sg_place_preserves_provider_failure_message():
     provider = FakePlaceProvider(
         LocationSearchResult(
