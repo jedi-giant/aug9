@@ -6,6 +6,7 @@ from fastapi import BackgroundTasks, HTTPException
 from aug9.api import main
 from aug9.core.agent_response import AgentResponse
 from aug9.api.visitor_identity import issue_visitor_token
+from aug9.core.product_analytics import ProductEventType
 
 
 VISITOR_SECRET = "test-visitor-secret-that-is-at-least-32-characters"
@@ -128,3 +129,63 @@ def test_visitor_session_issues_token(monkeypatch):
 
     assert response.visitor_token
     assert response.expires_in_seconds > 0
+
+
+def test_product_event_uses_verified_visitor_identity(monkeypatch):
+    monkeypatch.setenv("AUG9_VISITOR_TOKEN_SECRET", VISITOR_SECRET)
+    monkeypatch.setenv("REQUIRE_VISITOR_TOKEN", "true")
+    token = issue_visitor_token()
+    captured = {}
+    monkeypatch.setattr(
+        main,
+        "log_product_event",
+        lambda event: captured.update(event=event),
+    )
+
+    response = main.product_event(
+        main.ProductEventRequest(
+            event_id="event-1",
+            user_id="caller-controlled-id",
+            event_type=ProductEventType.LANDING_VIEW,
+            visitor_token=token,
+        )
+    )
+
+    assert response.accepted is True
+    assert captured["event"].user_id.startswith("visitor:")
+    assert captured["event"].user_id != "caller-controlled-id"
+
+
+def test_product_event_requires_visitor_token_when_enforced(monkeypatch):
+    monkeypatch.setenv("AUG9_VISITOR_TOKEN_SECRET", VISITOR_SECRET)
+    monkeypatch.setenv("REQUIRE_VISITOR_TOKEN", "true")
+
+    with pytest.raises(HTTPException) as error:
+        main.product_event(
+            main.ProductEventRequest(
+                event_id="event-1",
+                user_id="caller-controlled-id",
+                event_type=ProductEventType.LANDING_VIEW,
+            )
+        )
+
+    assert error.value.status_code == 401
+    assert error.value.detail["error"] == "invalid_visitor_token"
+
+
+def test_product_event_rejects_tampered_visitor_token(monkeypatch):
+    monkeypatch.setenv("AUG9_VISITOR_TOKEN_SECRET", VISITOR_SECRET)
+    token = issue_visitor_token()
+
+    with pytest.raises(HTTPException) as error:
+        main.product_event(
+            main.ProductEventRequest(
+                event_id="event-1",
+                user_id="caller-controlled-id",
+                event_type=ProductEventType.LANDING_VIEW,
+                visitor_token=f"{token}tampered",
+            )
+        )
+
+    assert error.value.status_code == 401
+    assert error.value.detail["error"] == "invalid_visitor_token"

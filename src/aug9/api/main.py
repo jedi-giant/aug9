@@ -84,6 +84,10 @@ class ProductEventResponse(BaseModel):
     accepted: bool = True
 
 
+class ProductEventRequest(ProductEvent):
+    visitor_token: str | None = Field(default=None, min_length=1, max_length=512)
+
+
 class VisitorSessionResponse(BaseModel):
     visitor_token: str
     expires_in_seconds: int
@@ -286,6 +290,21 @@ def chat(
 
 
 @app.post("/events", response_model=ProductEventResponse)
-def product_event(event: ProductEvent):
-    log_product_event(event)
-    return ProductEventResponse()
+def product_event(event: ProductEventRequest):
+    try:
+        visitor = resolve_visitor_identity(
+            event.visitor_token,
+            event.user_id,
+        )
+        event_data = event.model_dump(exclude={"visitor_token"})
+        event_data["user_id"] = visitor.user_id
+        log_product_event(ProductEvent(**event_data))
+        return ProductEventResponse()
+    except VisitorTokenError as error:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "error": "invalid_visitor_token",
+                "message": str(error),
+            },
+        ) from error
