@@ -106,7 +106,11 @@ def create_plan(
         for phrase in [
             "passport", "singpass", "cpf", "income tax", "iras", "hdb",
             "bto", "work pass", "work permit", "government service",
-            "government services", "healthhub",
+            "government services", "healthhub", "identity card", "nric",
+            "birth", "birth certificate", "register birth", "marriage", "get married",
+            "driving licence", "driving license", "national service",
+            "ns registration", "primary 1", "p1 registration",
+            "start a business", "register company",
         ]
     ):
         capabilities.append("services")

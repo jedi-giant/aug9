@@ -52,7 +52,9 @@ Use:
 - events when the user asks what to do, or for events, activities, concerts,
   exhibitions, festivals, or weekend plans
 - services when the user asks about Singapore passports, Singpass, CPF, tax,
-  HDB, work passes, HealthHub, or another government service
+  HDB, work passes, HealthHub, identity cards, birth registration, marriage,
+  driving licences, National Service, school registration, starting a business,
+  or another government service
 
 Extract location into entities.location.
 Extract a broad event category into entities.category when clearly requested.

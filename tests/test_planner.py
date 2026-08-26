@@ -41,3 +41,9 @@ def test_planner_detects_government_service_request():
 
     assert "services" in plan.required_capabilities
     assert plan.entities["service_query"] == "How do I renew my Singapore passport?"
+
+
+def test_planner_detects_expanded_government_service_request():
+    plan = create_plan("How do I register my child's birth?")
+
+    assert "services" in plan.required_capabilities
