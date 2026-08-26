@@ -66,3 +66,33 @@ def test_calculate_route_uses_public_string_model(mock_get_walking_route):
     assert result.route is not None
     assert result.route.origin == "Maxwell Food Centre"
     assert result.route.destination == "Marina Bay Sands"
+    assert result.route.duration_minutes == 22.5
+
+
+@patch("aug9.routing.get_walking_route")
+def test_calculate_route_deduplicates_steps_and_ignores_motor_timing(
+    mock_get_walking_route,
+):
+    mock_get_walking_route.return_value = {
+        "routes": [
+            {
+                "distance": 6400,
+                "duration": 600,
+                "legs": [
+                    {
+                        "steps": [
+                            {"name": "Ann Siang Road"},
+                            {"name": "Ann Siang Road"},
+                            {"name": "Club Street"},
+                        ]
+                    }
+                ],
+            }
+        ]
+    }
+
+    result = calculate_route(1.28, 103.84, 1.31, 103.82, "Maxwell", "RELC")
+
+    assert result.route.duration_minutes == 80.0
+    assert result.route.steps == ["Ann Siang Road", "Club Street"]
+    assert "about 80 minutes" in result.route.summary
