@@ -2,7 +2,6 @@ import asyncio
 
 import pytest
 from fastapi import BackgroundTasks, HTTPException
-from starlette.requests import Request
 
 from aug9.api import main
 from aug9.core.agent_response import AgentResponse
@@ -11,18 +10,6 @@ from aug9.core.product_analytics import ProductEventType
 
 
 VISITOR_SECRET = "test-visitor-secret-that-is-at-least-32-characters"
-
-
-def request_from(host: str = "203.0.113.10") -> Request:
-    return Request(
-        {
-            "type": "http",
-            "method": "POST",
-            "path": "/visitor/session",
-            "headers": [],
-            "client": (host, 443),
-        }
-    )
 
 
 def test_readiness_reports_database_availability(monkeypatch):
@@ -142,31 +129,24 @@ def test_visitor_session_issues_token(monkeypatch):
         "check",
         lambda key: None,
     )
-    monkeypatch.setattr(main.visitor_session_rate_limiter, "check", lambda key: None)
 
-    response = main.create_visitor_session(request_from())
+    response = main.create_visitor_session()
 
     assert response.visitor_token
     assert response.expires_in_seconds > 0
 
 
-def test_visitor_session_rate_limit_uses_client_network(monkeypatch):
+def test_visitor_session_rate_limit_uses_global_key(monkeypatch):
     captured = {}
     monkeypatch.setattr(
         main.visitor_session_global_rate_limiter,
         "check",
         lambda key: captured.update(global_key=key),
     )
-    monkeypatch.setattr(
-        main.visitor_session_rate_limiter,
-        "check",
-        lambda key: captured.update(key=key),
-    )
     monkeypatch.setenv("AUG9_VISITOR_TOKEN_SECRET", VISITOR_SECRET)
 
-    main.create_visitor_session(request_from("198.51.100.20"))
+    main.create_visitor_session()
 
-    assert captured["key"] == "network:198.51.100.20"
     assert captured["global_key"] == "visitor-session-global"
 
 
@@ -175,14 +155,9 @@ def test_visitor_session_rate_limit_returns_429(monkeypatch):
         raise main.RateLimitExceeded(retry_after_seconds=12)
 
     monkeypatch.setattr(main.visitor_session_global_rate_limiter, "check", reject)
-    monkeypatch.setattr(
-        main.visitor_session_rate_limiter,
-        "check",
-        lambda key: None,
-    )
 
     with pytest.raises(HTTPException) as error:
-        main.create_visitor_session(request_from())
+        main.create_visitor_session()
 
     assert error.value.status_code == 429
     assert error.value.headers["Retry-After"] == "12"

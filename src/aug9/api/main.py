@@ -3,7 +3,7 @@ import time
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -12,7 +12,6 @@ from aug9.api.rate_limit import (
     product_event_rate_limiter,
     rate_limiter,
     visitor_session_global_rate_limiter,
-    visitor_session_rate_limiter,
 )
 from aug9.api.visitor_identity import (
     VISITOR_TOKEN_LIFETIME_SECONDS,
@@ -148,11 +147,9 @@ def rate_limit_error(error: RateLimitExceeded, message: str) -> HTTPException:
 
 
 @app.post("/visitor/session", response_model=VisitorSessionResponse)
-def create_visitor_session(request: Request):
-    client_host = request.client.host if request.client else "unknown"
+def create_visitor_session():
     try:
         visitor_session_global_rate_limiter.check("visitor-session-global")
-        visitor_session_rate_limiter.check(f"network:{client_host}")
         return VisitorSessionResponse(
             visitor_token=issue_visitor_token(),
             expires_in_seconds=VISITOR_TOKEN_LIFETIME_SECONDS,
