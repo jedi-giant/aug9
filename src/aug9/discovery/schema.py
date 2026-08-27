@@ -119,6 +119,27 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
     )
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS discovery_food_candidates (
+            id TEXT PRIMARY KEY,
+            source_id TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            address_text TEXT,
+            opening_hours_text TEXT,
+            dish_tags TEXT NOT NULL DEFAULT '[]',
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL,
+            status TEXT NOT NULL DEFAULT 'staged',
+            quarantine_reason TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(source_id, external_id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS discovery_entity_tags (
             entity_id TEXT NOT NULL,
             tag TEXT NOT NULL,
