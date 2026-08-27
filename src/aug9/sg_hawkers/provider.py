@@ -6,6 +6,7 @@ import psycopg
 
 from aug9.core.models import Place
 from aug9.discovery.models import EntityType
+from aug9.discovery.models import FoodListing
 from aug9.discovery.repository import DiscoveryRepository
 from aug9.food_data import load_hawker_data
 
@@ -14,6 +15,8 @@ class HawkerProvider(Protocol):
     def discover(self, query: str | None = None) -> list[Place]: ...
 
     def discover_near(self, latitude: float, longitude: float) -> list[Place]: ...
+
+    def food_listings(self) -> list[FoodListing]: ...
 
 
 def distance_km(origin_latitude: float, origin_longitude: float, place: Place) -> float:
@@ -47,6 +50,9 @@ class CuratedHawkerProvider:
             self.discover(),
             key=lambda place: distance_km(latitude, longitude, place),
         )[:5]
+
+    def food_listings(self) -> list[FoodListing]:
+        return []
 
 
 class DatabaseHawkerProvider:
@@ -126,3 +132,9 @@ class DatabaseHawkerProvider:
             places,
             key=lambda place: distance_km(latitude, longitude, place),
         )[:5]
+
+    def food_listings(self) -> list[FoodListing]:
+        try:
+            return self.repository.search_food_listings(limit=100)
+        except (psycopg.Error, sqlite3.Error):
+            return []

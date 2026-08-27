@@ -54,6 +54,14 @@ class FoodProfile(BaseModel):
         return self
 
 
+class FoodListing(BaseModel):
+    entity: "DiscoveryEntity"
+    profile: FoodProfile
+    parent: "DiscoveryEntity | None" = None
+    tags: dict[str, list[str]] = Field(default_factory=dict)
+    opening_periods: list["OpeningPeriod"] = Field(default_factory=list)
+
+
 class OpeningPeriod(BaseModel):
     entity_id: str
     day_of_week: int = Field(ge=0, le=6)

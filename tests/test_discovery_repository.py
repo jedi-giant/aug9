@@ -277,6 +277,23 @@ def test_food_profile_relationship_tags_and_hours(repository):
     assert tags == [("cuisine", "Singaporean"), ("dish", "chicken rice")]
     assert hours == (1, "10:00", "19:30")
 
+    listings = repository.search_food_listings()
+
+    assert len(listings) == 1
+    assert listings[0].entity.name == "Tian Tian Hainanese Chicken Rice"
+    assert listings[0].parent.name == "Maxwell Food Centre"
+    assert listings[0].profile.price_max == 8
+    assert listings[0].tags == {
+        "cuisine": ["Singaporean"],
+        "dish": ["chicken rice"],
+    }
+    assert listings[0].opening_periods[0].opens_at == "10:00"
+
+
+def test_food_listing_query_is_bounded(repository):
+    with pytest.raises(ValueError, match="between 1 and 100"):
+        repository.search_food_listings(limit=101)
+
 
 def test_event_profile_is_filtered_by_date_category_and_location(repository):
     repository.register_source(

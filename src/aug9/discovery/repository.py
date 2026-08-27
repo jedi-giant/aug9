@@ -9,6 +9,7 @@ from aug9.discovery.models import (
     EventProfile,
     FieldProvenance,
     FoodProfile,
+    FoodListing,
     IngestionRun,
     OpeningPeriod,
     RelationshipType,
@@ -355,6 +356,100 @@ class DiscoveryRepository:
             raise
         finally:
             conn.close()
+
+    def search_food_listings(self, *, limit: int = 100) -> list[FoodListing]:
+        if limit < 1 or limit > 100:
+            raise ValueError("limit must be between 1 and 100")
+
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        cursor.execute(
+            f"""
+            SELECT e.id, e.entity_type, e.name, e.description, e.address,
+                   e.postal_code, e.latitude, e.longitude, e.status,
+                   e.quality_score,
+                   fp.venue_kind, fp.price_min, fp.price_max, fp.currency,
+                   fp.dietary_attributes, fp.reservation_url, fp.source_id,
+                   parent.id, parent.entity_type, parent.name, parent.description,
+                   parent.address, parent.postal_code, parent.latitude,
+                   parent.longitude, parent.status, parent.quality_score
+            FROM discovery_entities e
+            JOIN discovery_food_profiles fp ON fp.entity_id = e.id
+            LEFT JOIN discovery_entity_relationships rel
+              ON rel.child_entity_id = e.id AND rel.relationship_type = 'contains'
+            LEFT JOIN discovery_entities parent ON parent.id = rel.parent_entity_id
+            WHERE e.status = 'active'
+            ORDER BY e.quality_score DESC, e.name ASC
+            LIMIT {p}
+            """,
+            (limit,),
+        )
+        rows = cursor.fetchall()
+        if not rows:
+            conn.close()
+            return []
+
+        entity_ids = [row[0] for row in rows]
+        placeholders = ", ".join(p for _ in entity_ids)
+        cursor.execute(
+            f"""
+            SELECT entity_id, category, tag
+            FROM discovery_entity_tags
+            WHERE entity_id IN ({placeholders})
+            ORDER BY category, tag
+            """,
+            tuple(entity_ids),
+        )
+        tags_by_entity: dict[str, dict[str, list[str]]] = {}
+        for entity_id, category, tag in cursor.fetchall():
+            tags_by_entity.setdefault(entity_id, {}).setdefault(category, []).append(tag)
+
+        cursor.execute(
+            f"""
+            SELECT entity_id, day_of_week, opens_at, closes_at, source_id
+            FROM discovery_opening_hours
+            WHERE entity_id IN ({placeholders})
+            ORDER BY day_of_week, opens_at
+            """,
+            tuple(entity_ids),
+        )
+        hours_by_entity: dict[str, list[OpeningPeriod]] = {}
+        for entity_id, day, opens_at, closes_at, source_id in cursor.fetchall():
+            hours_by_entity.setdefault(entity_id, []).append(
+                OpeningPeriod(
+                    entity_id=entity_id,
+                    day_of_week=day,
+                    opens_at=opens_at,
+                    closes_at=closes_at,
+                    source_id=source_id,
+                )
+            )
+        conn.close()
+
+        listings = []
+        for row in rows:
+            entity = self._entity_from_row(row[:10])
+            profile = FoodProfile(
+                entity_id=entity.id,
+                venue_kind=row[10],
+                price_min=row[11],
+                price_max=row[12],
+                currency=row[13],
+                dietary_attributes=json.loads(row[14]),
+                reservation_url=row[15],
+            )
+            parent = self._entity_from_row(row[17:27]) if row[17] is not None else None
+            listings.append(
+                FoodListing(
+                    entity=entity,
+                    profile=profile,
+                    parent=parent,
+                    tags=tags_by_entity.get(entity.id, {}),
+                    opening_periods=hours_by_entity.get(entity.id, []),
+                )
+            )
+        return listings
 
     def add_relationship(
         self,

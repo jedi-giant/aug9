@@ -1,7 +1,9 @@
 import math
 import re
+from datetime import datetime, time
 from typing import Any
 from urllib.parse import quote_plus
+from zoneinfo import ZoneInfo
 
 from aug9.core.context import UserContext
 from aug9.core.recommendation import RecommendationConstraints
@@ -31,6 +33,9 @@ class SgHawkersSkill(Aug9Skill):
     ) -> SkillResult:
         query = entities.get("location") or self._extract_location(context.intent)
         constraints = RecommendationConstraints.from_entities(entities)
+        verified_listings = self._verified_food_matches(constraints)
+        if verified_listings:
+            return self._verified_listing_result(context, constraints, verified_listings)
         if (
             context.current_place is not None
             and context.current_place.latitude is not None
@@ -85,6 +90,10 @@ class SgHawkersSkill(Aug9Skill):
             )
 
         disclosures = []
+        if self._constraints_requested(constraints):
+            disclosures.append(
+                "No stall-level records met every verified constraint; these are nearby centres, not verified matches"
+            )
         if constraints.budget_sgd is not None:
             disclosures.append(
                 f"Prices are not verified, so confirm options fit the S${constraints.budget_sgd:g} budget"
@@ -128,6 +137,130 @@ class SgHawkersSkill(Aug9Skill):
                 for index, place in enumerate(places)
             ],
         )
+
+    def _verified_food_matches(self, constraints: RecommendationConstraints):
+        if not self._constraints_requested(constraints):
+            return []
+        listings = self.provider.food_listings()
+        matches = []
+        for listing in listings:
+            profile = listing.profile
+            if (
+                constraints.budget_sgd is not None
+                and (profile.price_max is None or profile.price_max > constraints.budget_sgd)
+            ):
+                continue
+            attributes = {item.casefold() for item in profile.dietary_attributes}
+            if any(
+                preference.casefold() not in attributes
+                for preference in constraints.dietary_preferences
+            ):
+                continue
+            if constraints.open_now and not self._is_open_now(listing.opening_periods):
+                continue
+            matches.append(listing)
+        return matches[:5]
+
+    def _verified_listing_result(self, context, constraints, listings) -> SkillResult:
+        ranked = []
+        for listing in listings:
+            location = listing.parent or listing.entity
+            item = {
+                "name": listing.entity.name,
+                "centre_name": listing.parent.name if listing.parent else None,
+                "address": location.address,
+                "postal_code": location.postal_code,
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+                "price_min": listing.profile.price_min,
+                "price_max": listing.profile.price_max,
+                "currency": listing.profile.currency,
+                "price_evidence": "verified_source",
+                "dietary_attributes": listing.profile.dietary_attributes,
+                "dietary_evidence": "verified_source",
+                "opening_hours_evidence": (
+                    "verified_source" if listing.opening_periods else "unknown"
+                ),
+                "tags": listing.tags,
+            }
+            if (
+                context.current_place is not None
+                and context.current_place.latitude is not None
+                and context.current_place.longitude is not None
+            ):
+                calculated = distance_km(
+                    context.current_place.latitude,
+                    context.current_place.longitude,
+                    location,
+                )
+                if math.isfinite(calculated):
+                    item["distance_km"] = round(calculated, 1)
+            ranked.append(item)
+        ranked.sort(key=lambda item: item.get("distance_km", math.inf))
+
+        descriptions = []
+        for item in ranked:
+            details = []
+            if item.get("distance_km") is not None:
+                details.append(f'{item["distance_km"]:.1f} km away')
+            if item.get("price_max") is not None:
+                details.append(f'up to S${item["price_max"]:g}')
+            if constraints.dietary_preferences:
+                details.append("verified " + "/".join(constraints.dietary_preferences))
+            descriptions.append(
+                item["name"] + (f" ({'; '.join(details)})" if details else "")
+            )
+
+        return SkillResult(
+            success=True,
+            data={"places": ranked, "constraints": constraints.model_dump()},
+            summary="Verified food matches: " + ", ".join(descriptions) + ".",
+            actions=[
+                SkillAction(
+                    type="open_url",
+                    label=f'Get directions to {item["name"]}',
+                    url=(
+                        "https://www.google.com/maps/dir/?api=1&destination="
+                        + quote_plus(
+                            " ".join(
+                                value
+                                for value in (item["name"], item.get("centre_name"))
+                                if value
+                            )
+                        )
+                    ),
+                    metadata={
+                        "capability": "hawkers",
+                        "place": item["name"],
+                        "distance_km": item.get("distance_km"),
+                    },
+                )
+                for item in ranked
+            ],
+        )
+
+    @staticmethod
+    def _constraints_requested(constraints: RecommendationConstraints) -> bool:
+        return bool(
+            constraints.budget_sgd is not None
+            or constraints.dietary_preferences
+            or constraints.open_now
+        )
+
+    @staticmethod
+    def _is_open_now(periods) -> bool:
+        now = datetime.now(ZoneInfo("Asia/Singapore"))
+        current = now.time().replace(tzinfo=None)
+        for period in periods:
+            if period.day_of_week != now.weekday():
+                continue
+            opens_at = time.fromisoformat(period.opens_at)
+            closes_at = time.fromisoformat(period.closes_at)
+            if opens_at <= closes_at and opens_at <= current <= closes_at:
+                return True
+            if opens_at > closes_at and (current >= opens_at or current <= closes_at):
+                return True
+        return False
 
     @staticmethod
     def _extract_location(intent: str | None) -> str | None:

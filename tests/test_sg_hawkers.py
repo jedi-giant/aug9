@@ -2,7 +2,13 @@ import sqlite3
 
 from aug9.core.context import UserContext
 from aug9.core.models import Place
-from aug9.discovery.models import DiscoveryEntity, EntityType
+from aug9.discovery.models import (
+    DiscoveryEntity,
+    EntityType,
+    FoodListing,
+    FoodProfile,
+    OpeningPeriod,
+)
 from aug9.sg_hawkers.provider import (
     CuratedHawkerProvider,
     DatabaseHawkerProvider,
@@ -11,8 +17,9 @@ from aug9.sg_hawkers.skill import SgHawkersSkill
 
 
 class FakeHawkerProvider:
-    def __init__(self) -> None:
+    def __init__(self, food_listings=None) -> None:
         self.queries: list[str | None] = []
+        self._food_listings = food_listings or []
 
     def discover(self, query: str | None = None) -> list[Place]:
         self.queries.append(query)
@@ -28,6 +35,9 @@ class FakeHawkerProvider:
                 longitude=103.8519,
             )
         ]
+
+    def food_listings(self):
+        return self._food_listings
 
 
 class FakeDiscoveryRepository:
@@ -226,3 +236,61 @@ def test_sg_hawkers_marks_unverified_constraint_evidence_as_unknown():
     assert "Prices are not verified" in result.summary
     assert "Dietary suitability is not verified" in result.summary
     assert "Opening hours are not verified" in result.summary
+
+
+def test_sg_hawkers_filters_and_surfaces_verified_food_profiles(monkeypatch):
+    parent = DiscoveryEntity(
+        id="hawker:maxwell",
+        entity_type=EntityType.HAWKER_CENTRE,
+        name="Maxwell Food Centre",
+        address="1 Kadayanallur Street",
+        latitude=1.2803,
+        longitude=103.8447,
+    )
+    listing = FoodListing(
+        entity=DiscoveryEntity(
+            id="stall:verified",
+            entity_type=EntityType.FOOD_STALL,
+            name="Verified Halal Lunch",
+        ),
+        parent=parent,
+        profile=FoodProfile(
+            entity_id="stall:verified",
+            venue_kind="hawker_stall",
+            price_min=6,
+            price_max=12,
+            dietary_attributes=["halal"],
+        ),
+        tags={"cuisine": ["Malay"]},
+        opening_periods=[
+            OpeningPeriod(
+                entity_id="stall:verified",
+                day_of_week=0,
+                opens_at="08:00",
+                closes_at="20:00",
+                source_id="verified_food",
+            )
+        ],
+    )
+    monkeypatch.setattr(SgHawkersSkill, "_is_open_now", staticmethod(lambda periods: True))
+
+    result = SgHawkersSkill(FakeHawkerProvider([listing])).execute(
+        UserContext(
+            current_place=Place(
+                name="Current location",
+                latitude=1.2903,
+                longitude=103.8519,
+            )
+        ),
+        {
+            "budget_sgd": 15,
+            "dietary_preferences": ["halal"],
+            "open_now": True,
+        },
+    )
+
+    assert result.data["places"][0]["name"] == "Verified Halal Lunch"
+    assert result.data["places"][0]["price_evidence"] == "verified_source"
+    assert result.data["places"][0]["opening_hours_evidence"] == "verified_source"
+    assert "Verified food matches" in result.summary
+    assert "up to S$12" in result.summary
