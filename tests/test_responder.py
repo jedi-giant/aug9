@@ -143,6 +143,31 @@ def test_response_supports_registered_hawker_skill_result():
     assert compose_response(result) == "Hawker centres: Maxwell Food Centre."
 
 
+def test_response_preserves_distance_aware_hawker_summary():
+    result = ExecutionResult(
+        plan=Plan(intent="hawkers", required_capabilities=["hawkers"]),
+        outputs={
+            "hawkers": SkillResult(
+                success=True,
+                data={
+                    "places": [
+                        {"name": "Maxwell Food Centre", "distance_km": 0.8}
+                    ]
+                },
+                summary=(
+                    "Nearby hawker centres: Maxwell Food Centre "
+                    "(0.8 km away; walking may be practical)."
+                ),
+            )
+        },
+    )
+
+    assert compose_response(result) == (
+        "Nearby hawker centres: Maxwell Food Centre "
+        "(0.8 km away; walking may be practical)."
+    )
+
+
 def test_response_supports_registered_hotel_skill_result():
     result = ExecutionResult(
         plan=Plan(intent="hotels", required_capabilities=["hotels"]),

@@ -35,9 +35,12 @@ def compose_response(
 
     if hawkers:
         if getattr(hawkers, "success", False):
-            names = [place["name"] for place in hawkers.data.get("places", [])]
-            if names:
-                messages.append("Hawker centres: " + ", ".join(names) + ".")
+            if getattr(hawkers, "summary", None):
+                messages.append(hawkers.summary)
+            else:
+                names = [place["name"] for place in hawkers.data.get("places", [])]
+                if names:
+                    messages.append("Hawker centres: " + ", ".join(names) + ".")
         elif getattr(hawkers, "summary", None):
             messages.append(hawkers.summary)
 
