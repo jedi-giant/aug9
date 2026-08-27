@@ -25,6 +25,39 @@ def test_chat_request_has_public_beta_input_bounds():
         ChatRequest(user_id="user", session_id="session", message="x" * 4001)
 
 
+def test_chat_request_accepts_bounded_browser_coordinates():
+    request = ChatRequest(
+        user_id="user",
+        session_id="session",
+        message="Find food near me",
+        latitude=1.2903,
+        longitude=103.8519,
+        location_label="City Hall",
+    )
+
+    assert request.latitude == 1.2903
+    assert request.location_label == "City Hall"
+
+
+def test_chat_request_rejects_partial_or_non_singapore_coordinates():
+    with pytest.raises(ValidationError):
+        ChatRequest(
+            user_id="user",
+            session_id="session",
+            message="Find food near me",
+            latitude=1.2903,
+        )
+
+    with pytest.raises(ValidationError):
+        ChatRequest(
+            user_id="user",
+            session_id="session",
+            message="Find food near me",
+            latitude=40.7128,
+            longitude=-74.006,
+        )
+
+
 def test_cors_defaults_to_base44_and_supports_explicit_allowlist(monkeypatch):
     monkeypatch.delenv("CORS_ALLOWED_ORIGINS", raising=False)
     assert configured_allowed_origins() == ["https://aug-nudge-now.base44.app"]

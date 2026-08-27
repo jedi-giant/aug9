@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from aug9.core.context import UserContext
+from aug9.core.models import Place
 from aug9.core.memory import ConversationState
 from aug9.core.session import get_memory, update_memory
 from aug9.core.converters.location import location_to_place
@@ -14,9 +15,17 @@ def build_context(
     entities: dict[str, str] | None = None,
     user_id: str = "",
     memory: ConversationState | None = None,
+    supplied_place: Place | None = None,
 ) -> UserContext:
 
     load_dotenv()
+
+    if supplied_place is not None:
+        return UserContext(
+            current_place=supplied_place,
+            intent=user_input,
+            memory=memory or get_memory(user_id),
+        )
 
     base_url = os.getenv(
         "ONEMAP_BASE_URL"

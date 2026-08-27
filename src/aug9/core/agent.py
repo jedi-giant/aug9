@@ -12,6 +12,7 @@ from aug9.core.session import get_memory
 from aug9.core.memory_agent import extract_memories, should_extract_memories
 from aug9.core.database import save_memory
 from aug9.core.agent_response import AgentResponse, compose_agent_response
+from aug9.core.models import Place
 
 
 def run_aug9(
@@ -19,6 +20,7 @@ def run_aug9(
     user_id: str,
     session_id: str | None = None,
     structured: bool = False,
+    supplied_place: Place | None = None,
 ) -> str | AgentResponse:
     request_started = time.perf_counter()
     stage_started = request_started
@@ -64,6 +66,7 @@ def run_aug9(
         plan.entities,
         user_id=user_id,
         memory=memory,
+        supplied_place=supplied_place,
     )
     timings_ms["context"] = int(
         (time.perf_counter() - stage_started) * 1000

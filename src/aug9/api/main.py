@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from aug9.api.rate_limit import (
     RateLimitExceeded,
@@ -21,6 +21,7 @@ from aug9.api.visitor_identity import (
     resolve_visitor_identity,
 )
 from aug9.core.agent import run_aug9
+from aug9.core.models import Place
 from aug9.core.skill import SkillAction
 from aug9.core.database import (
     database_is_ready,
@@ -75,6 +76,15 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     task_id: str | None = Field(default=None, min_length=1, max_length=80)
     visitor_token: str | None = Field(default=None, min_length=1, max_length=512)
+    latitude: float | None = Field(default=None, ge=1.1, le=1.5)
+    longitude: float | None = Field(default=None, ge=103.6, le=104.1)
+    location_label: str | None = Field(default=None, min_length=1, max_length=120)
+
+    @model_validator(mode="after")
+    def coordinates_are_complete(self):
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError("latitude and longitude must be provided together")
+        return self
 
 
 class ChatResponse(BaseModel):
@@ -180,6 +190,16 @@ def chat(
             user_id=effective_user_id,
             session_id=request.session_id,
             structured=True,
+            supplied_place=(
+                Place(
+                    name=request.location_label or "Current location",
+                    place_type="browser_location",
+                    latitude=request.latitude,
+                    longitude=request.longitude,
+                )
+                if request.latitude is not None and request.longitude is not None
+                else None
+            ),
         )
         task_id = request.task_id or str(uuid4())
         result.metadata["task_id"] = task_id

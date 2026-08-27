@@ -64,3 +64,31 @@ def test_build_context_reuses_loaded_memory_without_database_reload(
     mock_update.assert_called_once()
     assert mock_update.call_args.kwargs["persist"] is False
     assert context.memory.history == ["Earlier request", "Weather at Maxwell Food Centre"]
+
+
+@patch("aug9.core.context_builder.get_memory")
+@patch("aug9.core.context_builder.search_location")
+@patch("aug9.core.context_builder.get_token")
+def test_supplied_browser_place_bypasses_lookup_and_is_not_persisted(
+    mock_token, mock_search, mock_get_memory
+):
+    memory = ConversationState()
+    supplied = Place(
+        name="Current location",
+        place_type="browser_location",
+        latitude=1.2903,
+        longitude=103.8519,
+    )
+
+    context = build_context(
+        "Find food near me",
+        user_id="visitor",
+        memory=memory,
+        supplied_place=supplied,
+    )
+
+    assert context.current_place == supplied
+    assert context.memory is memory
+    mock_token.assert_not_called()
+    mock_search.assert_not_called()
+    mock_get_memory.assert_not_called()
