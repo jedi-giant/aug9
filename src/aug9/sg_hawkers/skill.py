@@ -1,10 +1,14 @@
+import math
 import re
 from typing import Any
 from urllib.parse import quote_plus
 
 from aug9.core.context import UserContext
 from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
-from aug9.sg_hawkers.provider import HawkerProvider
+from aug9.sg_hawkers.provider import HawkerProvider, distance_km
+
+
+MAX_COMFORTABLE_WALK_KM = 1.2
 
 
 class SgHawkersSkill(Aug9Skill):
@@ -42,21 +46,57 @@ class SgHawkersSkill(Aug9Skill):
                 summary="No matching active hawker centres were found.",
             )
 
+        ranked_places = []
+        for place in places:
+            item = place.model_dump()
+            if (
+                context.current_place is not None
+                and context.current_place.latitude is not None
+                and context.current_place.longitude is not None
+            ):
+                calculated_distance = distance_km(
+                    context.current_place.latitude,
+                    context.current_place.longitude,
+                    place,
+                )
+                if math.isfinite(calculated_distance):
+                    item["distance_km"] = round(calculated_distance, 1)
+            ranked_places.append(item)
+
+        summary_items = []
+        for item in ranked_places:
+            distance = item.get("distance_km")
+            if distance is None:
+                summary_items.append(item["name"])
+                continue
+            travel_guidance = (
+                "walking may be practical"
+                if distance <= MAX_COMFORTABLE_WALK_KM
+                else "consider public transport"
+            )
+            summary_items.append(
+                f'{item["name"]} ({distance:.1f} km away; {travel_guidance})'
+            )
+
         return SkillResult(
             success=True,
-            data={"places": [place.model_dump() for place in places]},
-            summary="Hawker centres: " + ", ".join(place.name for place in places) + ".",
+            data={"places": ranked_places},
+            summary="Nearby hawker centres: " + ", ".join(summary_items) + ".",
             actions=[
                 SkillAction(
                     type="open_url",
-                    label=f"Open {place.name}",
+                    label=f"Get directions to {place.name}",
                     url=(
-                        "https://www.google.com/maps/search/?api=1"
-                        f"&query={quote_plus(place.name)}"
+                        "https://www.google.com/maps/dir/?api=1"
+                        f"&destination={quote_plus(place.name)}"
                     ),
-                    metadata={"capability": "hawkers", "place": place.name},
+                    metadata={
+                        "capability": "hawkers",
+                        "place": place.name,
+                        "distance_km": ranked_places[index].get("distance_km"),
+                    },
                 )
-                for place in places
+                for index, place in enumerate(places)
             ],
         )
 

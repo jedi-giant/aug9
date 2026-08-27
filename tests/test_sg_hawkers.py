@@ -20,7 +20,14 @@ class FakeHawkerProvider:
 
     def discover_near(self, latitude: float, longitude: float) -> list[Place]:
         self.queries.append(f"near:{latitude},{longitude}")
-        return [Place(name="Maxwell Food Centre", place_type="hawker_centre")]
+        return [
+            Place(
+                name="Maxwell Food Centre",
+                place_type="hawker_centre",
+                latitude=1.31,
+                longitude=103.8519,
+            )
+        ]
 
 
 class FakeDiscoveryRepository:
@@ -163,7 +170,9 @@ def test_sg_hawkers_returns_structured_places():
 
     assert result.success is True
     assert result.data["places"][0]["name"] == "Maxwell Food Centre"
-    assert result.summary == "Hawker centres: Maxwell Food Centre."
+    assert result.summary == "Nearby hawker centres: Maxwell Food Centre."
+    assert result.actions[0].label == "Get directions to Maxwell Food Centre"
+    assert "maps/dir/" in result.actions[0].url
 
 
 def test_sg_hawkers_recovers_near_location_from_intent():
@@ -193,3 +202,7 @@ def test_sg_hawkers_uses_coordinates_for_nearby_results():
 
     assert result.success is True
     assert provider.queries == ["near:1.2903,103.8519"]
+    assert result.data["places"][0]["distance_km"] == 2.2
+    assert "consider public transport" in result.summary
+    assert "origin=" not in result.actions[0].url
+    assert result.actions[0].metadata["distance_km"] == 2.2
