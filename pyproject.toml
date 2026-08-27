@@ -21,6 +21,7 @@ dependencies = [
 aug9 = "aug9.cli:main"
 aug9-import-nea-hawkers = "aug9.discovery.import_nea_hawkers:main"
 aug9-import-food-statistics = "aug9.discovery.import_food_establishment_statistics:main"
+aug9-import-food-profiles = "aug9.discovery.import_food_profiles:main"
 aug9-import-hlb-hotels = "aug9.discovery.import_hlb_hotels:main"
 aug9-enrich-hotel-addresses = "aug9.discovery.enrich_hotel_addresses:main"
 aug9-report-product-analytics = "aug9.core.report_product_analytics:main"
