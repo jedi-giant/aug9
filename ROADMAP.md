@@ -35,6 +35,24 @@ Every roadmap item must also identify the meaningful Singapore life task it
 completes, the action offered to the user, and the product event that proves
 completion. Skills are reusable building blocks, not the unit of product value.
 
+## Dual roadmap model
+
+Aug9 is **journey-led and Skill-built**:
+
+- The product roadmap is prioritised by end-to-end use cases and user outcomes.
+- The engineering backlog is implemented through reusable Aug9 Skills,
+  providers, shared context, orchestration, and actions.
+- Each journey milestone names the Skills it composes and the shared Skill
+  improvements it requires.
+- Each Skill documents which journeys it enables and is evaluated both alone
+  and as part of those journeys.
+- Contributors extend Aug9 by adding or improving governed Skills, not by
+  creating disconnected agents for every use case.
+
+This preserves a coherent product experience while keeping the architecture
+open and extensible. Journey analytics decide what to prioritise; the Skill
+registry and contributor framework decide how it is delivered.
+
 ---
 
 # First-Chat Roadmap Alignment — August 2026
@@ -80,6 +98,11 @@ layers are proven.
 
 This is the next recommended milestone because it improves all five launch
 journeys and provides the clearest registration-free first-value experience.
+
+Composed Skills: `sg-place`, `sg-food`, `sg-weather`, and `sg-transport`, with
+shared context passed through the planner and executor. New location and ranking
+work should strengthen these reusable Skills rather than live only inside a
+nearby-food endpoint.
 
 ## Location foundation
 
@@ -132,6 +155,8 @@ Planned:
 - Explainable ranking factors and data-confidence labels
 - Opening-hours normalisation and "open now" semantics
 - Outcome analytics by failure stage
+- A shared Skill contract for constraints, ranking evidence, confidence, and
+  actions
 
 ---
 
@@ -415,3 +440,8 @@ Community-created skills:
 - sg-business-helper
 
 Aug9 becomes a platform where Singapore-specific AI capabilities can be shared and extended.
+
+Contributor Skills must use the common registry, typed result and action model,
+provider-separation pattern, source-governance policy, tests, examples, and
+evaluations. Acceptance should be based on bounded behaviour and demonstrated
+journey value, not only whether an LLM can invoke the Skill.

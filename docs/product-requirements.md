@@ -105,6 +105,59 @@ Deterministic filters and scoring handle hard constraints; model reasoning is
 used for ambiguity, explanation, and trade-offs. Provider facts, inferred
 facts, and generated descriptions remain distinguishable.
 
+## Journey-led product, Skill-led architecture
+
+Aug9 uses two complementary planning views:
+
+- **Product roadmap:** organised around end-to-end user journeys and successful
+  Singapore life tasks.
+- **Technical architecture:** organised around modular, reusable Aug9 Skills.
+
+A journey is the user-facing promise. A Skill is a governed capability that the
+runtime can discover, compose, test, and execute. Product priorities therefore
+start with a journey, identify its missing capabilities, and deliver or improve
+the smallest reusable Skills needed to complete it.
+
+```text
+Journey demand
+  -> required capabilities and context
+  -> existing and missing Skills
+  -> Skill composition through planner and registry
+  -> ranked result and action
+  -> journey outcome analytics
+```
+
+Skills remain important even when they are not displayed as separate roadmap
+features. They provide the LLM with bounded Singapore-specific instructions,
+capabilities, terminology, provider facts, and action semantics. They also give
+external contributors a stable way to extend Aug9 without changing the core
+agent or creating another standalone assistant.
+
+Every production Skill should define:
+
+- a unique name, description, and bounded capability set
+- Singapore-specific instructions and terminology
+- typed inputs, outputs, actions, and failure states
+- provider separation, provenance, freshness, and permission boundaries
+- deterministic behaviour where practical
+- automated tests, examples, and agent evaluations
+- privacy and safety constraints
+- the journeys it enables and the product outcomes it can emit
+
+The planner may compose several Skills for one journey. A Skill may support
+several journeys. Neither the LLM nor a contributor-provided Skill may bypass
+source governance, API validation, safety controls, or action disclosure.
+
+### Initial journey-to-Skill composition
+
+| Launch journey | Core Skills | Important additions |
+| --- | --- | --- |
+| Nearby food | `sg-place`, `sg-food`, `sg-weather`, `sg-transport` | browser location, opening context, ranking |
+| Daily route and errands | `sg-place`, `sg-transport`, `sg-planner`, `sg-weather` | multi-stop constraints, feasible scheduling |
+| Weekend family itinerary | `sg-events`, `sg-food`, `sg-weather`, `sg-transport`, `sg-planner` | age suitability, indoor fallback, budget |
+| Healthcare and essential services | `sg-place`, `sg-services`, `sg-transport` | governed provider profiles, open-now context |
+| Restaurant and social planning | `sg-place`, `sg-food`, `sg-transport`, `sg-planner` | group convenience, restaurant data, reservations |
+
 ## North star and supporting metrics
 
 The north-star metric is **Weekly Singapore Tasks Successfully Completed**.

@@ -8,6 +8,11 @@ data access behind a provider boundary.
 Capabilities describe what the planner needs, not which vendor supplies it.
 Prefer `events` or `parking` over names such as `vendor_events_api`.
 
+Start from a roadmap journey or observed failed task. Document which journeys
+the capability enables and why it should be reusable across them. Do not create
+a separate Skill when an existing Skill can be extended without losing a clear,
+bounded responsibility.
+
 ## 2. Create the package
 
 Use this structure:
@@ -63,3 +68,24 @@ uv run pytest -m "not integration"
 
 For API-visible changes, add a contract test and verify the deployed `/chat`
 endpoint before updating a frontend client.
+
+The `SKILL.md` is part of the runtime capability, not only contributor
+documentation. It should give the LLM bounded Singapore-specific context,
+terminology, capability guidance, examples, limitations, source and freshness
+rules, and safe action semantics. It must not encourage the model to invent
+missing provider facts.
+
+## 7. Prove journey value
+
+A Skill contribution should include:
+
+- at least one mapped product journey
+- a direct Skill evaluation
+- an orchestration evaluation with the related Skills used by that journey
+- expected capability outcome and action types
+- no-result, stale-data, and provider-failure behaviour
+- source permission, provenance, privacy, and safety notes
+
+Acceptance is based on bounded behaviour, reusable capability value, and a
+measurable improvement to a Singapore life task. Successful invocation alone
+is not sufficient.
