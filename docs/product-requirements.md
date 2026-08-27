@@ -37,6 +37,74 @@ Activation is not account creation. It is:
 The initial completion signal is a useful result followed by an action click
 or explicit positive feedback. Technical response success alone does not count.
 
+## First-chat demand map
+
+The product demand map includes nearby food, daily route and errand planning,
+family itineraries, healthcare and essential-service discovery, restaurant and
+social planning, activities, outbound travel, government services, home
+services, CDC voucher merchants, housing and finance information, Culture Pass
+discovery, new attractions, local trends, fitness, Singapore news, price
+comparison, and meal planning.
+
+These are not separate agents or twenty independent roadmap tracks. They are
+evidence for a smaller set of reusable capabilities. A new capability should
+be prioritised when it helps Aug9 complete several meaningful Singapore life
+tasks, not merely answer another category of question.
+
+Health, housing, and personal-finance experiences initially provide factual
+navigation, calculators, education, and links to authoritative sources. They
+must not present diagnosis, regulated advice, or unsupported eligibility or
+availability claims.
+
+## Initial launch journeys
+
+The public-beta experience should prove five end-to-end journeys:
+
+1. **Nearby food:** location, preferences, budget, opening context, ranked
+   recommendations, and directions or reservation action.
+2. **Daily route and errands:** multiple stops, time constraints, appropriate
+   transport modes, weather, and a feasible schedule.
+3. **Weekend family itinerary:** party composition, age suitability, indoor
+   alternatives, budget, travel time, food, and booking actions.
+4. **Healthcare and essential-service finder:** trusted factual listings,
+   proximity, opening context, contact details, and directions, without
+   diagnosis.
+5. **Restaurant and social planning:** group constraints, convenient areas,
+   budget, cuisine, travel time, and a reservation action.
+
+The launch scope is complete only when these journeys can move a user from
+intent to a useful action. A broad answer without current, relevant options is
+not completion.
+
+## Reusable capability model
+
+```text
+LOCATION
+  browser geolocation -> reverse geocoding -> neighbourhood context
+  -> nearby search -> travel-time calculation
+
+DISCOVERY
+  food and restaurants -> activities and events -> healthcare
+  -> services and merchants -> destinations
+
+CONTEXT
+  current time -> weather -> opening hours -> budget -> preferences
+  -> transport -> parking -> provenance and freshness
+
+PLANNING
+  intent routing -> constraint extraction -> ranking
+  -> multi-stop optimisation -> itinerary and schedule generation
+
+ACTION
+  directions -> contact -> reservation or appointment
+  -> booking -> calendar or reminder -> disclosed commercial referral
+```
+
+The layers should remain composable Aug9 Skills with provider separation.
+Deterministic filters and scoring handle hard constraints; model reasoning is
+used for ambiguity, explanation, and trade-offs. Provider facts, inferred
+facts, and generated descriptions remain distinguishable.
+
 ## North star and supporting metrics
 
 The north-star metric is **Weekly Singapore Tasks Successfully Completed**.
@@ -70,6 +138,29 @@ Priority order is transaction and affiliate revenue, merchant referrals and
 profiles, a hosted Singapore context API, then supplementary advertising.
 Sponsored placements must be labelled. Payment must not silently change
 organic ranking.
+
+The five launch journeys provide the first commercial hooks: restaurant and
+activity reservations, travel and hotel affiliates, qualified home-service
+leads, merchant referrals, and disclosed action clicks. Monetisation is added
+at the action layer after recommendation quality is measurable. Commercial
+availability must not become a hidden ranking advantage.
+
+## Capability and journey analytics
+
+Product events should record the broad intent, capabilities requested,
+capability outcomes, constraint completeness, recommendation generation, and
+downstream actions. Aggregate reporting should answer:
+
+- Which launch journeys are requested most often?
+- Where does a journey fail: location, data coverage, constraints, ranking, or
+  action availability?
+- Which recommendations lead to directions, contact, booking, or positive
+  feedback?
+- Which reusable capability would unlock the most currently failed tasks?
+
+Signed anonymous visitor identity protects continuity and event integrity.
+Raw prompts, precise user coordinates, and sensitive personal details must not
+be copied into product-event records.
 
 ## Development principles
 

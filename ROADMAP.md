@@ -31,7 +31,148 @@ Every Aug9 capability follows:
 5. Add automated tests
 6. Add agent evaluation
 
+Every roadmap item must also identify the meaningful Singapore life task it
+completes, the action offered to the user, and the product event that proves
+completion. Skills are reusable building blocks, not the unit of product value.
+
 ---
+
+# First-Chat Roadmap Alignment — August 2026
+
+## Current checkpoint
+
+Aug9 already has most of the technical foundation required for the proposed
+launch journeys:
+
+- ✅ Registered Skills and provider separation
+- ✅ OneMap place resolution and location caching
+- ✅ NEA weather context
+- ✅ Hawker, events, hotels, government services, and transport discovery
+- ✅ Daily event ingestion, provenance, expiry, enrichment, and quality reports
+- ✅ Day and weekend orchestration with walking-distance guardrails
+- ✅ Action links, task analytics, latency instrumentation, and signed anonymous
+  visitor identity
+- ✅ Public API hardening, CORS controls, and endpoint abuse protection
+
+The remaining gap is not another broad content category. It is converting the
+existing capabilities into consistently ranked, constraint-aware,
+location-first journeys that end in an action.
+
+## Public-beta launch journeys
+
+1. **Nearby food** — prove location → local context → ranked choice → action.
+2. **Daily route and errands** — prove feasible multi-stop planning.
+3. **Weekend family itinerary** — prove cross-Skill personalisation and weather
+   alternatives.
+4. **Healthcare and essential-service finder** — prove trusted, current factual
+   discovery without diagnosis.
+5. **Restaurant and social planning** — prove group constraints and commercial
+   action readiness.
+
+The broader first-chat demand map remains discovery input. Travel, commerce,
+housing, finance, trends, news, fitness, vouchers, meal planning, pet care, and
+wellness should not become separate MVP workstreams until the reusable launch
+layers are proven.
+
+---
+
+# v0.3.1 — Location Context and Nearby Food — Next
+
+This is the next recommended milestone because it improves all five launch
+journeys and provides the clearest registration-free first-value experience.
+
+## Location foundation
+
+- Browser geolocation with explicit permission and a manual-location fallback
+- Coordinates-to-place reverse geocoding through OneMap
+- Coarse neighbourhood and planning-area context
+- Short-lived location caching without product-analytics storage of precise
+  coordinates
+- Clear handling for denied, unavailable, stale, and non-Singapore locations
+
+## Nearby food outcome
+
+Support a first-class request such as:
+
+> "Find the top five lunch options near me under $15."
+
+The result must combine distance, stated budget and preferences, current-time
+context, available opening information, weather-aware travel advice, source
+provenance, and directions. Missing opening hours or price evidence must be
+shown as unknown rather than inferred.
+
+## Completion checkpoint
+
+- Base44 supplies consented coordinates or a manually selected place
+- Aug9 resolves a Singapore neighbourhood and ranks nearby candidates
+- At least one useful directions/contact/reservation action is returned
+- Location-denied and low-data paths remain useful
+- First-query, result, action-click, helpfulness, and failure-stage analytics
+  are visible in the product report
+
+---
+
+# v0.3.2 — Constraint and Recommendation Engine
+
+Build one shared recommendation pipeline for food, activities, healthcare, and
+services:
+
+```text
+intent + location + time + party + budget + preferences
+  -> hard eligibility filters
+  -> distance/travel-time and relevance scoring
+  -> provenance/freshness confidence
+  -> ranked recommendation with trade-offs
+```
+
+Planned:
+
+- Shared constraint schema and missing-constraint prompts
+- Deterministic filtering for hard requirements
+- Explainable ranking factors and data-confidence labels
+- Opening-hours normalisation and "open now" semantics
+- Outcome analytics by failure stage
+
+---
+
+# v0.4.1 — Multi-stop Daily Planning
+
+- Multiple origin, stop, deadline, and duration constraints
+- Walking, public transport, taxi/private hire, and driving choices
+- Feasible schedule generation with travel-time buffers
+- Parking context where governed data is available
+- Re-planning when weather, time, or a stop changes
+
+# v0.4.2 — Family and Social Planning
+
+- Adults/children, age suitability, indoor/outdoor, budget, and accessibility
+  constraints
+- Convenient meeting-area calculation from multiple starting locations
+- Combined activity, event, food, weather, and transport recommendations
+- Booking and reservation links with disclosed source/commercial status
+
+# v0.4.3 — Healthcare and Essential Services
+
+- Governed clinic and service-provider profiles
+- "Open now" and proximity filtering using verified source fields
+- Official/contact/directions actions and freshness notices
+- Strict factual-navigation boundary; no diagnosis or personalised medical
+  advice
+
+# v0.5 — Action and Monetisation Layer
+
+- Reservation and appointment deep links
+- Calendar and reminder actions
+- Disclosed affiliate and merchant-referral attribution
+- Organic ranking separated from commercial availability
+- Revenue per commercial-intent session alongside successful-task metrics
+
+---
+
+# Capability Delivery History
+
+The sections below retain the implementation history of the individual Aug9
+Skills. Future prioritisation is governed by the launch journeys above.
 
 # v0.1 — Foundation ✅
 
