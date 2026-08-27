@@ -49,7 +49,11 @@ app = FastAPI(
 )
 
 
-DEFAULT_ALLOWED_ORIGINS = ["https://aug-nudge-now.base44.app"]
+DEFAULT_ALLOWED_ORIGINS = [
+    "https://aug9.sg",
+    "https://www.aug9.sg",
+    "https://aug-nudge-now.base44.app",
+]
 
 
 def configured_allowed_origins() -> list[str]:

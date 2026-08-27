@@ -60,7 +60,11 @@ def test_chat_request_rejects_partial_or_non_singapore_coordinates():
 
 def test_cors_defaults_to_base44_and_supports_explicit_allowlist(monkeypatch):
     monkeypatch.delenv("CORS_ALLOWED_ORIGINS", raising=False)
-    assert configured_allowed_origins() == ["https://aug-nudge-now.base44.app"]
+    assert configured_allowed_origins() == [
+        "https://aug9.sg",
+        "https://www.aug9.sg",
+        "https://aug-nudge-now.base44.app",
+    ]
 
     monkeypatch.setenv(
         "CORS_ALLOWED_ORIGINS",
