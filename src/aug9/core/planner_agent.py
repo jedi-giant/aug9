@@ -46,6 +46,8 @@ Return a structured plan.
 Use:
 
 - food when the user asks about eating, meals, hawker centres, restaurants
+- hawkers together with food for nearby-food requests so candidates can be
+  ranked from consented coordinates
 - weather when the user asks about rain, forecast, weather
 - transport when the user asks how to travel, walk, or get from one place to another
 - hawkers when the user asks to find or list hawker centres
@@ -66,6 +68,10 @@ For lifeops, set entities.plan_type to day or weekend.
 For transport, extract both entities.origin and entities.destination.
 Extract walk, public_transport, drive, or cycle into entities.travel_mode when
 the user explicitly requests a mode.
+For food requests, extract a numeric Singapore-dollar limit into
+entities.budget_sgd, breakfast/lunch/dinner/supper into entities.meal_type,
+halal/vegetarian/vegan into entities.dietary_preferences, and set
+entities.open_now only when the user explicitly requests places open now.
 
 For locations:
 - Return only the place name.

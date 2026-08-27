@@ -1,11 +1,14 @@
 import re
+from typing import Any
 
 from pydantic import BaseModel, Field
+
+from aug9.core.recommendation import extract_recommendation_constraints
 
 class Plan(BaseModel):
     intent: str
     required_capabilities: list[str]
-    entities: dict[str, str | None] = Field(
+    entities: dict[str, Any] = Field(
         default_factory=dict
     )
 
@@ -170,6 +173,10 @@ def create_plan(
     )
     if ("food" in text or explicit_food_request) and not incidental_food_place_name:
         capabilities.append("food")
+        constraints = extract_recommendation_constraints(user_input)
+        entities.update(constraints.model_dump(exclude_defaults=True))
+        if any(marker in padded_text for marker in [" near ", " around "]):
+            capabilities.append("hawkers")
 
     return Plan(
         intent=user_input,

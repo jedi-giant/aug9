@@ -18,6 +18,17 @@ def test_planner_identifies_food_and_weather():
     assert "food" in plan.required_capabilities
 
 
+def test_planner_routes_nearby_food_through_hawkers_and_extracts_constraints():
+    plan = create_plan("Find halal lunch near me under $15 that is open now")
+
+    assert "food" in plan.required_capabilities
+    assert "hawkers" in plan.required_capabilities
+    assert plan.entities["budget_sgd"] == 15
+    assert plan.entities["meal_type"] == "lunch"
+    assert plan.entities["dietary_preferences"] == ["halal"]
+    assert plan.entities["open_now"] is True
+
+
 def test_planner_detects_hawker_discovery():
     plan = create_plan("Show me hawker centres in Singapore")
 

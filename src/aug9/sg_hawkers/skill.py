@@ -4,6 +4,7 @@ from typing import Any
 from urllib.parse import quote_plus
 
 from aug9.core.context import UserContext
+from aug9.core.recommendation import RecommendationConstraints
 from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
 from aug9.sg_hawkers.provider import HawkerProvider, distance_km
 
@@ -29,6 +30,7 @@ class SgHawkersSkill(Aug9Skill):
         entities: dict[str, Any],
     ) -> SkillResult:
         query = entities.get("location") or self._extract_location(context.intent)
+        constraints = RecommendationConstraints.from_entities(entities)
         if (
             context.current_place is not None
             and context.current_place.latitude is not None
@@ -49,6 +51,10 @@ class SgHawkersSkill(Aug9Skill):
         ranked_places = []
         for place in places:
             item = place.model_dump()
+            if constraints.budget_sgd is not None:
+                item["price_evidence"] = "unknown"
+            if constraints.open_now:
+                item["opening_hours_evidence"] = "unknown"
             if (
                 context.current_place is not None
                 and context.current_place.latitude is not None
@@ -78,10 +84,33 @@ class SgHawkersSkill(Aug9Skill):
                 f'{item["name"]} ({distance:.1f} km away; {travel_guidance})'
             )
 
+        disclosures = []
+        if constraints.budget_sgd is not None:
+            disclosures.append(
+                f"Prices are not verified, so confirm options fit the S${constraints.budget_sgd:g} budget"
+            )
+        if constraints.dietary_preferences:
+            disclosures.append(
+                "Dietary suitability is not verified; confirm "
+                + "/".join(constraints.dietary_preferences)
+                + " requirements with the stall"
+            )
+        if constraints.open_now:
+            disclosures.append("Opening hours are not verified; check before travelling")
+        disclosure_text = " " + ". ".join(disclosures) + "." if disclosures else ""
+
         return SkillResult(
             success=True,
-            data={"places": ranked_places},
-            summary="Nearby hawker centres: " + ", ".join(summary_items) + ".",
+            data={
+                "places": ranked_places,
+                "constraints": constraints.model_dump(),
+            },
+            summary=(
+                "Nearby hawker centres: "
+                + ", ".join(summary_items)
+                + "."
+                + disclosure_text
+            ),
             actions=[
                 SkillAction(
                     type="open_url",

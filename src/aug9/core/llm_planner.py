@@ -9,6 +9,10 @@ class PlanEntities(BaseModel):
     service_query: str | None = None
     plan_type: str | None = None
     travel_mode: str | None = None
+    budget_sgd: float | None = None
+    meal_type: str | None = None
+    dietary_preferences: list[str] = Field(default_factory=list)
+    open_now: bool = False
 
 
 class LLMPlan(BaseModel):

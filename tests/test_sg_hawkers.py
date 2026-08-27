@@ -206,3 +206,23 @@ def test_sg_hawkers_uses_coordinates_for_nearby_results():
     assert "consider public transport" in result.summary
     assert "origin=" not in result.actions[0].url
     assert result.actions[0].metadata["distance_km"] == 2.2
+
+
+def test_sg_hawkers_marks_unverified_constraint_evidence_as_unknown():
+    result = SgHawkersSkill(FakeHawkerProvider()).execute(
+        UserContext(),
+        {
+            "budget_sgd": 15,
+            "meal_type": "lunch",
+            "dietary_preferences": ["halal"],
+            "open_now": True,
+        },
+    )
+
+    place = result.data["places"][0]
+    assert place["price_evidence"] == "unknown"
+    assert place["opening_hours_evidence"] == "unknown"
+    assert result.data["constraints"]["meal_type"] == "lunch"
+    assert "Prices are not verified" in result.summary
+    assert "Dietary suitability is not verified" in result.summary
+    assert "Opening hours are not verified" in result.summary
