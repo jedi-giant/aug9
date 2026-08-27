@@ -104,7 +104,7 @@ class DatabaseHawkerProvider:
             entities = self.repository.search_entities(
                 None,
                 entity_type=EntityType.HAWKER_CENTRE.value,
-                limit=250,
+                limit=100,
             )
         except (psycopg.Error, sqlite3.Error):
             return self.fallback.discover_near(latitude, longitude)

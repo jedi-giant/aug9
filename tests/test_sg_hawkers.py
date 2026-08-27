@@ -113,7 +113,7 @@ def test_database_provider_ranks_nearest_hawker_centres():
         "Near Hawker Centre",
         "Far Hawker Centre",
     ]
-    assert repository.calls == [(None, EntityType.HAWKER_CENTRE.value, 250)]
+    assert repository.calls == [(None, EntityType.HAWKER_CENTRE.value, 100)]
 
 
 def test_database_provider_falls_back_when_database_is_unavailable():
