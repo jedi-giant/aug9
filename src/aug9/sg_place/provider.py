@@ -12,6 +12,8 @@ from aug9.models import LocationSearchResult, SearchStatus
 class PlaceProvider(Protocol):
     def search(self, query: str) -> LocationSearchResult: ...
 
+    def reverse_geocode(self, latitude: float, longitude: float) -> LocationSearchResult: ...
+
 
 class OneMapProvider:
     """OneMap adapter; authentication and HTTP details stay behind this boundary."""
@@ -130,4 +132,47 @@ class OneMapProvider:
                 status=SearchStatus.API_ERROR,
                 message="Invalid OneMap response.",
             )
+        return LocationSearchResult(status=SearchStatus.SUCCESS, location=location)
+
+    def reverse_geocode(self, latitude: float, longitude: float) -> LocationSearchResult:
+        token = self.authenticate()
+        if token is None or not self.base_url:
+            return LocationSearchResult(
+                status=SearchStatus.API_ERROR,
+                message="Unable to authenticate with OneMap.",
+            )
+
+        try:
+            response = httpx.get(
+                f"{self.base_url}/api/public/revgeocode",
+                params={
+                    "location": f"{latitude},{longitude}",
+                    "buffer": 100,
+                    "addressType": "All",
+                },
+                headers={"Authorization": token},
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+            first = response.json().get("GeocodeInfo", [])[0]
+            building = str(first.get("BUILDINGNAME") or "").strip()
+            road = str(first.get("ROAD") or "").strip()
+            block = str(first.get("BLOCK") or "").strip()
+            postal_code = str(first.get("POSTALCODE") or "").strip()
+            name = building if building not in {"", "NIL", "null"} else road
+            address = " ".join(part for part in (block, road) if part not in {"", "NIL"})
+            location = Place(
+                name=name or "Current location",
+                place_type="browser_location",
+                address=address or None,
+                postal_code=postal_code if postal_code not in {"", "NIL"} else None,
+                latitude=latitude,
+                longitude=longitude,
+            )
+        except (httpx.RequestError, httpx.HTTPStatusError, IndexError, AttributeError, TypeError, ValueError):
+            return LocationSearchResult(
+                status=SearchStatus.API_ERROR,
+                message="Unable to resolve the supplied coordinates.",
+            )
+
         return LocationSearchResult(status=SearchStatus.SUCCESS, location=location)

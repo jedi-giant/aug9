@@ -8,6 +8,8 @@ from aug9.core.memory import ConversationState
 from aug9.core.session import get_memory, update_memory
 from aug9.core.converters.location import location_to_place
 from aug9.onemap import get_token, search_location
+from aug9.models import SearchStatus
+from aug9.sg_place.provider import OneMapProvider
 
 
 def build_context(
@@ -21,6 +23,13 @@ def build_context(
     load_dotenv()
 
     if supplied_place is not None:
+        if supplied_place.latitude is not None and supplied_place.longitude is not None:
+            resolved = OneMapProvider.from_environment().reverse_geocode(
+                supplied_place.latitude,
+                supplied_place.longitude,
+            )
+            if resolved.status is SearchStatus.SUCCESS and resolved.location is not None:
+                supplied_place = resolved.location
         return UserContext(
             current_place=supplied_place,
             intent=user_input,

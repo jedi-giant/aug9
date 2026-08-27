@@ -9,6 +9,35 @@ from aug9.onemap import (
     search_location,
 )
 from aug9.models import SearchStatus
+from aug9.sg_place.provider import OneMapProvider
+
+
+@patch.object(OneMapProvider, "authenticate", return_value="fake-token")
+@patch("aug9.sg_place.provider.httpx.get")
+def test_reverse_geocode_returns_nearest_address(mock_get, _mock_authenticate):
+    response = Mock()
+    response.raise_for_status.return_value = None
+    response.json.return_value = {
+        "GeocodeInfo": [
+            {
+                "BUILDINGNAME": "MARINA BAY SANDS",
+                "BLOCK": "10",
+                "ROAD": "BAYFRONT AVENUE",
+                "POSTALCODE": "018956",
+            }
+        ]
+    }
+    mock_get.return_value = response
+
+    result = OneMapProvider("https://example.com", "user", "password").reverse_geocode(
+        1.2903, 103.8519
+    )
+
+    assert result.status is SearchStatus.SUCCESS
+    assert result.location.name == "MARINA BAY SANDS"
+    assert result.location.address == "10 BAYFRONT AVENUE"
+    assert result.location.postal_code == "018956"
+    assert mock_get.call_args.kwargs["params"]["location"] == "1.2903,103.8519"
 
 @patch("aug9.sg_place.provider.httpx.get")
 def test_search_location_retries_without_singapore_suffix(mock_get):

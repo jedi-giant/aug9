@@ -66,11 +66,12 @@ def test_build_context_reuses_loaded_memory_without_database_reload(
     assert context.memory.history == ["Earlier request", "Weather at Maxwell Food Centre"]
 
 
+@patch("aug9.core.context_builder.OneMapProvider.from_environment")
 @patch("aug9.core.context_builder.get_memory")
 @patch("aug9.core.context_builder.search_location")
 @patch("aug9.core.context_builder.get_token")
 def test_supplied_browser_place_bypasses_lookup_and_is_not_persisted(
-    mock_token, mock_search, mock_get_memory
+    mock_token, mock_search, mock_get_memory, mock_provider_factory
 ):
     memory = ConversationState()
     supplied = Place(
@@ -78,6 +79,17 @@ def test_supplied_browser_place_bypasses_lookup_and_is_not_persisted(
         place_type="browser_location",
         latitude=1.2903,
         longitude=103.8519,
+    )
+    mock_provider_factory.return_value.reverse_geocode.return_value = LocationSearchResult(
+        status=SearchStatus.SUCCESS,
+        location=Place(
+            name="MARINA BAY SANDS",
+            place_type="browser_location",
+            address="10 BAYFRONT AVENUE",
+            postal_code="018956",
+            latitude=1.2903,
+            longitude=103.8519,
+        ),
     )
 
     context = build_context(
@@ -87,7 +99,8 @@ def test_supplied_browser_place_bypasses_lookup_and_is_not_persisted(
         supplied_place=supplied,
     )
 
-    assert context.current_place == supplied
+    assert context.current_place.name == "MARINA BAY SANDS"
+    assert context.current_place.postal_code == "018956"
     assert context.memory is memory
     mock_token.assert_not_called()
     mock_search.assert_not_called()
