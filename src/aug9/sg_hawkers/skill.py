@@ -25,7 +25,17 @@ class SgHawkersSkill(Aug9Skill):
         entities: dict[str, Any],
     ) -> SkillResult:
         query = entities.get("location") or self._extract_location(context.intent)
-        places = self.provider.discover(str(query) if query else None)
+        if (
+            context.current_place is not None
+            and context.current_place.latitude is not None
+            and context.current_place.longitude is not None
+        ):
+            places = self.provider.discover_near(
+                context.current_place.latitude,
+                context.current_place.longitude,
+            )
+        else:
+            places = self.provider.discover(str(query) if query else None)
         if not places:
             return SkillResult(
                 success=False,

@@ -1,3 +1,4 @@
+import math
 import sqlite3
 from typing import Protocol
 
@@ -12,6 +13,22 @@ from aug9.food_data import load_hawker_data
 class HawkerProvider(Protocol):
     def discover(self, query: str | None = None) -> list[Place]: ...
 
+    def discover_near(self, latitude: float, longitude: float) -> list[Place]: ...
+
+
+def distance_km(origin_latitude: float, origin_longitude: float, place: Place) -> float:
+    if place.latitude is None or place.longitude is None:
+        return math.inf
+    phi1 = math.radians(origin_latitude)
+    phi2 = math.radians(place.latitude)
+    delta_phi = math.radians(place.latitude - origin_latitude)
+    delta_lambda = math.radians(place.longitude - origin_longitude)
+    value = (
+        math.sin(delta_phi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+    )
+    return 6371 * 2 * math.atan2(math.sqrt(value), math.sqrt(1 - value))
+
 
 class CuratedHawkerProvider:
     """Discover hawker centres represented in Aug9's curated location catalog."""
@@ -24,6 +41,12 @@ class CuratedHawkerProvider:
         normalized = query.casefold().strip()
         matches = [place for place in results if normalized in place.name.casefold()]
         return matches or results
+
+    def discover_near(self, latitude: float, longitude: float) -> list[Place]:
+        return sorted(
+            self.discover(),
+            key=lambda place: distance_km(latitude, longitude, place),
+        )[:5]
 
 
 class DatabaseHawkerProvider:
@@ -75,3 +98,31 @@ class DatabaseHawkerProvider:
             )
             for entity in entities
         ]
+
+    def discover_near(self, latitude: float, longitude: float) -> list[Place]:
+        try:
+            entities = self.repository.search_entities(
+                None,
+                entity_type=EntityType.HAWKER_CENTRE.value,
+                limit=250,
+            )
+        except (psycopg.Error, sqlite3.Error):
+            return self.fallback.discover_near(latitude, longitude)
+
+        places = [
+            Place(
+                name=entity.name,
+                place_type=entity.entity_type.value,
+                address=entity.address,
+                postal_code=entity.postal_code,
+                latitude=entity.latitude,
+                longitude=entity.longitude,
+            )
+            for entity in entities
+        ]
+        if not places:
+            return self.fallback.discover_near(latitude, longitude)
+        return sorted(
+            places,
+            key=lambda place: distance_km(latitude, longitude, place),
+        )[:5]

@@ -18,6 +18,10 @@ class FakeHawkerProvider:
         self.queries.append(query)
         return [Place(name="Maxwell Food Centre", place_type="hawker_centre")]
 
+    def discover_near(self, latitude: float, longitude: float) -> list[Place]:
+        self.queries.append(f"near:{latitude},{longitude}")
+        return [Place(name="Maxwell Food Centre", place_type="hawker_centre")]
+
 
 class FakeDiscoveryRepository:
     def __init__(self, entities=None, error=None, results=None) -> None:
@@ -81,6 +85,37 @@ def test_database_provider_returns_canonical_hawker_centres():
     ]
 
 
+def test_database_provider_ranks_nearest_hawker_centres():
+    repository = FakeDiscoveryRepository(
+        entities=[
+            DiscoveryEntity(
+                id="hawker:far",
+                entity_type=EntityType.HAWKER_CENTRE,
+                name="Far Hawker Centre",
+                latitude=1.35,
+                longitude=103.90,
+            ),
+            DiscoveryEntity(
+                id="hawker:near",
+                entity_type=EntityType.HAWKER_CENTRE,
+                name="Near Hawker Centre",
+                latitude=1.291,
+                longitude=103.852,
+            ),
+        ]
+    )
+
+    places = DatabaseHawkerProvider(repository=repository).discover_near(
+        1.2903, 103.8519
+    )
+
+    assert [place.name for place in places] == [
+        "Near Hawker Centre",
+        "Far Hawker Centre",
+    ]
+    assert repository.calls == [(None, EntityType.HAWKER_CENTRE.value, 250)]
+
+
 def test_database_provider_falls_back_when_database_is_unavailable():
     repository = FakeDiscoveryRepository(
         error=sqlite3.OperationalError("database unavailable")
@@ -141,3 +176,20 @@ def test_sg_hawkers_recovers_near_location_from_intent():
 
     assert result.success is True
     assert provider.queries == ["Newton"]
+
+
+def test_sg_hawkers_uses_coordinates_for_nearby_results():
+    provider = FakeHawkerProvider()
+    context = UserContext(
+        intent="Find hawker centres near me",
+        current_place=Place(
+            name="Current location",
+            latitude=1.2903,
+            longitude=103.8519,
+        ),
+    )
+
+    result = SgHawkersSkill(provider).execute(context, {})
+
+    assert result.success is True
+    assert provider.queries == ["near:1.2903,103.8519"]
