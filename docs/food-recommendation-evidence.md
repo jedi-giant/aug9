@@ -75,3 +75,15 @@ uv run aug9-match-michelin-pilot
 The matcher uses name and coordinate agreement within a bounded radius and writes
 nothing. Even `high_confidence` results require review before conversion into
 evidence. Unlisted establishments receive no negative evidence.
+
+The reviewed pilot manifest links 18 of the 30 Michelin listings to active SFA
+entities. Import those mappings idempotently with:
+
+```bash
+uv run aug9-import-michelin-evidence
+```
+
+Each mapping creates one positive, organic `award_or_recognition` record for the
+2026 Bib Gourmand distinction with confidence 0.8 and an August 2027 review
+deadline. The other 12 Michelin listings remain valid source records but unlinked;
+the import fails closed if any approved SFA entity is missing or inactive.

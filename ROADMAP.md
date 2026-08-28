@@ -306,6 +306,7 @@ Potential data sources:
 - [x] Restaurant and food-court venue-type constraints from SFA evidence
 - [x] Typed, source-attributed food recommendation evidence model
 - [ ] Evidence ingestion adapters and source-specific policies
+- [x] Reviewed Michelin Bib Gourmand pilot evidence importer
 - [ ] Offline ranking evaluation set and explainable scoring policy
 - [ ] Availability and opening-hours evidence
 - [ ] Food recommendation outcome analytics
