@@ -314,6 +314,7 @@ Potential data sources:
 - [x] Query-aware meal, beverage and dessert shortlist suitability
 - [x] Integrate evaluated food scoring behind a disabled-by-default feature flag
 - [ ] Enable shortlist mode and review latency, actions and user outcomes
+- [x] Attribute action and feedback outcomes to ranking mode by stable task ID
 - [ ] Availability and opening-hours evidence
 - [ ] Food recommendation outcome analytics
 

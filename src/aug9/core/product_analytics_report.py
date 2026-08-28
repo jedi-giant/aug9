@@ -25,6 +25,7 @@ class ProductAnalyticsReport:
     capability_result_success_rate: dict[str, float | None]
     campaign_sources: dict[str, int]
     ranking_modes: dict[str, int]
+    ranking_mode_outcomes: dict[str, dict[str, int | float | None]]
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -118,6 +119,46 @@ def build_product_analytics_report(
     positive_feedback = sum(bool(row[4]) for row in feedback_rows)
     action_clicks = events_by_type["action_click"]
     results_generated = events_by_type["result_generated"]
+    ranking_mode_by_task = {
+        row[0]: row[7]
+        for row in rows
+        if row[0] and row[2] == "result_generated" and row[7]
+    }
+    action_task_ids = {
+        row[0] for row in rows if row[0] and row[2] == "action_click"
+    }
+    feedback_by_task = {
+        row[0]: bool(row[4])
+        for row in rows
+        if row[0] and row[2] == "feedback"
+    }
+    ranking_mode_outcomes = {}
+    for mode in sorted(set(ranking_mode_by_task.values())):
+        mode_tasks = {
+            task_id
+            for task_id, task_mode in ranking_mode_by_task.items()
+            if task_mode == mode
+        }
+        mode_feedback_tasks = mode_tasks & feedback_by_task.keys()
+        ranking_mode_outcomes[mode] = {
+            "result_tasks": len(mode_tasks),
+            "action_click_tasks": len(mode_tasks & action_task_ids),
+            "successful_tasks": len(mode_tasks & successful_task_ids),
+            "feedback_tasks": len(mode_feedback_tasks),
+            "positive_feedback_tasks": sum(
+                feedback_by_task[task_id] for task_id in mode_feedback_tasks
+            ),
+            "action_click_rate": _rate(
+                len(mode_tasks & action_task_ids), len(mode_tasks)
+            ),
+            "successful_task_rate": _rate(
+                len(mode_tasks & successful_task_ids), len(mode_tasks)
+            ),
+            "positive_feedback_rate": _rate(
+                sum(feedback_by_task[task_id] for task_id in mode_feedback_tasks),
+                len(mode_feedback_tasks),
+            ),
+        }
 
     return ProductAnalyticsReport(
         period_days=days,
@@ -146,4 +187,5 @@ def build_product_analytics_report(
         },
         campaign_sources=dict(campaigns.most_common()),
         ranking_modes=dict(ranking_modes.most_common()),
+        ranking_mode_outcomes=ranking_mode_outcomes,
     )

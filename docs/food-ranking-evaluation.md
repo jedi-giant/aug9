@@ -97,3 +97,8 @@ Skill metadata, direction-action metadata and product result events record the
 effective ranking mode. `aug9-report-product-analytics --days 7` groups result
 generation by `ranking_modes`. Roll back immediately by setting
 `FOOD_RANKING_MODE=legacy` and redeploying; no data migration reversal is needed.
+
+The same report joins result, action, completion and feedback events by stable
+task ID. `ranking_mode_outcomes` separates result-task counts, action-click rate,
+successful-task rate and positive-feedback rate for each effective mode. This
+lets the rollout be evaluated without requiring Base44 to submit a new field.

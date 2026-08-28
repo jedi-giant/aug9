@@ -124,6 +124,17 @@ def test_product_analytics_report_groups_ranking_modes():
         capabilities=["food"],
         ranking_mode="shortlist",
     )
+    log(
+        ProductEventType.ACTION_CLICK,
+        event_id="ranking-action",
+        task_id="ranking-task",
+    )
+    log(
+        ProductEventType.FEEDBACK,
+        event_id="ranking-feedback",
+        task_id="ranking-task",
+        helpful=True,
+    )
 
     report = build_product_analytics_report(
         days=7,
@@ -131,3 +142,36 @@ def test_product_analytics_report_groups_ranking_modes():
     )
 
     assert report.ranking_modes == {"shortlist": 1}
+    assert report.ranking_mode_outcomes == {
+        "shortlist": {
+            "result_tasks": 1,
+            "action_click_tasks": 1,
+            "successful_tasks": 1,
+            "feedback_tasks": 1,
+            "positive_feedback_tasks": 1,
+            "action_click_rate": 1.0,
+            "successful_task_rate": 1.0,
+            "positive_feedback_rate": 1.0,
+        }
+    }
+
+
+def test_ranking_mode_outcomes_do_not_mix_task_cohorts():
+    for mode, task_id in (("legacy", "legacy-task"), ("shortlist", "short-task")):
+        log(
+            ProductEventType.RESULT_GENERATED,
+            event_id=f"result-{mode}",
+            task_id=task_id,
+            capabilities=["food"],
+            ranking_mode=mode,
+        )
+    log(
+        ProductEventType.ACTION_CLICK,
+        event_id="legacy-click",
+        task_id="legacy-task",
+    )
+
+    report = build_product_analytics_report(days=7, now=datetime.now(UTC))
+
+    assert report.ranking_mode_outcomes["legacy"]["action_click_rate"] == 1.0
+    assert report.ranking_mode_outcomes["shortlist"]["action_click_rate"] == 0.0
