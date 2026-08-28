@@ -140,6 +140,83 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
     )
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS discovery_submissions (
+            id TEXT PRIMARY KEY,
+            submission_type TEXT NOT NULL,
+            entity_type TEXT NOT NULL,
+            target_entity_id TEXT,
+            status TEXT NOT NULL DEFAULT 'submitted',
+            submitted_by TEXT NOT NULL,
+            proposed_entity_id TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            reviewed_at TIMESTAMP
+        )
+        """
+    )
+    cursor.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS submission_field_proposals (
+            id {id_column},
+            submission_id TEXT NOT NULL,
+            field_name TEXT NOT NULL,
+            proposed_value TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(submission_id, field_name),
+            FOREIGN KEY(submission_id) REFERENCES discovery_submissions(id)
+        )
+        """
+    )
+    cursor.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS submission_evidence (
+            id {id_column},
+            submission_id TEXT NOT NULL,
+            evidence_type TEXT NOT NULL,
+            reference_url TEXT,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(submission_id) REFERENCES discovery_submissions(id)
+        )
+        """
+    )
+    cursor.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS submission_moderation_events (
+            id {id_column},
+            submission_id TEXT NOT NULL,
+            action TEXT NOT NULL,
+            actor TEXT NOT NULL,
+            reason TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(submission_id) REFERENCES discovery_submissions(id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS discovery_submissions_status_idx
+        ON discovery_submissions(status, created_at)
+        """
+    )
+    cursor.execute(
+        """
+        INSERT INTO discovery_sources (
+            id, name, permission, attribution, active
+        ) VALUES (
+            'aug9_admin', 'Aug9 administrator submissions',
+            'legal_reviewed', 'Aug9 administrator verified', 1
+        )
+        ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            permission = excluded.permission,
+            attribution = excluded.attribution,
+            active = excluded.active,
+            updated_at = CURRENT_TIMESTAMP
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS discovery_entity_tags (
             entity_id TEXT NOT NULL,
             tag TEXT NOT NULL,

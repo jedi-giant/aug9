@@ -1,7 +1,12 @@
 import pytest
 from pydantic import ValidationError
 
-from aug9.api.main import ChatRequest, ChatResponse, configured_allowed_origins
+from aug9.api.main import (
+    ChatRequest,
+    ChatResponse,
+    configured_allowed_origins,
+    require_admin,
+)
 
 
 def test_chat_response_preserves_legacy_response_only_construction():
@@ -65,6 +70,16 @@ def test_cors_defaults_to_base44_and_supports_explicit_allowlist(monkeypatch):
         "https://www.aug9.sg",
         "https://aug-nudge-now.base44.app",
     ]
+
+
+def test_admin_endpoint_authentication_is_fail_closed(monkeypatch):
+    monkeypatch.setenv("AUG9_ADMIN_API_KEY", "admin-" + "x" * 32)
+
+    assert require_admin("admin-" + "x" * 32) == "base44_admin"
+
+    with pytest.raises(Exception) as error:
+        require_admin("incorrect-" + "x" * 32)
+    assert error.value.status_code == 401
 
     monkeypatch.setenv(
         "CORS_ALLOWED_ORIGINS",

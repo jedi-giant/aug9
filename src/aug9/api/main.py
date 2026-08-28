@@ -3,7 +3,7 @@ import time
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -19,6 +19,11 @@ from aug9.api.visitor_identity import (
     issue_visitor_token,
     resolve_visitor_identity,
 )
+from aug9.api.admin_auth import (
+    AdminAuthenticationConfigurationError,
+    AdminAuthenticationError,
+    verify_admin_api_key,
+)
 from aug9.core.agent import run_aug9
 from aug9.core.models import Place
 from aug9.core.skill import SkillAction
@@ -33,6 +38,12 @@ from aug9.core.product_analytics import (
     TaskStatus,
     log_product_event,
     try_log_product_event,
+)
+from aug9.discovery.submissions import (
+    FoodSubmission,
+    FoodSubmissionCreate,
+    FoodSubmissionRepository,
+    SubmissionStatus,
 )
 
 
@@ -66,8 +77,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=configured_allowed_origins(),
     allow_credentials=False,
-    allow_methods=["POST"],
-    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+    allow_methods=["GET", "POST"],
+    allow_headers=[
+        "Content-Type", "Authorization", "X-Requested-With", "X-Aug9-Admin-Key"
+    ],
 )
 
 
@@ -109,6 +122,20 @@ class VisitorSessionResponse(BaseModel):
     expires_in_seconds: int
 
 
+class ModerationRequest(BaseModel):
+    reason: str = Field(min_length=2, max_length=500)
+
+
+def require_admin(x_aug9_admin_key: str | None = Header(default=None)) -> str:
+    try:
+        verify_admin_api_key(x_aug9_admin_key)
+        return "base44_admin"
+    except AdminAuthenticationError as error:
+        raise HTTPException(status_code=401, detail={"error": "invalid_admin_credentials"}) from error
+    except AdminAuthenticationConfigurationError as error:
+        raise HTTPException(status_code=503, detail={"error": "admin_authentication_unavailable"}) from error
+
+
 @app.get("/")
 def health_check():
     return {
@@ -127,6 +154,55 @@ def readiness_check():
             },
         )
     return {"status": "ready"}
+
+
+@app.post("/admin/food-submissions", response_model=FoodSubmission, status_code=201)
+def create_food_submission(
+    proposal: FoodSubmissionCreate,
+    x_aug9_admin_key: str | None = Header(default=None),
+):
+    actor = require_admin(x_aug9_admin_key)
+    try:
+        return FoodSubmissionRepository().create(proposal, actor=actor)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail={"error": "invalid_submission", "message": str(error)}) from error
+
+
+@app.get("/admin/food-submissions", response_model=list[FoodSubmission])
+def list_food_submissions(
+    status: SubmissionStatus | None = None,
+    limit: int = Query(default=50, ge=1, le=100),
+    x_aug9_admin_key: str | None = Header(default=None),
+):
+    require_admin(x_aug9_admin_key)
+    return FoodSubmissionRepository().list(status=status, limit=limit)
+
+
+@app.post("/admin/food-submissions/{submission_id}/approve", response_model=FoodSubmission)
+def approve_food_submission(
+    submission_id: str,
+    x_aug9_admin_key: str | None = Header(default=None),
+):
+    actor = require_admin(x_aug9_admin_key)
+    try:
+        return FoodSubmissionRepository().approve(submission_id, actor=actor)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail={"error": "submission_not_found"}) from error
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail={"error": "submission_conflict", "message": str(error)}) from error
+
+
+@app.post("/admin/food-submissions/{submission_id}/reject", response_model=FoodSubmission)
+def reject_food_submission(
+    submission_id: str,
+    moderation: ModerationRequest,
+    x_aug9_admin_key: str | None = Header(default=None),
+):
+    actor = require_admin(x_aug9_admin_key)
+    try:
+        return FoodSubmissionRepository().reject(submission_id, actor=actor, reason=moderation.reason)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail={"error": "submission_conflict", "message": str(error)}) from error
 
 
 def try_log_usage(**kwargs) -> bool:

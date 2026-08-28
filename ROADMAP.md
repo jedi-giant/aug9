@@ -284,6 +284,21 @@ Potential data sources:
 
 ---
 
+# v0.3.3 — Community Food Knowledge — Started
+
+- [x] Administrator-only moderated food submission workflow
+- [x] Field proposals, evidence records and moderation audit trail
+- [x] Fail-closed server-to-server administrator authentication
+- [x] Canonical merge with hawker-centre validation and duplicate protection
+- [ ] Base44 administrator review interface
+- [ ] Public signed-user suggestions with abuse controls
+- [ ] Merchant claims and verification
+- [ ] Community contributor reputation
+- [ ] Google Places-assisted matching with policy-controlled provider caching
+
+
+---
+
 # v0.3 — Singapore Discovery
 
 ## GTM Activation & Learning — In progress
