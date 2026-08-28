@@ -75,6 +75,7 @@ class FoodLocationEnricher:
         self.limit = limit
         self.request_delay_seconds = request_delay_seconds
         self.sleep = sleep
+        self._token: str | None = None
 
     @classmethod
     def from_environment(cls) -> FoodLocationEnricher:
@@ -106,9 +107,10 @@ class FoodLocationEnricher:
                     run, records_received=0, records_upserted=0
                 )
                 return FoodLocationSummary(run.id, 0, 0, 0, 0)
-            token = self.provider.authenticate()
+            token = self._token or self.provider.authenticate()
             if not token:
                 raise RuntimeError("Unable to authenticate with OneMap")
+            self._token = token
 
             results: dict[str, LocationSearchResult] = {}
             for candidate in candidates:

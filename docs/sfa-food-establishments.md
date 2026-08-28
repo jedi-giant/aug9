@@ -55,6 +55,17 @@ Configure the batch with `FOOD_LOCATION_ENRICHMENT_LIMIT` (maximum 500) and the
 delay with `FOOD_LOCATION_REQUEST_DELAY_SECONDS`. Run repeatedly until the command
 reports `received=0`.
 
+For a large catalog, process multiple bounded batches in one resumable invocation:
+
+```bash
+FOOD_LOCATION_ENRICHMENT_LIMIT=500 uv run aug9-enrich-food-locations --max-batches 40
+```
+
+The command authenticates with OneMap once, prints progress after every committed
+batch, and stops early when the catalog is complete. `--max-batches` is capped at
+100 so every invocation retains a finite work limit. If Railway interrupts the
+command, rerunning it continues with the first unattempted record.
+
 Review catalog coverage before exposing the records to recommendations:
 
 ```bash

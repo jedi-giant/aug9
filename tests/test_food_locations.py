@@ -2,7 +2,9 @@ import pytest
 
 from aug9.core import database
 from aug9.core.models import Place
+from aug9.discovery.enrich_food_locations import run_enrichment_batches
 from aug9.discovery.food_locations import FoodLocationEnricher
+from aug9.discovery.food_locations import FoodLocationSummary
 from aug9.discovery.models import (
     DiscoveryEntity,
     DiscoverySource,
@@ -27,6 +29,16 @@ class FakeOneMapProvider:
     def search_with_token(self, query, token):
         self.queries.append((query, token))
         return self.results[query]
+
+
+class FakeBatchEnricher:
+    def __init__(self, summaries):
+        self.summaries = iter(summaries)
+        self.calls = 0
+
+    def run(self):
+        self.calls += 1
+        return next(self.summaries)
 
 
 @pytest.fixture
@@ -100,6 +112,53 @@ def test_food_location_enrichment_reuses_one_postal_query(repository):
     rows = cursor.fetchall()
     conn.close()
     assert len(rows) == 6
+
+
+def test_food_location_enrichment_reuses_authentication_between_batches(repository):
+    provider = FakeOneMapProvider(
+        {"050335": LocationSearchResult(status=SearchStatus.NO_RESULTS)}
+    )
+    authentication_calls = 0
+
+    def authenticate():
+        nonlocal authentication_calls
+        authentication_calls += 1
+        return "token"
+
+    provider.authenticate = authenticate
+    enricher = FoodLocationEnricher(
+        repository, provider, limit=1, request_delay_seconds=0
+    )
+
+    enricher.run()
+    enricher.run()
+
+    assert authentication_calls == 1
+
+
+def test_batch_runner_stops_when_catalog_is_complete():
+    enricher = FakeBatchEnricher(
+        [
+            FoodLocationSummary("run-1", 500, 490, 10, 50),
+            FoodLocationSummary("run-2", 0, 0, 0, 0),
+            FoodLocationSummary("run-3", 500, 500, 0, 20),
+        ]
+    )
+    output = []
+
+    summaries = run_enrichment_batches(
+        enricher, max_batches=10, output=output.append
+    )
+
+    assert len(summaries) == 2
+    assert enricher.calls == 2
+    assert "batch 1" in output[0]
+    assert "batch 2" in output[1]
+
+
+def test_batch_runner_validates_safety_limit():
+    with pytest.raises(ValueError, match="between 1 and 100"):
+        run_enrichment_batches(FakeBatchEnricher([]), max_batches=101)
 
 
 def test_food_location_rejection_is_recorded_and_not_retried(repository):
