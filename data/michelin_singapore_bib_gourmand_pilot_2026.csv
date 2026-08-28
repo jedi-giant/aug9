@@ -1,0 +1,31 @@
+external_id,name,latitude,longitude,distinction,price_band,cuisine,source_url,observed_at
+501496,Indocafé,1.3110605,103.8356878,BIB_GOURMAND,$$,Peranakan,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/indocafe-the-white-house,2026-08-28T12:00:00+08:00
+1195654,The Coconut Club (Beach Road),1.3006534,103.8601437,BIB_GOURMAND,$$,Malaysian,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/the-coconut-club-1195654,2026-08-28T12:00:00+08:00
+529476,The Blue Ginger,1.2774155,103.8436792,BIB_GOURMAND,$$,Peranakan,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/the-blue-ginger-tanjong-pagar,2026-08-28T12:00:00+08:00
+560365,Muthu's Curry,1.30965,103.85204,BIB_GOURMAND,$$,Indian,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/muthu-s-curry-little-india,2026-08-28T12:00:00+08:00
+1195719,Kotuwa,1.2929748,103.8388373,BIB_GOURMAND,$$,Sri Lankan,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/kotuwa,2026-08-28T12:00:00+08:00
+529138,Anglo Indian (Shenton Way),1.279361,103.85043,BIB_GOURMAND,$$,Indian,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/anglo-indian-shenton-way,2026-08-28T12:00:00+08:00
+501675,True Blue Cuisine,1.2945379,103.8494194,BIB_GOURMAND,$$,Peranakan,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/true-blue-cuisine,2026-08-28T12:00:00+08:00
+501507,Lagnaa,1.306444,103.8522508,BIB_GOURMAND,$$,Indian,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/lagnaa,2026-08-28T12:00:00+08:00
+1216068,Song Kee Teochew Fish Porridge,1.311974,103.839442,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/song-kee-teochew-fish-porridge,2026-08-28T12:00:00+08:00
+1216040,Wok Hei Hor Fun,1.2874024,103.8183527,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/wok-hei-hor-fun,2026-08-28T12:00:00+08:00
+1247295,Hup Kee Fried Oyster Omelette,1.3123233,103.8395862,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/hup-kee-fried-oyster-omelette,2026-08-28T12:00:00+08:00
+1216074,Jungle,1.281413,103.8453743,BIB_GOURMAND,$$,Thai,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/jungle,2026-08-28T12:00:00+08:00
+1216065,Kitchenman Nasi Lemak,1.3120852,103.8628154,BIB_GOURMAND,$,Malaysian,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/kitchenman-nasi-lemak,2026-08-28T12:00:00+08:00
+501505,Kok Sen,1.2802718,103.841681,BIB_GOURMAND,$$,Singaporean,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/kok-sen,2026-08-28T12:00:00+08:00
+501655,Song Fa Bak Kut Teh (New Bridge Road),1.2890223,103.8477147,BIB_GOURMAND,$,Singaporean,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/song-fa-bak-kut-teh-new-bridge-road,2026-08-28T12:00:00+08:00
+1213251,Delhi Lahori,1.3064407,103.8507102,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/delhi-lahori,2026-08-28T12:00:00+08:00
+1190293,Un-Yang-Kor-Dai,1.2872095,103.8483084,BIB_GOURMAND,$$,Thai,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/un-yang-kor-dai,2026-08-28T12:00:00+08:00
+501821,Outram Park Fried Kway Teow Mee,1.2851585,103.8457139,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/outram-park-fried-kway-teow,2026-08-28T12:00:00+08:00
+501820,Ji Ji Noodle House,1.2851692,103.8457399,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/ji-ji-noodle-house,2026-08-28T12:00:00+08:00
+1189608,Kwang Kee Teochew Fish Porridge,1.3118717,103.8393125,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/kwang-kee-teochew-fish-porridge,2026-08-28T12:00:00+08:00
+561084,Lian He Ben Ji Claypot,1.2825746,103.842981,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/lian-he-ben-ji-claypot,2026-08-28T12:00:00+08:00
+1205726,Hui Wei Chilli Ban Mian,1.32144,103.870173,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/hui-wei-chilli-ban-mian,2026-08-28T12:00:00+08:00
+501365,Boon Tong Kee (Balestier Road),1.3255796,103.8495,BIB_GOURMAND,$,Singaporean,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/boon-tong-kee-balestier-road,2026-08-28T12:00:00+08:00
+1201488,Kelantan Kway Chap · Pig Organ Soup,1.3073595,103.85674,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/kelantan-kway-chap-pig-organ-soup,2026-08-28T12:00:00+08:00
+501831,Alliance Seafood,1.3121151,103.8395393,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/alliance-seafood,2026-08-28T12:00:00+08:00
+1205565,Singapore Fried Hokkien Mee,1.3230892,103.8549053,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/singapore-fried-hokkien-mee,2026-08-28T12:00:00+08:00
+1205240,Yong Chun Wan Ton Noodle,1.285259,103.8222829,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/yong-chun-wan-ton-noodle,2026-08-28T12:00:00+08:00
+1213099,Han Kee,1.2796254,103.8467276,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/han-kee,2026-08-28T12:00:00+08:00
+1247219,Xiangyee,1.2982117,103.838788,BIB_GOURMAND,$$,Hunanese,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/xiangyee,2026-08-28T12:00:00+08:00
+1248117,Jia Xiang,1.2875361,103.8184949,BIB_GOURMAND,$,Street Food,https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/jia-xiang,2026-08-28T12:00:00+08:00

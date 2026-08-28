@@ -58,3 +58,20 @@ uv run aug9-report-food-evidence
 The report separates active and expired evidence and groups records by dimension,
 evidence type and commercial status. Evidence still remains unavailable to live
 ranking until a separately tested scoring policy is enabled.
+
+## Michelin Bib Gourmand pilot
+
+The first pilot is a dated 30-entry structured snapshot from the official 2026
+Michelin Guide Singapore Bib Gourmand list. It stores only listing identifiers,
+names, coordinates, distinction, price band, cuisine label, official URL and
+observation time. Descriptions and images are excluded.
+
+Generate review candidates against active SFA establishments with:
+
+```bash
+uv run aug9-match-michelin-pilot
+```
+
+The matcher uses name and coordinate agreement within a bounded radius and writes
+nothing. Even `high_confidence` results require review before conversion into
+evidence. Unlisted establishments receive no negative evidence.
