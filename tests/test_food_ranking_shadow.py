@@ -4,6 +4,11 @@ import pytest
 
 from aug9.core import database
 from aug9.discovery.food_ranking_shadow import build_food_ranking_shadow_report
+from aug9.discovery.food_ranking_shadow import (
+    _candidate_category,
+    _relevance_score,
+    _request_category,
+)
 from aug9.discovery.models import (
     CommercialStatus,
     DiscoverySource,
@@ -113,6 +118,7 @@ def test_shadow_report_compares_real_candidate_orders_without_mutation(repositor
         "closest_suitable",
     ]
     assert report["shortlist_count"] == 2
+    assert report["request"]["category"] == "meal"
 
     conn = database.get_connection()
     cursor = conn.cursor()
@@ -195,3 +201,68 @@ def test_shortlist_uses_distinct_location_for_third_choice(repository):
         "nearby_alternative",
     ]
     assert report["recommended_shortlist"][2]["name"] == "Alternative Stall"
+
+
+def test_intent_categories_are_conservative_and_query_aware():
+    assert _candidate_category("1950 COFFEE") == "beverage"
+    assert _candidate_category("Fresh Fruit Juice") == "beverage"
+    assert _candidate_category("Ah Tai Hainanese Chicken Rice") == "meal"
+    assert _candidate_category("Han Kee") == "unknown"
+    assert _request_category("Find coffee near me") == "beverage"
+    assert _request_category("Where should I have lunch?") == "meal"
+    assert _relevance_score("beverage", "meal") == 0.3
+    assert _relevance_score("unknown", "meal") == 0.7
+
+
+def test_meal_shortlist_does_not_use_beverage_as_closest(repository):
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    observed = datetime(2026, 8, 1, tzinfo=UTC).isoformat()
+    for entity_id, name, latitude in (
+        ("food:coffee", "1950 Coffee", 1.30001),
+        ("food:rice", "Chicken Rice", 1.30002),
+    ):
+        cursor.execute(
+            "INSERT INTO discovery_entities "
+            "(id, entity_type, name, address, postal_code, latitude, longitude, status) "
+            "VALUES (?, 'food_stall', ?, 'Same Centre', '123456', ?, 103.8, 'active')",
+            (entity_id, name, latitude),
+        )
+        cursor.execute(
+            "INSERT INTO discovery_source_records "
+            "(source_id, external_id, entity_id, raw_payload, fetched_at) "
+            "VALUES (?, ?, ?, '{}', ?)",
+            (SFA_SOURCE_ID, entity_id, entity_id, observed),
+        )
+        cursor.execute(
+            "INSERT INTO discovery_food_profiles "
+            "(entity_id, venue_kind, currency, dietary_attributes, source_id) "
+            "VALUES (?, 'hawker_stall', 'SGD', '[]', ?)",
+            (entity_id, SFA_SOURCE_ID),
+        )
+        cursor.execute(
+            "INSERT INTO discovery_food_safety_profiles "
+            "(entity_id, licence_number, safe_grade, business_type, source_id, observed_at) "
+            "VALUES (?, ?, 'A', 'Food Stall', ?, ?)",
+            (entity_id, entity_id, SFA_SOURCE_ID, observed),
+        )
+    conn.commit()
+    conn.close()
+
+    report = build_food_ranking_shadow_report(
+        DatabaseFoodProvider(limit=10, max_distance_km=3),
+        latitude=1.3,
+        longitude=103.8,
+        now=datetime(2026, 8, 29, tzinfo=UTC),
+        pool_limit=10,
+        display_limit=5,
+        request_text="Find lunch near me",
+    )
+
+    closest = next(
+        item
+        for item in report["recommended_shortlist"]
+        if item["role"] == "closest_suitable"
+    )
+    assert closest["name"] != "1950 Coffee"
+    assert closest["candidate_category"] in {"meal", "unknown"}

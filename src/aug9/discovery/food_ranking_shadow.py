@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import re
 from typing import Any
 
 from aug9.core import database
@@ -20,6 +21,7 @@ def build_food_ranking_shadow_report(
     venue_kinds: tuple[str, ...] = (),
     pool_limit: int = 250,
     display_limit: int = 12,
+    request_text: str = "food",
 ) -> dict[str, Any]:
     if pool_limit < 1 or pool_limit > 500:
         raise ValueError("pool_limit must be between 1 and 500")
@@ -28,6 +30,7 @@ def build_food_ranking_shadow_report(
     if display_limit > pool_limit:
         raise ValueError("display_limit cannot exceed pool_limit")
     generated_at = now or datetime.now(UTC)
+    request_category = _request_category(request_text)
     if isinstance(provider, DatabaseFoodProvider):
         venues = provider.discover_pool(
             latitude=latitude,
@@ -46,6 +49,7 @@ def build_food_ranking_shadow_report(
             "mode": "shadow",
             "live_ranking_affected": False,
             "generated_at": generated_at.isoformat(),
+            "request": {"text": request_text, "category": request_category},
             "pool_candidate_count": 0,
             "displayed_candidate_count": 0,
             "editorial_candidate_count": 0,
@@ -59,12 +63,15 @@ def build_food_ranking_shadow_report(
     candidates = []
     for venue in venues:
         signal = signals.get(venue.id, {})
+        candidate_category = _candidate_category(venue.name)
         candidates.append(
             FoodRankingCandidate(
                 id=venue.id,
                 name=venue.name,
                 distance_km=venue.distance_km or 0.0,
-                relevance_score=0.8,
+                relevance_score=_relevance_score(
+                    candidate_category, request_category
+                ),
                 provenance_score=0.9 if signal.get("editorial_count", 0) else 0.8,
                 freshness_score=signal.get("freshness_score", 0.5),
                 positive_organic_editorial_records=signal.get(
@@ -86,6 +93,7 @@ def build_food_ranking_shadow_report(
                 "name": venue.name,
                 "address": venue.address,
                 "venue_kind": venue.venue_kind,
+                "candidate_category": _candidate_category(venue.name),
                 "distance_km": venue.distance_km,
                 "latitude": venue.latitude,
                 "longitude": venue.longitude,
@@ -100,7 +108,9 @@ def build_food_ranking_shadow_report(
             }
         )
     displayed_rows = all_rows[:display_limit]
-    shortlist = _select_shortlist(all_rows, limit=3)
+    shortlist = _select_shortlist(
+        all_rows, request_category=request_category, limit=3
+    )
     coordinate_groups: dict[tuple[float | None, float | None], int] = {}
     for venue in venues:
         key = (venue.latitude, venue.longitude)
@@ -111,6 +121,10 @@ def build_food_ranking_shadow_report(
         "live_ranking_affected": False,
         "generated_at": generated_at.isoformat(),
         "origin": {"latitude": latitude, "longitude": longitude},
+        "request": {
+            "text": request_text,
+            "category": request_category,
+        },
         "pool_candidate_count": len(all_rows),
         "displayed_candidate_count": len(displayed_rows),
         "editorial_candidate_count": sum(
@@ -133,7 +147,10 @@ def build_food_ranking_shadow_report(
 
 
 def _select_shortlist(
-    ranked_rows: list[dict[str, Any]], *, limit: int = 3
+    ranked_rows: list[dict[str, Any]],
+    *,
+    request_category: str,
+    limit: int = 3,
 ) -> list[dict[str, Any]]:
     if limit < 1 or limit > 5:
         raise ValueError("shortlist limit must be between 1 and 5")
@@ -147,6 +164,7 @@ def _select_shortlist(
             row
             for row in ranked_rows
             if row["positive_organic_editorial_records"] > 0
+            and _is_suitable(row["candidate_category"], request_category)
         ),
         None,
     )
@@ -155,7 +173,12 @@ def _select_shortlist(
         selected_ids.add(supported["entity_id"])
 
     closest = min(
-        (row for row in ranked_rows if row["entity_id"] not in selected_ids),
+        (
+            row
+            for row in ranked_rows
+            if row["entity_id"] not in selected_ids
+            and _is_suitable(row["candidate_category"], request_category)
+        ),
         key=lambda row: (row["distance_km"], row["name"].casefold()),
         default=None,
     )
@@ -173,6 +196,7 @@ def _select_shortlist(
         for row in ranked_rows
         if row["entity_id"] not in selected_ids
         and _coordinate_key(row) not in used_locations
+        and _is_suitable(row["candidate_category"], request_category)
     ]
     for row in alternatives:
         if len(selected) >= limit:
@@ -196,6 +220,7 @@ def _shortlist_item(row: dict[str, Any], role: str) -> dict[str, Any]:
         "name": row["name"],
         "address": row["address"],
         "venue_kind": row["venue_kind"],
+        "candidate_category": row["candidate_category"],
         "distance_km": row["distance_km"],
         "proposed_score": row["proposed_score"],
         "positive_organic_editorial_records": row[
@@ -211,6 +236,58 @@ def _coordinate_key(row: dict[str, Any]) -> tuple[float | None, float | None]:
         round(latitude, 5) if latitude is not None else None,
         round(longitude, 5) if longitude is not None else None,
     )
+
+
+_BEVERAGE_TERMS = {
+    "beverage", "beverages", "coffee", "drink", "drinks", "juice", "kopi",
+    "smoothie", "tea",
+}
+_DESSERT_TERMS = {
+    "bakery", "cake", "cakes", "chendol", "dessert", "desserts", "gelato",
+    "ice cream", "tutu",
+}
+_MEAL_TERMS = {
+    "biryani", "chicken", "curry", "fish", "kway teow", "laksa", "mee",
+    "nasi", "noodle", "noodles", "porridge", "prata", "rice", "satay",
+    "seafood", "wanton",
+}
+
+
+def _candidate_category(name: str) -> str:
+    normalised = " ".join(re.findall(r"[a-z0-9]+", name.casefold()))
+    if _contains_term(normalised, _BEVERAGE_TERMS):
+        return "beverage"
+    if _contains_term(normalised, _DESSERT_TERMS):
+        return "dessert"
+    if _contains_term(normalised, _MEAL_TERMS):
+        return "meal"
+    return "unknown"
+
+
+def _request_category(text: str) -> str:
+    normalised = " ".join(re.findall(r"[a-z0-9]+", text.casefold()))
+    if _contains_term(normalised, _BEVERAGE_TERMS):
+        return "beverage"
+    if _contains_term(normalised, _DESSERT_TERMS):
+        return "dessert"
+    return "meal"
+
+
+def _contains_term(value: str, terms: set[str]) -> bool:
+    padded = f" {value} "
+    return any(f" {term} " in padded for term in terms)
+
+
+def _is_suitable(candidate_category: str, request_category: str) -> bool:
+    return candidate_category in {request_category, "unknown"}
+
+
+def _relevance_score(candidate_category: str, request_category: str) -> float:
+    if candidate_category == request_category:
+        return 0.95
+    if candidate_category == "unknown":
+        return 0.7
+    return 0.3
 
 
 def _food_ranking_signals(

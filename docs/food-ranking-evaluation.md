@@ -41,7 +41,8 @@ without changing live order:
 
 ```bash
 uv run aug9-report-food-ranking-shadow \
-  --latitude 1.2803 --longitude 103.8448 --pool-limit 250 --limit 12
+  --latitude 1.2803 --longitude 103.8448 --pool-limit 250 --limit 12 \
+  --intent "Find lunch near me"
 ```
 
 The report shows the current distance rank, proposed rank, rank movement,
@@ -66,3 +67,10 @@ The selector deduplicates entities and coordinate groups. It may return fewer
 than three choices rather than pad the shortlist with indistinguishable stalls.
 Five-result expansion remains a future explicit user action; live `sg_food`
 continues to use its existing behavior during this shadow checkpoint.
+
+Shortlist relevance is request-aware. Names are conservatively classified as
+`meal`, `beverage`, `dessert` or `unknown`; unknown remains eligible without an
+invented cuisine claim. A general food or meal request will not use an explicitly
+beverage- or dessert-labelled venue for a shortlist role. Explicit coffee, juice,
+drink or dessert requests reverse the relevant suitability filter. These name
+signals are a fallback until governed dish and cuisine tags have broader coverage.

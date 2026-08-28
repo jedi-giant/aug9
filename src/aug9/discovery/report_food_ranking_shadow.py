@@ -15,6 +15,7 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=12)
     parser.add_argument("--pool-limit", type=int, default=250)
     parser.add_argument("--max-distance-km", type=float, default=3.0)
+    parser.add_argument("--intent", default="food")
     parser.add_argument(
         "--venue-kind",
         choices=("restaurant", "hawker_stall", "food_court_stall"),
@@ -32,6 +33,7 @@ def main() -> None:
         venue_kinds=(args.venue_kind,) if args.venue_kind else (),
         pool_limit=args.pool_limit,
         display_limit=args.limit,
+        request_text=args.intent,
     )
     print(json.dumps(report, indent=2, sort_keys=True))
 

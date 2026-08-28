@@ -311,6 +311,7 @@ Potential data sources:
 - [x] Offline ranking evaluation set and explainable scoring policy
 - [x] Production-data food ranking shadow comparison
 - [x] Three-role diversified food shortlist in shadow mode
+- [x] Query-aware meal, beverage and dessert shortlist suitability
 - [ ] Approve and integrate evaluated food scoring into live `sg_food`
 - [ ] Availability and opening-hours evidence
 - [ ] Food recommendation outcome analytics
