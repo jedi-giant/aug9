@@ -74,3 +74,7 @@ invented cuisine claim. A general food or meal request will not use an explicitl
 beverage- or dessert-labelled venue for a shortlist role. Explicit coffee, juice,
 drink or dessert requests reverse the relevant suitability filter. These name
 signals are a fallback until governed dish and cuisine tags have broader coverage.
+For the `closest_suitable` role, candidates are grouped into 100-metre distance
+tiers. An explicit category match is preferred over `unknown` inside the same
+tier; a venue in a farther tier cannot leapfrog a genuinely closer suitable
+option merely because its name is more descriptive.

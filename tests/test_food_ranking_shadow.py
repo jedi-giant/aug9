@@ -264,5 +264,5 @@ def test_meal_shortlist_does_not_use_beverage_as_closest(repository):
         for item in report["recommended_shortlist"]
         if item["role"] == "closest_suitable"
     )
-    assert closest["name"] != "1950 Coffee"
-    assert closest["candidate_category"] in {"meal", "unknown"}
+    assert closest["name"] == "Chicken Rice"
+    assert closest["candidate_category"] == "meal"

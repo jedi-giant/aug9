@@ -179,7 +179,12 @@ def _select_shortlist(
             if row["entity_id"] not in selected_ids
             and _is_suitable(row["candidate_category"], request_category)
         ),
-        key=lambda row: (row["distance_km"], row["name"].casefold()),
+        key=lambda row: (
+            int(row["distance_km"] / 0.1),
+            0 if row["candidate_category"] == request_category else 1,
+            row["distance_km"],
+            row["name"].casefold(),
+        ),
         default=None,
     )
     if closest is not None and len(selected) < limit:
@@ -210,7 +215,9 @@ def _select_shortlist(
 def _shortlist_item(row: dict[str, Any], role: str) -> dict[str, Any]:
     reasons = {
         "best_supported": "Strongest active organic editorial support nearby",
-        "closest_suitable": "Closest licensed establishment in the candidate pool",
+        "closest_suitable": (
+            "Best request-compatible licensed option in the closest 100 m tier"
+        ),
         "nearby_alternative": "Nearby option from a different mapped location",
     }
     return {
