@@ -33,3 +33,18 @@ also states `live_ranking_affected: false`; passing this checkpoint does not
 enable the policy. Before live integration, expand the set with reviewed real
 queries, compare the candidate orders against current distance ranking, and
 approve the explanations shown to users.
+
+## Production-data shadow comparison
+
+After the synthetic regression set passes, compare real nearby SFA candidates
+without changing live order:
+
+```bash
+uv run aug9-report-food-ranking-shadow \
+  --latitude 1.2803 --longitude 103.8448 --limit 12
+```
+
+The report shows the current distance rank, proposed rank, rank movement,
+editorial-record count and every scoring factor. Optional `--venue-kind` values
+are `restaurant`, `hawker_stall` and `food_court_stall`. This command is read-only
+apart from normal database schema initialisation.
