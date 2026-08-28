@@ -301,7 +301,7 @@ Potential data sources:
 - [x] Current SFA restaurant and stall directory importer
 - [x] SAFE-grade provenance separated from recommendation quality
 - [x] Personal licensee names excluded from ingestion
-- [ ] OneMap coordinate enrichment for SFA venues
+- [x] Resumable, postal-code-deduplicated OneMap enrichment for SFA venues
 - [ ] Broaden `sg_hawkers` into planner-compatible `sg_food`
 - [ ] Restaurant, cafe and food-court venue constraints
 - [ ] Availability and opening-hours evidence
