@@ -70,7 +70,7 @@ class FoodSubmissionCreate(BaseModel):
 
     def proposed_fields(self) -> dict[str, object]:
         values = self.model_dump(
-            exclude={"submission_type", "target_entity_id", "evidence_url", "evidence_notes"},
+            exclude={"submission_type", "target_entity_id", "evidence_url"},
             mode="json",
         )
         return {key: value for key, value in values.items() if value not in (None, [], "")}

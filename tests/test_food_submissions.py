@@ -85,6 +85,7 @@ def test_admin_can_submit_review_and_merge_a_food_stall(submission_repository):
 
     assert created.status == SubmissionStatus.NEEDS_REVIEW
     assert created.proposed_entity_id is None
+    assert created.proposed_fields["evidence_notes"] == "Verified with stallholder"
     assert submissions.list(status=SubmissionStatus.NEEDS_REVIEW)[0].id == created.id
 
     merged = submissions.approve(created.id, actor="base44_admin")
