@@ -134,6 +134,32 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
     )
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS discovery_food_evidence (
+            id TEXT PRIMARY KEY,
+            entity_id TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            dimension TEXT NOT NULL,
+            evidence_type TEXT NOT NULL,
+            direction TEXT NOT NULL,
+            claim_key TEXT NOT NULL,
+            value TEXT NOT NULL,
+            dish_name TEXT,
+            confidence REAL NOT NULL,
+            source_id TEXT NOT NULL,
+            source_url TEXT,
+            observed_at TIMESTAMP NOT NULL,
+            expires_at TIMESTAMP,
+            commercial_status TEXT NOT NULL DEFAULT 'organic',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(source_id, external_id),
+            FOREIGN KEY(entity_id) REFERENCES discovery_entities(id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS discovery_food_candidates (
             id TEXT PRIMARY KEY,
             source_id TEXT NOT NULL,
@@ -330,6 +356,18 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
         """
         CREATE INDEX IF NOT EXISTS discovery_source_records_source_entity_idx
         ON discovery_source_records(source_id, entity_id)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS discovery_food_evidence_entity_expiry_idx
+        ON discovery_food_evidence(entity_id, expires_at)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS discovery_food_evidence_dimension_idx
+        ON discovery_food_evidence(dimension, evidence_type)
         """
     )
     # Retired integrations keep their audit trail but cannot surface publicly.

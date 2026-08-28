@@ -304,6 +304,9 @@ Potential data sources:
 - [x] Resumable, postal-code-deduplicated OneMap enrichment for SFA venues
 - [x] Add planner-compatible `sg_food` while retaining explicit `sg_hawkers`
 - [x] Restaurant and food-court venue-type constraints from SFA evidence
+- [x] Typed, source-attributed food recommendation evidence model
+- [ ] Evidence ingestion adapters and source-specific policies
+- [ ] Offline ranking evaluation set and explainable scoring policy
 - [ ] Availability and opening-hours evidence
 - [ ] Food recommendation outcome analytics
 

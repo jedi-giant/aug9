@@ -8,6 +8,7 @@ from aug9.discovery.models import (
     DiscoverySource,
     EventProfile,
     FieldProvenance,
+    FoodEvidence,
     FoodProfile,
     FoodListing,
     IngestionRun,
@@ -451,6 +452,128 @@ class DiscoveryRepository:
             )
         return listings
 
+    def upsert_food_evidence(self, evidence: FoodEvidence) -> None:
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        try:
+            self._require_ingestable_source(cursor, evidence.source_id, p)
+            cursor.execute(
+                f"SELECT 1 FROM discovery_entities WHERE id = {p}",
+                (evidence.entity_id,),
+            )
+            if cursor.fetchone() is None:
+                raise ValueError("Food evidence entity does not exist")
+            cursor.execute(
+                f"""
+                INSERT INTO discovery_food_evidence (
+                    id, entity_id, external_id, dimension, evidence_type,
+                    direction, claim_key, value, dish_name, confidence,
+                    source_id, source_url, observed_at, expires_at,
+                    commercial_status
+                ) VALUES (
+                    {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p},
+                    {p}, {p}, {p}, {p}, {p}
+                )
+                ON CONFLICT(source_id, external_id) DO UPDATE SET
+                    entity_id = excluded.entity_id,
+                    dimension = excluded.dimension,
+                    evidence_type = excluded.evidence_type,
+                    direction = excluded.direction,
+                    claim_key = excluded.claim_key,
+                    value = excluded.value,
+                    dish_name = excluded.dish_name,
+                    confidence = excluded.confidence,
+                    source_url = excluded.source_url,
+                    observed_at = excluded.observed_at,
+                    expires_at = excluded.expires_at,
+                    commercial_status = excluded.commercial_status,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                self._food_evidence_values(evidence),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def list_food_evidence(
+        self,
+        entity_id: str,
+        *,
+        as_of: datetime | None = None,
+        include_expired: bool = False,
+        limit: int = 200,
+    ) -> list[FoodEvidence]:
+        if limit < 1 or limit > 500:
+            raise ValueError("limit must be between 1 and 500")
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        conditions = [f"entity_id = {p}"]
+        params: list[object] = [entity_id]
+        if not include_expired:
+            conditions.append(f"(expires_at IS NULL OR expires_at >= {p})")
+            params.append((as_of or datetime.now(UTC)).isoformat())
+        cursor.execute(
+            f"""
+            SELECT id, entity_id, external_id, dimension, evidence_type,
+                   direction, claim_key, value, dish_name, confidence,
+                   source_id, source_url, observed_at, expires_at,
+                   commercial_status
+            FROM discovery_food_evidence
+            WHERE {' AND '.join(conditions)}
+            ORDER BY observed_at DESC, id ASC
+            LIMIT {p}
+            """,
+            (*params, limit),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [self._food_evidence_from_row(row) for row in rows]
+
+    @staticmethod
+    def _food_evidence_values(evidence: FoodEvidence) -> tuple:
+        return (
+            evidence.id,
+            evidence.entity_id,
+            evidence.external_id,
+            evidence.dimension.value,
+            evidence.evidence_type.value,
+            evidence.direction.value,
+            evidence.claim_key,
+            json.dumps(evidence.value, sort_keys=True),
+            evidence.dish_name,
+            evidence.confidence,
+            evidence.source_id,
+            evidence.source_url,
+            evidence.observed_at.isoformat(),
+            evidence.expires_at.isoformat() if evidence.expires_at else None,
+            evidence.commercial_status.value,
+        )
+
+    @staticmethod
+    def _food_evidence_from_row(row) -> FoodEvidence:
+        return FoodEvidence(
+            id=row[0],
+            entity_id=row[1],
+            external_id=row[2],
+            dimension=row[3],
+            evidence_type=row[4],
+            direction=row[5],
+            claim_key=row[6],
+            value=json.loads(row[7]),
+            dish_name=row[8],
+            confidence=row[9],
+            source_id=row[10],
+            source_url=row[11],
+            observed_at=row[12],
+            expires_at=row[13],
+            commercial_status=row[14],
+        )
+
     def add_relationship(
         self,
         parent_entity_id: str,
@@ -650,7 +773,7 @@ class DiscoveryRepository:
     @staticmethod
     def _require_ingestable_source(cursor, source_id: str, p: str) -> None:
         cursor.execute(
-            f"SELECT permission FROM discovery_sources WHERE id = {p}",
+            f"SELECT permission, active FROM discovery_sources WHERE id = {p}",
             (source_id,),
         )
         row = cursor.fetchone()
@@ -661,6 +784,8 @@ class DiscoveryRepository:
         }
         if row is None:
             raise ValueError(f"Unknown discovery source: {source_id}")
+        if not row[1]:
+            raise ValueError(f"Discovery source '{source_id}' is inactive")
         if row[0] not in allowed:
             raise ValueError(
                 f"Source permission '{row[0]}' does not allow ingestion"

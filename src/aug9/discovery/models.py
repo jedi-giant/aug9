@@ -34,6 +34,35 @@ class RelationshipType(StrEnum):
     LOCATED_IN = "located_in"
 
 
+class FoodEvidenceDimension(StrEnum):
+    FOOD_QUALITY = "food_quality"
+    CONTEXTUAL_FIT = "contextual_fit"
+    RELIABILITY = "reliability"
+    EXPERIENCE = "experience"
+    REGULATORY_SAFETY = "regulatory_safety"
+    POPULARITY = "popularity"
+    DISCOVERY_VALUE = "discovery_value"
+
+
+class FoodEvidenceType(StrEnum):
+    FACTUAL = "factual"
+    EDITORIAL = "editorial"
+    COMMUNITY = "community"
+    BEHAVIOURAL = "behavioural"
+
+
+class EvidenceDirection(StrEnum):
+    POSITIVE = "positive"
+    NEGATIVE = "negative"
+    NEUTRAL = "neutral"
+
+
+class CommercialStatus(StrEnum):
+    ORGANIC = "organic"
+    SPONSORED = "sponsored"
+    MERCHANT_SUBMITTED = "merchant_submitted"
+
+
 class FoodProfile(BaseModel):
     entity_id: str
     venue_kind: str
@@ -68,6 +97,36 @@ class OpeningPeriod(BaseModel):
     opens_at: str
     closes_at: str
     source_id: str
+
+
+class FoodEvidence(BaseModel):
+    id: str
+    entity_id: str
+    external_id: str
+    dimension: FoodEvidenceDimension
+    evidence_type: FoodEvidenceType
+    direction: EvidenceDirection
+    claim_key: str
+    value: Any
+    source_id: str
+    source_url: str | None = None
+    dish_name: str | None = None
+    confidence: float = Field(ge=0.0, le=1.0)
+    observed_at: datetime = Field(default_factory=utc_now)
+    expires_at: datetime | None = None
+    commercial_status: CommercialStatus = CommercialStatus.ORGANIC
+
+    @model_validator(mode="after")
+    def validate_evidence(self):
+        if not self.id.strip() or not self.external_id.strip():
+            raise ValueError("Evidence identifiers cannot be empty")
+        if not self.claim_key.strip():
+            raise ValueError("claim_key cannot be empty")
+        if self.dish_name is not None and not self.dish_name.strip():
+            raise ValueError("dish_name cannot be empty")
+        if self.expires_at is not None and self.expires_at < self.observed_at:
+            raise ValueError("expires_at must be greater than or equal to observed_at")
+        return self
 
 
 class EventProfile(BaseModel):
