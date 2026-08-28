@@ -308,7 +308,8 @@ Potential data sources:
 - [x] Typed, source-attributed food recommendation evidence model
 - [ ] Evidence ingestion adapters and source-specific policies
 - [x] Reviewed Michelin Bib Gourmand pilot evidence importer
-- [ ] Offline ranking evaluation set and explainable scoring policy
+- [x] Offline ranking evaluation set and explainable scoring policy
+- [ ] Approve and integrate evaluated food scoring into live `sg_food`
 - [ ] Availability and opening-hours evidence
 - [ ] Food recommendation outcome analytics
 

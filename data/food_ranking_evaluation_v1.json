@@ -1,0 +1,127 @@
+[
+  {
+    "id": "nearby-trusted-beats-nearest-unknown",
+    "description": "A nearby, well-sourced option should beat a marginally closer low-evidence option.",
+    "expected_top_id": "trusted-nearby",
+    "candidates": [
+      {
+        "id": "nearest-unknown",
+        "name": "Nearest Unknown Stall",
+        "distance_km": 0.2,
+        "relevance_score": 0.7,
+        "provenance_score": 0.3,
+        "freshness_score": 0.3,
+        "positive_organic_editorial_records": 0
+      },
+      {
+        "id": "trusted-nearby",
+        "name": "Trusted Nearby Stall",
+        "distance_km": 0.5,
+        "relevance_score": 0.8,
+        "provenance_score": 0.9,
+        "freshness_score": 0.8,
+        "positive_organic_editorial_records": 1
+      }
+    ]
+  },
+  {
+    "id": "distance-remains-important",
+    "description": "Editorial recognition should not justify an impractically distant default recommendation.",
+    "expected_top_id": "strong-local",
+    "candidates": [
+      {
+        "id": "strong-local",
+        "name": "Strong Local Option",
+        "distance_km": 0.4,
+        "relevance_score": 0.85,
+        "provenance_score": 0.8,
+        "freshness_score": 0.8,
+        "positive_organic_editorial_records": 0
+      },
+      {
+        "id": "editorial-far",
+        "name": "Editorial but Far Option",
+        "distance_km": 4.5,
+        "relevance_score": 0.85,
+        "provenance_score": 0.9,
+        "freshness_score": 0.9,
+        "positive_organic_editorial_records": 2
+      }
+    ]
+  },
+  {
+    "id": "editorial-breaks-close-tie",
+    "description": "Trusted organic editorial food evidence should break an otherwise close tie.",
+    "expected_top_id": "editorial-choice",
+    "candidates": [
+      {
+        "id": "plain-choice",
+        "name": "Plain Choice",
+        "distance_km": 0.6,
+        "relevance_score": 0.8,
+        "provenance_score": 0.8,
+        "freshness_score": 0.8,
+        "positive_organic_editorial_records": 0
+      },
+      {
+        "id": "editorial-choice",
+        "name": "Editorial Choice",
+        "distance_km": 0.7,
+        "relevance_score": 0.8,
+        "provenance_score": 0.85,
+        "freshness_score": 0.8,
+        "positive_organic_editorial_records": 1
+      }
+    ]
+  },
+  {
+    "id": "relevance-beats-generic-popularity",
+    "description": "A clearly relevant food result should beat a less relevant option with editorial coverage.",
+    "expected_top_id": "relevant-choice",
+    "candidates": [
+      {
+        "id": "relevant-choice",
+        "name": "Relevant Choice",
+        "distance_km": 0.8,
+        "relevance_score": 1.0,
+        "provenance_score": 0.8,
+        "freshness_score": 0.8,
+        "positive_organic_editorial_records": 0
+      },
+      {
+        "id": "covered-generic",
+        "name": "Covered Generic Choice",
+        "distance_km": 0.8,
+        "relevance_score": 0.5,
+        "provenance_score": 0.9,
+        "freshness_score": 0.8,
+        "positive_organic_editorial_records": 1
+      }
+    ]
+  },
+  {
+    "id": "fresh-evidence-breaks-stale-tie",
+    "description": "Fresh evidence should beat stale evidence when all other factors are equal.",
+    "expected_top_id": "fresh-choice",
+    "candidates": [
+      {
+        "id": "stale-choice",
+        "name": "Stale Choice",
+        "distance_km": 1.0,
+        "relevance_score": 0.8,
+        "provenance_score": 0.8,
+        "freshness_score": 0.2,
+        "positive_organic_editorial_records": 1
+      },
+      {
+        "id": "fresh-choice",
+        "name": "Fresh Choice",
+        "distance_km": 1.0,
+        "relevance_score": 0.8,
+        "provenance_score": 0.8,
+        "freshness_score": 0.9,
+        "positive_organic_editorial_records": 1
+      }
+    ]
+  }
+]

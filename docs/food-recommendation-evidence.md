@@ -121,3 +121,7 @@ canonical SFA name and address, match confidence, manual-verification status and
 Google Maps attribution link. The report also shows catalog-wide link-attempt
 coverage. It must remain an operator-only audit until the user-facing attribution
 design and a multi-observation activation policy are approved.
+
+The separate offline food-ranking policy and its regression cases are documented
+in `docs/food-ranking-evaluation.md`. Evidence remains disconnected from live
+ranking until that policy is explicitly approved for integration.
