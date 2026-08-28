@@ -577,8 +577,8 @@ class DiscoveryRepository:
             conn.close()
 
     def list_google_place_links(self, *, limit: int = 500) -> list[GooglePlaceLink]:
-        if limit < 1 or limit > 5000:
-            raise ValueError("limit must be between 1 and 5000")
+        if limit < 1 or limit > 20000:
+            raise ValueError("limit must be between 1 and 20000")
         conn = database.get_connection()
         cursor = conn.cursor()
         p = database.placeholder()
@@ -605,6 +605,60 @@ class DiscoveryRepository:
             )
             for row in rows
         ]
+
+    def save_google_place_link_batch(
+        self,
+        links: list[GooglePlaceLink],
+        attempts: list[tuple[str, str]],
+    ) -> None:
+        """Persist one linker batch using a single database transaction."""
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        try:
+            for link in links:
+                cursor.execute(
+                    f"""
+                    INSERT INTO discovery_google_place_links (
+                        entity_id, place_id, match_confidence, match_method,
+                        manually_verified, matched_at
+                    ) VALUES ({p}, {p}, {p}, {p}, {p}, {p})
+                    ON CONFLICT(entity_id) DO UPDATE SET
+                        place_id = excluded.place_id,
+                        match_confidence = excluded.match_confidence,
+                        match_method = excluded.match_method,
+                        manually_verified = excluded.manually_verified,
+                        matched_at = excluded.matched_at,
+                        updated_at = CURRENT_TIMESTAMP
+                    """,
+                    (
+                        link.entity_id,
+                        link.place_id,
+                        link.match_confidence,
+                        link.match_method,
+                        int(link.manually_verified),
+                        link.matched_at.isoformat(),
+                    ),
+                )
+            attempted_at = datetime.now(UTC).isoformat()
+            for entity_id, outcome in attempts:
+                cursor.execute(
+                    f"""
+                    INSERT INTO discovery_google_place_link_attempts (
+                        entity_id, outcome, attempted_at
+                    ) VALUES ({p}, {p}, {p})
+                    ON CONFLICT(entity_id) DO UPDATE SET
+                        outcome = excluded.outcome,
+                        attempted_at = excluded.attempted_at
+                    """,
+                    (entity_id, outcome, attempted_at),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     @staticmethod
     def _food_evidence_values(evidence: FoodEvidence) -> tuple:

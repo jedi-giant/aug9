@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 import re
-import sqlite3
 import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -10,7 +9,6 @@ from difflib import SequenceMatcher
 from typing import Any
 
 import httpx
-import psycopg
 
 from aug9.core import database
 from aug9.discovery.models import GooglePlaceLink
@@ -156,7 +154,14 @@ class GoogleFoodPlaceLinker:
         if limit < 1 or limit > 500:
             raise ValueError("limit must be between 1 and 500")
         candidates = self._unlinked_candidates(limit)
-        linked = 0
+        if not candidates:
+            return LinkSummary(0, 0, 0)
+        links: list[GooglePlaceLink] = []
+        attempts: list[tuple[str, str]] = []
+        reserved_place_ids = {
+            link.place_id
+            for link in self.repository.list_google_place_links(limit=20000)
+        }
         for candidate in candidates:
             try:
                 results = self.places.search(candidate)
@@ -164,23 +169,25 @@ class GoogleFoodPlaceLinker:
                 continue
             match = select_high_confidence_match(candidate, results)
             if match is None:
-                self._record_attempt(candidate.entity_id, "rejected")
+                attempts.append((candidate.entity_id, "rejected"))
                 continue
             result, confidence = match
-            try:
-                self.repository.upsert_google_place_link(
-                    GooglePlaceLink(
-                        entity_id=candidate.entity_id,
-                        place_id=result.place_id,
-                        match_confidence=confidence,
-                    )
-                )
-            except (sqlite3.IntegrityError, psycopg.IntegrityError):
-                self._record_attempt(candidate.entity_id, "place_id_collision")
+            if result.place_id in reserved_place_ids:
+                attempts.append((candidate.entity_id, "place_id_collision"))
                 continue
-            self._record_attempt(candidate.entity_id, "linked")
-            linked += 1
-        return LinkSummary(len(candidates), linked, len(candidates) - linked)
+            reserved_place_ids.add(result.place_id)
+            links.append(
+                GooglePlaceLink(
+                    entity_id=candidate.entity_id,
+                    place_id=result.place_id,
+                    match_confidence=confidence,
+                )
+            )
+            attempts.append((candidate.entity_id, "linked"))
+        self.repository.save_google_place_link_batch(links, attempts)
+        return LinkSummary(
+            len(candidates), len(links), len(candidates) - len(links)
+        )
 
     @staticmethod
     def _unlinked_candidates(limit: int) -> list[FoodPlaceCandidate]:
@@ -209,26 +216,6 @@ class GoogleFoodPlaceLinker:
         rows = cursor.fetchall()
         conn.close()
         return [FoodPlaceCandidate(*row) for row in rows]
-
-    @staticmethod
-    def _record_attempt(entity_id: str, outcome: str) -> None:
-        conn = database.get_connection()
-        cursor = conn.cursor()
-        p = database.placeholder()
-        cursor.execute(
-            f"""
-            INSERT INTO discovery_google_place_link_attempts (
-                entity_id, outcome, attempted_at
-            ) VALUES ({p}, {p}, {p})
-            ON CONFLICT(entity_id) DO UPDATE SET
-                outcome = excluded.outcome,
-                attempted_at = excluded.attempted_at
-            """,
-            (entity_id, outcome, datetime.now(UTC).isoformat()),
-        )
-        conn.commit()
-        conn.close()
-
 
 def select_high_confidence_match(
     candidate: FoodPlaceCandidate,
