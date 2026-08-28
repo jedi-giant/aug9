@@ -87,3 +87,35 @@ Each mapping creates one positive, organic `award_or_recognition` record for the
 2026 Bib Gourmand distinction with confidence 0.8 and an August 2027 review
 deadline. The other 12 Michelin listings remain valid source records but unlinked;
 the import fails closed if any approved SFA entity is missing or inactive.
+
+## Google rating shadow gate
+
+Google Places is a volatile, link-only recommendation signal. It never changes
+or deletes the canonical SFA establishment record. Aug9 stores only the Google
+Place ID and its own match audit data; ratings are retrieved live for a bounded
+shadow report and are not persisted.
+
+Set `GOOGLE_PLACES_API_KEY` to a restricted key for Places API (New), then build
+links in small, cost-controlled batches:
+
+```bash
+uv run aug9-link-google-food-places --limit 50
+```
+
+Automatic links require strong name agreement plus either matching postal code
+or coordinates within 200 metres. Ambiguous matches and Place IDs already linked
+to another SFA entity are rejected. Completed attempts are skipped by later runs
+so rejected records do not block progress through the catalog.
+
+Preview the policy without changing live recommendations:
+
+```bash
+uv run aug9-report-google-rating-gate --limit 100
+```
+
+The report identifies ratings below 2.5 with at least 10 ratings. A venue with
+active, organic, positive editorial food-quality evidence is sent to conflict
+review rather than shadow suppression. Small samples are labelled insufficient,
+and missing ratings are not treated as negative. The report contains Google Maps
+attribution links and must remain an operator-only audit until the user-facing
+attribution design and a multi-observation activation policy are approved.

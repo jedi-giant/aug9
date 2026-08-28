@@ -9,6 +9,7 @@ from aug9.discovery.models import (
     EventProfile,
     FieldProvenance,
     FoodEvidence,
+    GooglePlaceLink,
     FoodProfile,
     FoodListing,
     IngestionRun,
@@ -533,6 +534,77 @@ class DiscoveryRepository:
         rows = cursor.fetchall()
         conn.close()
         return [self._food_evidence_from_row(row) for row in rows]
+
+    def upsert_google_place_link(self, link: GooglePlaceLink) -> None:
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        try:
+            cursor.execute(
+                f"SELECT 1 FROM discovery_entities WHERE id = {p}",
+                (link.entity_id,),
+            )
+            if cursor.fetchone() is None:
+                raise ValueError("Google place link entity does not exist")
+            cursor.execute(
+                f"""
+                INSERT INTO discovery_google_place_links (
+                    entity_id, place_id, match_confidence, match_method,
+                    manually_verified, matched_at
+                ) VALUES ({p}, {p}, {p}, {p}, {p}, {p})
+                ON CONFLICT(entity_id) DO UPDATE SET
+                    place_id = excluded.place_id,
+                    match_confidence = excluded.match_confidence,
+                    match_method = excluded.match_method,
+                    manually_verified = excluded.manually_verified,
+                    matched_at = excluded.matched_at,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (
+                    link.entity_id,
+                    link.place_id,
+                    link.match_confidence,
+                    link.match_method,
+                    int(link.manually_verified),
+                    link.matched_at.isoformat(),
+                ),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def list_google_place_links(self, *, limit: int = 500) -> list[GooglePlaceLink]:
+        if limit < 1 or limit > 5000:
+            raise ValueError("limit must be between 1 and 5000")
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        cursor.execute(
+            f"""
+            SELECT entity_id, place_id, match_confidence, match_method,
+                   matched_at, manually_verified
+            FROM discovery_google_place_links
+            ORDER BY entity_id
+            LIMIT {p}
+            """,
+            (limit,),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            GooglePlaceLink(
+                entity_id=row[0],
+                place_id=row[1],
+                match_confidence=row[2],
+                match_method=row[3],
+                matched_at=row[4],
+                manually_verified=bool(row[5]),
+            )
+            for row in rows
+        ]
 
     @staticmethod
     def _food_evidence_values(evidence: FoodEvidence) -> tuple:

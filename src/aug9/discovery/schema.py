@@ -160,6 +160,30 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
     )
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS discovery_google_place_links (
+            entity_id TEXT PRIMARY KEY,
+            place_id TEXT NOT NULL UNIQUE,
+            match_confidence REAL NOT NULL,
+            match_method TEXT NOT NULL,
+            manually_verified INTEGER NOT NULL DEFAULT 0,
+            matched_at TIMESTAMP NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(entity_id) REFERENCES discovery_entities(id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS discovery_google_place_link_attempts (
+            entity_id TEXT PRIMARY KEY,
+            outcome TEXT NOT NULL,
+            attempted_at TIMESTAMP NOT NULL,
+            FOREIGN KEY(entity_id) REFERENCES discovery_entities(id)
+        )
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS discovery_food_candidates (
             id TEXT PRIMARY KEY,
             source_id TEXT NOT NULL,

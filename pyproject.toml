@@ -37,6 +37,8 @@ aug9-refresh-events = "aug9.discovery.refresh_events:main"
 aug9-report-event-catalog = "aug9.discovery.report_event_catalog:main"
 aug9-report-food-catalog = "aug9.discovery.report_food_catalog:main"
 aug9-report-food-evidence = "aug9.discovery.report_food_evidence:main"
+aug9-link-google-food-places = "aug9.discovery.link_google_food_places:main"
+aug9-report-google-rating-gate = "aug9.discovery.report_google_rating_gate:main"
 aug9-report-service-catalog = "aug9.sg_services.report_service_catalog:main"
 aug9-enrich-event-venues = "aug9.discovery.enrich_event_venues:main"
 

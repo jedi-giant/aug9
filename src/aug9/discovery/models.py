@@ -129,6 +129,23 @@ class FoodEvidence(BaseModel):
         return self
 
 
+class GooglePlaceLink(BaseModel):
+    entity_id: str
+    place_id: str
+    match_confidence: float = Field(ge=0.0, le=1.0)
+    match_method: str = "automatic"
+    matched_at: datetime = Field(default_factory=utc_now)
+    manually_verified: bool = False
+
+    @model_validator(mode="after")
+    def validate_link(self):
+        if not self.entity_id.strip() or not self.place_id.strip():
+            raise ValueError("Google place link identifiers cannot be empty")
+        if self.match_method not in {"automatic", "manual"}:
+            raise ValueError("match_method must be automatic or manual")
+        return self
+
+
 class EventProfile(BaseModel):
     entity_id: str
     starts_at: datetime

@@ -294,7 +294,8 @@ Potential data sources:
 - [ ] Public signed-user suggestions with abuse controls
 - [ ] Merchant claims and verification
 - [ ] Community contributor reputation
-- [ ] Google Places-assisted matching with policy-controlled provider caching
+- [x] Google Places-assisted matching and non-persistent rating shadow gate
+- [ ] Review shadow-gate results and approve multi-observation live policy
 
 # v0.3.4 — Food Discovery v1 — Started
 
