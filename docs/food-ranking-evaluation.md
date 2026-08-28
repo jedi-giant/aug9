@@ -53,3 +53,16 @@ The pool is scored before the display limit is applied. The report separately
 states pool size, displayed size, editorial coverage and the largest group of
 entities sharing one coordinate. Alphabetical ordering inside a OneMap
 food-centre coordinate tie is explicitly not treated as a quality signal.
+
+The shadow report also emits a three-role MVP shortlist:
+
+1. `best_supported` — the strongest nearby candidate with active organic
+   editorial food-quality evidence;
+2. `closest_suitable` — the closest remaining licensed establishment;
+3. `nearby_alternative` — the highest-ranked remaining option at a different
+   mapped coordinate.
+
+The selector deduplicates entities and coordinate groups. It may return fewer
+than three choices rather than pad the shortlist with indistinguishable stalls.
+Five-result expansion remains a future explicit user action; live `sg_food`
+continues to use its existing behavior during this shadow checkpoint.

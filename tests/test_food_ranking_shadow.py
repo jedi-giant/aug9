@@ -108,6 +108,11 @@ def test_shadow_report_compares_real_candidate_orders_without_mutation(repositor
     assert report["candidates"][0]["current_distance_rank"] == 2
     assert report["candidates"][0]["proposed_rank"] == 1
     assert report["candidates"][0]["positive_organic_editorial_records"] == 1
+    assert [item["role"] for item in report["recommended_shortlist"]] == [
+        "best_supported",
+        "closest_suitable",
+    ]
+    assert report["shortlist_count"] == 2
 
     conn = database.get_connection()
     cursor = conn.cursor()
@@ -126,6 +131,7 @@ def test_shadow_report_handles_no_nearby_candidates(repository):
     assert report["pool_candidate_count"] == 0
     assert report["displayed_candidate_count"] == 0
     assert report["rank_changes"] == 0
+    assert report["recommended_shortlist"] == []
 
 
 def test_shadow_report_scores_a_larger_pool_before_display_limit(repository):
@@ -141,3 +147,51 @@ def test_shadow_report_scores_a_larger_pool_before_display_limit(repository):
     assert report["pool_candidate_count"] == 2
     assert report["displayed_candidate_count"] == 1
     assert report["candidates"][0]["entity_id"] == "food:editorial"
+
+
+def test_shortlist_uses_distinct_location_for_third_choice(repository):
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    observed = datetime(2026, 8, 1, tzinfo=UTC).isoformat()
+    cursor.execute(
+        "INSERT INTO discovery_entities "
+        "(id, entity_type, name, address, postal_code, latitude, longitude, status) "
+        "VALUES ('food:alternative', 'food_stall', 'Alternative Stall', "
+        "'Other Street', '654321', 1.306, 103.802, 'active')"
+    )
+    cursor.execute(
+        "INSERT INTO discovery_source_records "
+        "(source_id, external_id, entity_id, raw_payload, fetched_at) "
+        "VALUES (?, 'food:alternative', 'food:alternative', '{}', ?)",
+        (SFA_SOURCE_ID, observed),
+    )
+    cursor.execute(
+        "INSERT INTO discovery_food_profiles "
+        "(entity_id, venue_kind, currency, dietary_attributes, source_id) "
+        "VALUES ('food:alternative', 'hawker_stall', 'SGD', '[]', ?)",
+        (SFA_SOURCE_ID,),
+    )
+    cursor.execute(
+        "INSERT INTO discovery_food_safety_profiles "
+        "(entity_id, licence_number, safe_grade, business_type, source_id, observed_at) "
+        "VALUES ('food:alternative', 'food:alternative', 'A', 'Food Stall', ?, ?)",
+        (SFA_SOURCE_ID, observed),
+    )
+    conn.commit()
+    conn.close()
+
+    report = build_food_ranking_shadow_report(
+        DatabaseFoodProvider(limit=10, max_distance_km=3),
+        latitude=1.3,
+        longitude=103.8,
+        now=datetime(2026, 8, 29, tzinfo=UTC),
+        pool_limit=10,
+        display_limit=3,
+    )
+
+    assert [item["role"] for item in report["recommended_shortlist"]] == [
+        "best_supported",
+        "closest_suitable",
+        "nearby_alternative",
+    ]
+    assert report["recommended_shortlist"][2]["name"] == "Alternative Stall"

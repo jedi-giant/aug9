@@ -50,6 +50,8 @@ def build_food_ranking_shadow_report(
             "displayed_candidate_count": 0,
             "editorial_candidate_count": 0,
             "rank_changes": 0,
+            "shortlist_count": 0,
+            "recommended_shortlist": [],
             "candidates": [],
         }
 
@@ -85,6 +87,8 @@ def build_food_ranking_shadow_report(
                 "address": venue.address,
                 "venue_kind": venue.venue_kind,
                 "distance_km": venue.distance_km,
+                "latitude": venue.latitude,
+                "longitude": venue.longitude,
                 "current_distance_rank": current_rank,
                 "proposed_rank": proposed_rank,
                 "rank_change": current_rank - proposed_rank,
@@ -96,6 +100,7 @@ def build_food_ranking_shadow_report(
             }
         )
     displayed_rows = all_rows[:display_limit]
+    shortlist = _select_shortlist(all_rows, limit=3)
     coordinate_groups: dict[tuple[float | None, float | None], int] = {}
     for venue in venues:
         key = (venue.latitude, venue.longitude)
@@ -121,8 +126,91 @@ def build_food_ranking_shadow_report(
         "rank_changes": sum(
             1 for row in displayed_rows if row["rank_change"] != 0
         ),
+        "shortlist_count": len(shortlist),
+        "recommended_shortlist": shortlist,
         "candidates": displayed_rows,
     }
+
+
+def _select_shortlist(
+    ranked_rows: list[dict[str, Any]], *, limit: int = 3
+) -> list[dict[str, Any]]:
+    if limit < 1 or limit > 5:
+        raise ValueError("shortlist limit must be between 1 and 5")
+    if not ranked_rows:
+        return []
+    selected: list[dict[str, Any]] = []
+    selected_ids: set[str] = set()
+
+    supported = next(
+        (
+            row
+            for row in ranked_rows
+            if row["positive_organic_editorial_records"] > 0
+        ),
+        None,
+    )
+    if supported is not None:
+        selected.append(_shortlist_item(supported, "best_supported"))
+        selected_ids.add(supported["entity_id"])
+
+    closest = min(
+        (row for row in ranked_rows if row["entity_id"] not in selected_ids),
+        key=lambda row: (row["distance_km"], row["name"].casefold()),
+        default=None,
+    )
+    if closest is not None and len(selected) < limit:
+        selected.append(_shortlist_item(closest, "closest_suitable"))
+        selected_ids.add(closest["entity_id"])
+
+    used_locations = {
+        _coordinate_key(row)
+        for row in ranked_rows
+        if row["entity_id"] in selected_ids
+    }
+    alternatives = [
+        row
+        for row in ranked_rows
+        if row["entity_id"] not in selected_ids
+        and _coordinate_key(row) not in used_locations
+    ]
+    for row in alternatives:
+        if len(selected) >= limit:
+            break
+        selected.append(_shortlist_item(row, "nearby_alternative"))
+        selected_ids.add(row["entity_id"])
+        used_locations.add(_coordinate_key(row))
+    return selected
+
+
+def _shortlist_item(row: dict[str, Any], role: str) -> dict[str, Any]:
+    reasons = {
+        "best_supported": "Strongest active organic editorial support nearby",
+        "closest_suitable": "Closest licensed establishment in the candidate pool",
+        "nearby_alternative": "Nearby option from a different mapped location",
+    }
+    return {
+        "role": role,
+        "reason": reasons[role],
+        "entity_id": row["entity_id"],
+        "name": row["name"],
+        "address": row["address"],
+        "venue_kind": row["venue_kind"],
+        "distance_km": row["distance_km"],
+        "proposed_score": row["proposed_score"],
+        "positive_organic_editorial_records": row[
+            "positive_organic_editorial_records"
+        ],
+    }
+
+
+def _coordinate_key(row: dict[str, Any]) -> tuple[float | None, float | None]:
+    latitude = row.get("latitude")
+    longitude = row.get("longitude")
+    return (
+        round(latitude, 5) if latitude is not None else None,
+        round(longitude, 5) if longitude is not None else None,
+    )
 
 
 def _food_ranking_signals(

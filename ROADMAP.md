@@ -310,6 +310,7 @@ Potential data sources:
 - [x] Reviewed Michelin Bib Gourmand pilot evidence importer
 - [x] Offline ranking evaluation set and explainable scoring policy
 - [x] Production-data food ranking shadow comparison
+- [x] Three-role diversified food shortlist in shadow mode
 - [ ] Approve and integrate evaluated food scoring into live `sg_food`
 - [ ] Availability and opening-hours evidence
 - [ ] Food recommendation outcome analytics
