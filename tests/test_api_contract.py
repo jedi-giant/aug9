@@ -6,6 +6,7 @@ from aug9.api.main import (
     ChatResponse,
     configured_allowed_origins,
     require_admin,
+    list_hawker_centres,
 )
 
 
@@ -80,6 +81,25 @@ def test_admin_endpoint_authentication_is_fail_closed(monkeypatch):
     with pytest.raises(Exception) as error:
         require_admin("incorrect-" + "x" * 32)
     assert error.value.status_code == 401
+
+
+def test_admin_hawker_lookup_uses_canonical_entity_search(monkeypatch):
+    monkeypatch.setenv("AUG9_ADMIN_API_KEY", "admin-" + "x" * 32)
+
+    class StubRepository:
+        def search_entities(self, query, *, entity_type, limit):
+            assert query == "maxwell"
+            assert entity_type == "hawker_centre"
+            assert limit == 25
+            return []
+
+    monkeypatch.setattr("aug9.api.main.DiscoveryRepository", StubRepository)
+
+    assert list_hawker_centres(
+        query="maxwell",
+        limit=25,
+        x_aug9_admin_key="admin-" + "x" * 32,
+    ) == []
 
     monkeypatch.setenv(
         "CORS_ALLOWED_ORIGINS",

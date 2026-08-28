@@ -21,9 +21,10 @@ in frontend code, browser storage, URLs, analytics or logs.
 1. `POST /admin/food-submissions` creates an immutable field proposal in
    `needs_review` status.
 2. `GET /admin/food-submissions` lists the review queue.
-3. `POST /admin/food-submissions/{id}/approve` validates and atomically merges the
+3. `GET /admin/hawker-centres` supplies canonical parent-centre choices.
+4. `POST /admin/food-submissions/{id}/approve` validates and atomically merges the
    proposal into the canonical discovery catalogue.
-4. `POST /admin/food-submissions/{id}/reject` records a rejection reason.
+5. `POST /admin/food-submissions/{id}/reject` records a rejection reason.
 
 Every request requires `X-Aug9-Admin-Key`. Missing configuration fails closed with
 HTTP 503; missing or incorrect credentials return HTTP 401.

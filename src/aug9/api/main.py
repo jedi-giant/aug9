@@ -45,6 +45,8 @@ from aug9.discovery.submissions import (
     FoodSubmissionRepository,
     SubmissionStatus,
 )
+from aug9.discovery.models import DiscoveryEntity, EntityType
+from aug9.discovery.repository import DiscoveryRepository
 
 
 @asynccontextmanager
@@ -176,6 +178,20 @@ def list_food_submissions(
 ):
     require_admin(x_aug9_admin_key)
     return FoodSubmissionRepository().list(status=status, limit=limit)
+
+
+@app.get("/admin/hawker-centres", response_model=list[DiscoveryEntity])
+def list_hawker_centres(
+    query: str | None = Query(default=None, max_length=120),
+    limit: int = Query(default=100, ge=1, le=100),
+    x_aug9_admin_key: str | None = Header(default=None),
+):
+    require_admin(x_aug9_admin_key)
+    return DiscoveryRepository().search_entities(
+        query,
+        entity_type=EntityType.HAWKER_CENTRE.value,
+        limit=limit,
+    )
 
 
 @app.post("/admin/food-submissions/{submission_id}/approve", response_model=FoodSubmission)
