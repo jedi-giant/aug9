@@ -292,5 +292,9 @@ def test_sg_hawkers_filters_and_surfaces_verified_food_profiles(monkeypatch):
     assert result.data["places"][0]["name"] == "Verified Halal Lunch"
     assert result.data["places"][0]["price_evidence"] == "verified_source"
     assert result.data["places"][0]["opening_hours_evidence"] == "verified_source"
+    assert result.data["places"][0]["confidence"] == "medium"
+    assert {
+        factor["name"] for factor in result.data["places"][0]["ranking_factors"]
+    } == {"distance", "relevance", "provenance", "freshness"}
     assert "Verified food matches" in result.summary
     assert "up to S$12" in result.summary

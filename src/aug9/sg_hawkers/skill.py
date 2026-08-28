@@ -6,7 +6,11 @@ from urllib.parse import quote_plus
 from zoneinfo import ZoneInfo
 
 from aug9.core.context import UserContext
-from aug9.core.recommendation import RecommendationConstraints
+from aug9.core.recommendation import (
+    RecommendationCandidate,
+    RecommendationConstraints,
+    RecommendationEngine,
+)
 from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
 from aug9.sg_hawkers.provider import HawkerProvider, distance_km
 
@@ -33,7 +37,7 @@ class SgHawkersSkill(Aug9Skill):
     ) -> SkillResult:
         query = entities.get("location") or self._extract_location(context.intent)
         constraints = RecommendationConstraints.from_entities(entities)
-        verified_listings = self._verified_food_matches(constraints)
+        verified_listings = self._verified_food_matches(context, constraints)
         if verified_listings:
             return self._verified_listing_result(context, constraints, verified_listings)
         if (
@@ -138,32 +142,59 @@ class SgHawkersSkill(Aug9Skill):
             ],
         )
 
-    def _verified_food_matches(self, constraints: RecommendationConstraints):
+    def _verified_food_matches(
+        self,
+        context: UserContext,
+        constraints: RecommendationConstraints,
+    ):
         if not self._constraints_requested(constraints):
             return []
         listings = self.provider.food_listings()
-        matches = []
+        candidates = []
+        listings_by_id = {}
         for listing in listings:
             profile = listing.profile
+            location = listing.parent or listing.entity
+            calculated_distance = None
             if (
-                constraints.budget_sgd is not None
-                and (profile.price_max is None or profile.price_max > constraints.budget_sgd)
+                context.current_place is not None
+                and context.current_place.latitude is not None
+                and context.current_place.longitude is not None
             ):
-                continue
-            attributes = {item.casefold() for item in profile.dietary_attributes}
-            if any(
-                preference.casefold() not in attributes
-                for preference in constraints.dietary_preferences
-            ):
-                continue
-            if constraints.open_now and not self._is_open_now(listing.opening_periods):
-                continue
-            matches.append(listing)
-        return matches[:5]
+                value = distance_km(
+                    context.current_place.latitude,
+                    context.current_place.longitude,
+                    location,
+                )
+                if math.isfinite(value):
+                    calculated_distance = value
+            candidate = RecommendationCandidate(
+                id=listing.entity.id,
+                title=listing.entity.name,
+                distance_km=calculated_distance,
+                price_max=profile.price_max,
+                attributes=profile.dietary_attributes,
+                attributes_verified=True,
+                open_now=(
+                    self._is_open_now(listing.opening_periods)
+                    if listing.opening_periods
+                    else None
+                ),
+                relevance_score=0.8,
+                provenance_score=1.0,
+                freshness_score=0.5,
+            )
+            candidates.append(candidate)
+            listings_by_id[candidate.id] = listing
+        outcome = RecommendationEngine().rank(candidates, constraints, limit=5)
+        return [
+            (listings_by_id[item.candidate.id], item)
+            for item in outcome.ranked
+        ]
 
     def _verified_listing_result(self, context, constraints, listings) -> SkillResult:
         ranked = []
-        for listing in listings:
+        for listing, ranking in listings:
             location = listing.parent or listing.entity
             item = {
                 "name": listing.entity.name,
@@ -182,6 +213,11 @@ class SgHawkersSkill(Aug9Skill):
                     "verified_source" if listing.opening_periods else "unknown"
                 ),
                 "tags": listing.tags,
+                "ranking_score": ranking.total_score,
+                "confidence": ranking.confidence.value,
+                "ranking_factors": [
+                    factor.model_dump() for factor in ranking.factors
+                ],
             }
             if (
                 context.current_place is not None

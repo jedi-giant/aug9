@@ -94,7 +94,7 @@ layers are proven.
 
 ---
 
-# v0.3.1 — Location Context and Nearby Food — Next
+# v0.3.1 — Location Context and Nearby Food — In progress
 
 This is the next recommended milestone because it improves all five launch
 journeys and provides the clearest registration-free first-value experience.
@@ -135,7 +135,7 @@ shown as unknown rather than inferred.
 
 ---
 
-# v0.3.2 — Constraint and Recommendation Engine
+# v0.3.2 — Constraint and Recommendation Engine — Current
 
 Build one shared recommendation pipeline for food, activities, healthcare, and
 services:
@@ -148,11 +148,13 @@ intent + location + time + party + budget + preferences
   -> ranked recommendation with trade-offs
 ```
 
-Planned:
+Progress:
 
-- Shared constraint schema and missing-constraint prompts
-- Deterministic filtering for hard requirements
-- Explainable ranking factors and data-confidence labels
+- ✅ Shared domain-neutral constraint schema
+- ✅ Deterministic filtering with separate excluded and insufficient-evidence paths
+- ✅ Explainable ranking factors and high/medium/low confidence labels
+- ✅ First integration into verified food recommendations
+- Missing-constraint prompts
 - Opening-hours normalisation and "open now" semantics
 - Outcome analytics by failure stage
 - A shared Skill contract for constraints, ranking evidence, confidence, and
