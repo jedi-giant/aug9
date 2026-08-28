@@ -1,5 +1,6 @@
 import json
 
+import httpx
 import pytest
 
 from aug9.core import database
@@ -148,3 +149,55 @@ def test_food_candidate_staging_rejects_ingestable_partner_source(repositories):
             candidates,
             source(SourcePermission.LICENSED_PARTNER),
         )
+
+
+def test_food_candidate_private_url_requires_allowlisted_https_host(
+    repositories, monkeypatch
+):
+    repository, candidates = repositories
+    payload = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "geometry": {"type": "Point", "coordinates": [103.85, 1.29]},
+                "properties": {"name": "Private Seed Stall"},
+            }
+        ],
+    }
+
+    def handler(request):
+        return httpx.Response(200, json=payload)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    importer = FoodCandidateImporter(
+        repository,
+        candidates,
+        source(SourcePermission.LEGAL_REVIEWED),
+        client,
+    )
+    monkeypatch.setenv("FOOD_IMPORT_ALLOWED_HOSTS", "private.example")
+
+    summary = importer.run_url("https://private.example/seed.json?signature=secret")
+
+    assert summary.staged == 1
+    with pytest.raises(ValueError, match="not allowlisted"):
+        importer.run_url("https://other.example/seed.json")
+    with pytest.raises(ValueError, match="must use HTTPS"):
+        importer.run_url("http://private.example/seed.json")
+
+
+def test_food_candidate_private_url_enforces_download_limit(
+    repositories, monkeypatch
+):
+    repository, candidates = repositories
+    client = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, content=b"123456")
+        )
+    )
+    importer = FoodCandidateImporter(repository, candidates, source(), client)
+    monkeypatch.setenv("FOOD_IMPORT_ALLOWED_HOSTS", "private.example")
+    monkeypatch.setenv("FOOD_IMPORT_MAX_BYTES", "5")
+
+    with pytest.raises(ValueError, match="size limit"):
+        importer.run_url("https://private.example/seed.json")

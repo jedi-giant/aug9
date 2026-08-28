@@ -12,7 +12,9 @@ from aug9.discovery.repository import DiscoveryRepository
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Stage an unverified food GeoJSON")
-    parser.add_argument("--file", required=True, type=Path)
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument("--file", type=Path)
+    input_group.add_argument("--url")
     parser.add_argument("--source-id", required=True)
     parser.add_argument("--source-name", required=True)
     parser.add_argument(
@@ -32,11 +34,12 @@ def main() -> None:
         attribution=args.attribution,
         base_url=args.base_url,
     )
-    summary = FoodCandidateImporter(
+    importer = FoodCandidateImporter(
         DiscoveryRepository(),
         FoodCandidateRepository(),
         source,
-    ).run(args.file)
+    )
+    summary = importer.run(args.file) if args.file else importer.run_url(args.url)
     print(
         "Food candidate staging complete: "
         f"received={summary.received}, staged={summary.staged}, "

@@ -3,11 +3,14 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
+import httpx
 from pydantic import BaseModel, Field
 
 from aug9.core import database
@@ -109,6 +112,7 @@ class FoodCandidateImporter:
         repository: DiscoveryRepository,
         candidate_repository: FoodCandidateRepository,
         source: DiscoverySource,
+        client: httpx.Client | None = None,
     ) -> None:
         if source.permission not in {
             SourcePermission.RESEARCH_ONLY,
@@ -120,13 +124,44 @@ class FoodCandidateImporter:
         self.repository = repository
         self.candidate_repository = candidate_repository
         self.source = source
+        self.client = client or httpx.Client(
+            timeout=30.0,
+            follow_redirects=False,
+        )
 
     def run(self, path: Path) -> FoodCandidateImportSummary:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return self.run_payload(payload)
+
+    def run_url(self, url: str) -> FoodCandidateImportSummary:
+        parsed = urlparse(url)
+        allowed_hosts = {
+            host.strip().casefold()
+            for host in os.getenv("FOOD_IMPORT_ALLOWED_HOSTS", "").split(",")
+            if host.strip()
+        }
+        if parsed.scheme != "https" or not parsed.hostname:
+            raise ValueError("Food import URL must use HTTPS")
+        if parsed.hostname.casefold() not in allowed_hosts:
+            raise ValueError("Food import URL host is not allowlisted")
+
+        maximum_bytes = int(os.getenv("FOOD_IMPORT_MAX_BYTES", "5242880"))
+        if maximum_bytes < 1:
+            raise ValueError("FOOD_IMPORT_MAX_BYTES must be positive")
+        response = self.client.get(url)
+        response.raise_for_status()
+        content_length = response.headers.get("content-length")
+        if content_length and int(content_length) > maximum_bytes:
+            raise ValueError("Food import download exceeds the size limit")
+        if len(response.content) > maximum_bytes:
+            raise ValueError("Food import download exceeds the size limit")
+        return self.run_payload(response.json())
+
+    def run_payload(self, payload: dict[str, Any]) -> FoodCandidateImportSummary:
         self.repository.register_source(self.source)
         run = self.repository.start_ingestion(self.source.id)
         received = staged = quarantined = rejected = duplicates = 0
         try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
             if payload.get("type") != "FeatureCollection":
                 raise ValueError("Food candidate file must be a GeoJSON FeatureCollection")
             features = payload.get("features")
