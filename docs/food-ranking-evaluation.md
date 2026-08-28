@@ -41,10 +41,15 @@ without changing live order:
 
 ```bash
 uv run aug9-report-food-ranking-shadow \
-  --latitude 1.2803 --longitude 103.8448 --limit 12
+  --latitude 1.2803 --longitude 103.8448 --pool-limit 250 --limit 12
 ```
 
 The report shows the current distance rank, proposed rank, rank movement,
 editorial-record count and every scoring factor. Optional `--venue-kind` values
 are `restaurant`, `hawker_stall` and `food_court_stall`. This command is read-only
 apart from normal database schema initialisation.
+
+The pool is scored before the display limit is applied. The report separately
+states pool size, displayed size, editorial coverage and the largest group of
+entities sharing one coordinate. Alphabetical ordering inside a OneMap
+food-centre coordinate tie is explicitly not treated as a quality signal.

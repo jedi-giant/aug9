@@ -100,7 +100,10 @@ def test_shadow_report_compares_real_candidate_orders_without_mutation(repositor
 
     assert report["mode"] == "shadow"
     assert report["live_ranking_affected"] is False
-    assert report["candidate_count"] == 2
+    assert report["pool_candidate_count"] == 2
+    assert report["displayed_candidate_count"] == 2
+    assert report["editorial_candidate_count"] == 1
+    assert report["distance_ties"]["largest_same_coordinate_group"] == 1
     assert report["candidates"][0]["entity_id"] == "food:editorial"
     assert report["candidates"][0]["current_distance_rank"] == 2
     assert report["candidates"][0]["proposed_rank"] == 1
@@ -120,5 +123,21 @@ def test_shadow_report_handles_no_nearby_candidates(repository):
         longitude=103.9,
     )
 
-    assert report["candidate_count"] == 0
+    assert report["pool_candidate_count"] == 0
+    assert report["displayed_candidate_count"] == 0
     assert report["rank_changes"] == 0
+
+
+def test_shadow_report_scores_a_larger_pool_before_display_limit(repository):
+    report = build_food_ranking_shadow_report(
+        DatabaseFoodProvider(limit=1, max_distance_km=3),
+        latitude=1.3,
+        longitude=103.8,
+        now=datetime(2026, 8, 29, tzinfo=UTC),
+        pool_limit=2,
+        display_limit=1,
+    )
+
+    assert report["pool_candidate_count"] == 2
+    assert report["displayed_candidate_count"] == 1
+    assert report["candidates"][0]["entity_id"] == "food:editorial"

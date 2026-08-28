@@ -56,6 +56,42 @@ class DatabaseFoodProvider:
         query: str | None = None,
         venue_kinds: tuple[str, ...] = (),
     ) -> list[FoodVenue]:
+        return self._discover(
+            latitude=latitude,
+            longitude=longitude,
+            query=query,
+            venue_kinds=venue_kinds,
+            result_limit=self.limit,
+        )
+
+    def discover_pool(
+        self,
+        *,
+        latitude: float,
+        longitude: float,
+        venue_kinds: tuple[str, ...] = (),
+        limit: int = 250,
+    ) -> list[FoodVenue]:
+        """Return a larger bounded pool for offline ranking evaluation only."""
+        if limit < 1 or limit > 500:
+            raise ValueError("pool limit must be between 1 and 500")
+        return self._discover(
+            latitude=latitude,
+            longitude=longitude,
+            query=None,
+            venue_kinds=venue_kinds,
+            result_limit=limit,
+        )
+
+    def _discover(
+        self,
+        *,
+        latitude: float | None,
+        longitude: float | None,
+        query: str | None,
+        venue_kinds: tuple[str, ...],
+        result_limit: int,
+    ) -> list[FoodVenue]:
         try:
             rows = self._fetch_candidates(
                 latitude=latitude,
@@ -68,7 +104,7 @@ class DatabaseFoodProvider:
 
         venues = [FoodVenue(*row) for row in rows]
         if latitude is None or longitude is None:
-            return venues[: self.limit]
+            return venues[:result_limit]
 
         nearby = []
         for venue in venues:
@@ -92,7 +128,7 @@ class DatabaseFoodProvider:
                 item.name,
             )
         )
-        return nearby[: self.limit]
+        return nearby[:result_limit]
 
     def _fetch_candidates(
         self,

@@ -8,7 +8,7 @@ from aug9.discovery.food_ranking_evaluation import (
     FoodRankingCandidate,
     FoodRankingPolicy,
 )
-from aug9.sg_food.provider import FoodProvider
+from aug9.sg_food.provider import DatabaseFoodProvider, FoodProvider
 
 
 def build_food_ranking_shadow_report(
@@ -18,19 +18,37 @@ def build_food_ranking_shadow_report(
     longitude: float,
     now: datetime | None = None,
     venue_kinds: tuple[str, ...] = (),
+    pool_limit: int = 250,
+    display_limit: int = 12,
 ) -> dict[str, Any]:
+    if pool_limit < 1 or pool_limit > 500:
+        raise ValueError("pool_limit must be between 1 and 500")
+    if display_limit < 1 or display_limit > 50:
+        raise ValueError("display_limit must be between 1 and 50")
+    if display_limit > pool_limit:
+        raise ValueError("display_limit cannot exceed pool_limit")
     generated_at = now or datetime.now(UTC)
-    venues = provider.discover(
-        latitude=latitude,
-        longitude=longitude,
-        venue_kinds=venue_kinds,
-    )
+    if isinstance(provider, DatabaseFoodProvider):
+        venues = provider.discover_pool(
+            latitude=latitude,
+            longitude=longitude,
+            venue_kinds=venue_kinds,
+            limit=pool_limit,
+        )
+    else:
+        venues = provider.discover(
+            latitude=latitude,
+            longitude=longitude,
+            venue_kinds=venue_kinds,
+        )[:pool_limit]
     if not venues:
         return {
             "mode": "shadow",
             "live_ranking_affected": False,
             "generated_at": generated_at.isoformat(),
-            "candidate_count": 0,
+            "pool_candidate_count": 0,
+            "displayed_candidate_count": 0,
+            "editorial_candidate_count": 0,
             "rank_changes": 0,
             "candidates": [],
         }
@@ -56,11 +74,11 @@ def build_food_ranking_shadow_report(
     proposed = FoodRankingPolicy().rank(candidates)
     current_ranks = {venue.id: rank for rank, venue in enumerate(venues, start=1)}
     venue_by_id = {venue.id: venue for venue in venues}
-    rows = []
+    all_rows = []
     for proposed_rank, item in enumerate(proposed, start=1):
         venue = venue_by_id[item.candidate.id]
         current_rank = current_ranks[venue.id]
-        rows.append(
+        all_rows.append(
             {
                 "entity_id": venue.id,
                 "name": venue.name,
@@ -77,14 +95,33 @@ def build_food_ranking_shadow_report(
                 "factors": [factor.__dict__ for factor in item.factors],
             }
         )
+    displayed_rows = all_rows[:display_limit]
+    coordinate_groups: dict[tuple[float | None, float | None], int] = {}
+    for venue in venues:
+        key = (venue.latitude, venue.longitude)
+        coordinate_groups[key] = coordinate_groups.get(key, 0) + 1
+    largest_tie = max(coordinate_groups.values(), default=0)
     return {
         "mode": "shadow",
         "live_ranking_affected": False,
         "generated_at": generated_at.isoformat(),
         "origin": {"latitude": latitude, "longitude": longitude},
-        "candidate_count": len(rows),
-        "rank_changes": sum(1 for row in rows if row["rank_change"] != 0),
-        "candidates": rows,
+        "pool_candidate_count": len(all_rows),
+        "displayed_candidate_count": len(displayed_rows),
+        "editorial_candidate_count": sum(
+            1
+            for row in all_rows
+            if row["positive_organic_editorial_records"] > 0
+        ),
+        "distance_ties": {
+            "coordinate_group_count": len(coordinate_groups),
+            "largest_same_coordinate_group": largest_tie,
+            "alphabetical_tie_break_is_quality_signal": False,
+        },
+        "rank_changes": sum(
+            1 for row in displayed_rows if row["rank_change"] != 0
+        ),
+        "candidates": displayed_rows,
     }
 
 

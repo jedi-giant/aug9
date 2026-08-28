@@ -13,6 +13,7 @@ def main() -> None:
     parser.add_argument("--latitude", type=float, required=True)
     parser.add_argument("--longitude", type=float, required=True)
     parser.add_argument("--limit", type=int, default=12)
+    parser.add_argument("--pool-limit", type=int, default=250)
     parser.add_argument("--max-distance-km", type=float, default=3.0)
     parser.add_argument(
         "--venue-kind",
@@ -29,6 +30,8 @@ def main() -> None:
         latitude=args.latitude,
         longitude=args.longitude,
         venue_kinds=(args.venue_kind,) if args.venue_kind else (),
+        pool_limit=args.pool_limit,
+        display_limit=args.limit,
     )
     print(json.dumps(report, indent=2, sort_keys=True))
 

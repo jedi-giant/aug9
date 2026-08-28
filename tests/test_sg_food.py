@@ -164,3 +164,7 @@ def test_food_provider_validates_query_bounds():
         DatabaseFoodProvider(limit=26)
     with pytest.raises(ValueError, match="max_distance"):
         DatabaseFoodProvider(max_distance_km=21)
+    with pytest.raises(ValueError, match="pool limit"):
+        DatabaseFoodProvider().discover_pool(
+            latitude=1.3, longitude=103.8, limit=501
+        )
