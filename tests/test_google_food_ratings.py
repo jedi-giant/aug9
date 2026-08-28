@@ -184,6 +184,13 @@ def test_shadow_report_suppresses_low_rating_but_escalates_conflict(repository):
         "shadow_suppress": 1,
         "conflicting_evidence_review": 1,
     }
+    affected = {item["entity_id"]: item for item in report["affected_venues"]}
+    assert affected["food:low"]["entity_name"] == "Low Rated Noodles"
+    assert affected["food:low"]["postal_code"] == "123456"
+    assert affected["food:low"]["match_confidence"] == 0.99
+    assert report["linking_coverage"]["active_sfa_entities"] == 2
+    assert report["linking_coverage"]["linked_entities"] == 2
+    assert report["linking_coverage"]["linked_percentage"] == 100.0
     assert repository.get_entity("food:low").status == "active"
 
 

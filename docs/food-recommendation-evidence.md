@@ -116,6 +116,8 @@ uv run aug9-report-google-rating-gate --limit 100
 The report identifies ratings below 2.5 with at least 10 ratings. A venue with
 active, organic, positive editorial food-quality evidence is sent to conflict
 review rather than shadow suppression. Small samples are labelled insufficient,
-and missing ratings are not treated as negative. The report contains Google Maps
-attribution links and must remain an operator-only audit until the user-facing
-attribution design and a multi-observation activation policy are approved.
+and missing ratings are not treated as negative. Each affected venue includes its
+canonical SFA name and address, match confidence, manual-verification status and
+Google Maps attribution link. The report also shows catalog-wide link-attempt
+coverage. It must remain an operator-only audit until the user-facing attribution
+design and a multi-observation activation policy are approved.

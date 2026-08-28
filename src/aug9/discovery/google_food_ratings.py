@@ -255,6 +255,7 @@ def build_google_rating_gate_report(
     limit: int = 100,
 ) -> dict[str, Any]:
     links = repository.list_google_place_links(limit=limit)
+    entity_details = _linked_entity_details([link.entity_id for link in links])
     conflicts = _trusted_positive_evidence_entities()
     decisions = []
     failures = 0
@@ -275,7 +276,14 @@ def build_google_rating_gate_report(
         decisions.append(
             {
                 "entity_id": link.entity_id,
+                "entity_name": entity_details.get(link.entity_id, {}).get("name"),
+                "address": entity_details.get(link.entity_id, {}).get("address"),
+                "postal_code": entity_details.get(link.entity_id, {}).get(
+                    "postal_code"
+                ),
                 "place_id": link.place_id,
+                "match_confidence": link.match_confidence,
+                "manually_verified": link.manually_verified,
                 "rating": snapshot.rating,
                 "rating_count": snapshot.rating_count,
                 "decision": decision,
@@ -285,6 +293,19 @@ def build_google_rating_gate_report(
     counts: dict[str, int] = {}
     for item in decisions:
         counts[item["decision"]] = counts.get(item["decision"], 0) + 1
+    affected = [item for item in decisions if item["decision"] != "eligible"]
+    decision_priority = {
+        "shadow_suppress": 0,
+        "conflicting_evidence_review": 1,
+        "insufficient_reviews": 2,
+    }
+    affected.sort(
+        key=lambda item: (
+            decision_priority.get(item["decision"], 9),
+            item["rating"] if item["rating"] is not None else 9.0,
+            item["entity_name"] or "",
+        )
+    )
     return {
         "mode": "shadow",
         "generated_at": datetime.now(UTC).isoformat(),
@@ -293,10 +314,9 @@ def build_google_rating_gate_report(
         "linked_places_checked": len(links),
         "successful_checks": len(decisions),
         "failed_checks": failures,
+        "linking_coverage": _linking_coverage(),
         "decisions": counts,
-        "affected_venues": [
-            item for item in decisions if item["decision"] != "eligible"
-        ],
+        "affected_venues": affected,
     }
 
 
@@ -315,6 +335,67 @@ def _trusted_positive_evidence_entities() -> set[str]:
     entity_ids = {row[0] for row in cursor.fetchall()}
     conn.close()
     return entity_ids
+
+
+def _linked_entity_details(entity_ids: list[str]) -> dict[str, dict[str, Any]]:
+    if not entity_ids:
+        return {}
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    p = database.placeholder()
+    placeholders = ", ".join(p for _ in entity_ids)
+    cursor.execute(
+        f"""
+        SELECT id, name, address, postal_code
+        FROM discovery_entities
+        WHERE id IN ({placeholders})
+        """,
+        tuple(entity_ids),
+    )
+    details = {
+        row[0]: {"name": row[1], "address": row[2], "postal_code": row[3]}
+        for row in cursor.fetchall()
+    }
+    conn.close()
+    return details
+
+
+def _linking_coverage() -> dict[str, Any]:
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    p = database.placeholder()
+    cursor.execute(
+        f"""
+        SELECT COUNT(DISTINCT e.id)
+        FROM discovery_entities e
+        JOIN discovery_source_records sfa ON sfa.entity_id = e.id
+        WHERE e.status = 'active' AND sfa.source_id = {p}
+        """,
+        (SFA_SOURCE_ID,),
+    )
+    active_entities = int(cursor.fetchone()[0] or 0)
+    cursor.execute("SELECT COUNT(*) FROM discovery_google_place_links")
+    linked_entities = int(cursor.fetchone()[0] or 0)
+    cursor.execute(
+        """
+        SELECT outcome, COUNT(*)
+        FROM discovery_google_place_link_attempts
+        GROUP BY outcome
+        ORDER BY outcome
+        """
+    )
+    attempts = {row[0]: int(row[1]) for row in cursor.fetchall()}
+    conn.close()
+    return {
+        "active_sfa_entities": active_entities,
+        "linked_entities": linked_entities,
+        "attempts_by_outcome": attempts,
+        "linked_percentage": (
+            round(100 * linked_entities / active_entities, 2)
+            if active_entities
+            else 0.0
+        ),
+    }
 
 
 def _normalise(value: str) -> str:
