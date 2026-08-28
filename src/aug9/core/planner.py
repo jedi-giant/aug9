@@ -175,8 +175,6 @@ def create_plan(
         capabilities.append("food")
         constraints = extract_recommendation_constraints(user_input)
         entities.update(constraints.model_dump(exclude_defaults=True))
-        if any(marker in padded_text for marker in [" near ", " around "]):
-            capabilities.append("hawkers")
 
     return Plan(
         intent=user_input,

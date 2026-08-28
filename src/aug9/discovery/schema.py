@@ -320,6 +320,18 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
         ON discovery_event_profiles(starts_at)
         """
     )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS discovery_entities_active_location_idx
+        ON discovery_entities(status, latitude, longitude)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS discovery_source_records_source_entity_idx
+        ON discovery_source_records(source_id, entity_id)
+        """
+    )
     # Retired integrations keep their audit trail but cannot surface publicly.
     cursor.execute(
         """

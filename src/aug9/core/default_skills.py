@@ -5,6 +5,7 @@ from aug9.sg_transport import OneMapRouteProvider, OsrmRouteProvider, SgTranspor
 from aug9.sg_hawkers import DatabaseHawkerProvider, SgHawkersSkill
 from aug9.sg_hotels import DatabaseHotelProvider, SgHotelsSkill
 from aug9.sg_events import DatabaseEventProvider, SgEventsSkill
+from aug9.sg_food import DatabaseFoodProvider, SgFoodSkill
 from aug9.sg_services import OfficialGovernmentServiceProvider, SgServicesSkill
 from aug9.sg_planner import SgPlannerSkill
 
@@ -28,6 +29,8 @@ def register_default_skills(registry: SkillRegistry = skill_registry) -> SkillRe
         registry.register(SgHotelsSkill(DatabaseHotelProvider()))
     if registry.get("sg_events") is None:
         registry.register(SgEventsSkill(DatabaseEventProvider()))
+    if registry.get("sg_food") is None:
+        registry.register(SgFoodSkill(DatabaseFoodProvider()))
     if registry.get("sg_services") is None:
         registry.register(SgServicesSkill(OfficialGovernmentServiceProvider()))
     if registry.get("sg_planner") is None:

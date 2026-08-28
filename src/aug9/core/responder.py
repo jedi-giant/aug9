@@ -18,7 +18,9 @@ def compose_response(
     food = execution.outputs.get("food")
 
     if food:
-        if hasattr(food, "recommendations"):
+        if getattr(food, "summary", None):
+            messages.append(food.summary)
+        elif hasattr(food, "recommendations"):
             if food.recommendations:
                 names = [
                     item.name

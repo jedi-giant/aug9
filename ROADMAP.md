@@ -302,8 +302,8 @@ Potential data sources:
 - [x] SAFE-grade provenance separated from recommendation quality
 - [x] Personal licensee names excluded from ingestion
 - [x] Resumable, postal-code-deduplicated OneMap enrichment for SFA venues
-- [ ] Broaden `sg_hawkers` into planner-compatible `sg_food`
-- [ ] Restaurant, cafe and food-court venue constraints
+- [x] Add planner-compatible `sg_food` while retaining explicit `sg_hawkers`
+- [x] Restaurant and food-court venue-type constraints from SFA evidence
 - [ ] Availability and opening-hours evidence
 - [ ] Food recommendation outcome analytics
 

@@ -65,6 +65,27 @@ class FakeEventsSkill(Aug9Skill):
         )
 
 
+class FakeFoodSkill(Aug9Skill):
+    name = "fake_food"
+    description = "Fake governed food catalog"
+
+    @property
+    def capabilities(self):
+        return ["food"]
+
+    def execute(self, context, entities):
+        return SkillResult(
+            success=True,
+            data={
+                "places": [{"name": "Licensed stall"}],
+                "evidence_scope": {
+                    "verified": ["licensing", "safe_grade", "location"]
+                },
+            },
+            summary="Nearby licensed food options: Licensed stall.",
+        )
+
+
 def test_executor_routes_place_resolution_through_registry():
     registry = SkillRegistry()
     registry.register(SgPlaceSkill(FakePlaceProvider()))
@@ -115,7 +136,8 @@ def test_executor_runs_weather_capability():
     assert result.outputs["weather"].data["weather"]["forecast"] == "Fair"
 
 def test_executor_runs_food_capability():
-
+    registry = SkillRegistry()
+    registry.register(FakeFoodSkill())
     plan = Plan(
         intent="Find food near Maxwell",
         required_capabilities=[
@@ -137,13 +159,14 @@ def test_executor_runs_food_capability():
     result = execute_plan(
         plan,
         context,
+        registry=registry,
     )
 
     assert "food" in result.outputs
-    assert (
-        result.outputs["food"].status.value
-        == "success"
-    )
+    assert result.outputs["food"].success is True
+    assert result.outputs["food"].data["evidence_scope"]["verified"] == [
+        "licensing", "safe_grade", "location"
+    ]
 
 
 def test_executor_routes_transport_through_registry():

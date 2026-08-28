@@ -45,9 +45,9 @@ Return a structured plan.
 
 Use:
 
-- food when the user asks about eating, meals, hawker centres, restaurants
-- hawkers together with food for nearby-food requests so candidates can be
-  ranked from consented coordinates
+- food when the user asks about eating, meals, restaurants, or food stalls
+- do not add hawkers to a generic nearby-food request; the food skill performs
+  location-aware venue ranking
 - weather when the user asks about rain, forecast, weather
 - transport when the user asks how to travel, walk, or get from one place to another
 - hawkers when the user asks to find or list hawker centres
