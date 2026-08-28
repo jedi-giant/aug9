@@ -119,6 +119,21 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
     )
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS discovery_food_safety_profiles (
+            entity_id TEXT PRIMARY KEY,
+            licence_number TEXT NOT NULL UNIQUE,
+            safe_grade TEXT NOT NULL,
+            business_type TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            observed_at TIMESTAMP NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(entity_id) REFERENCES discovery_entities(id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS discovery_food_candidates (
             id TEXT PRIMARY KEY,
             source_id TEXT NOT NULL,

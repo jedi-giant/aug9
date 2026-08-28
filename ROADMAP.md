@@ -296,6 +296,17 @@ Potential data sources:
 - [ ] Community contributor reputation
 - [ ] Google Places-assisted matching with policy-controlled provider caching
 
+# v0.3.4 — Food Discovery v1 — Started
+
+- [x] Current SFA restaurant and stall directory importer
+- [x] SAFE-grade provenance separated from recommendation quality
+- [x] Personal licensee names excluded from ingestion
+- [ ] OneMap coordinate enrichment for SFA venues
+- [ ] Broaden `sg_hawkers` into planner-compatible `sg_food`
+- [ ] Restaurant, cafe and food-court venue constraints
+- [ ] Availability and opening-hours evidence
+- [ ] Food recommendation outcome analytics
+
 
 ---
 
