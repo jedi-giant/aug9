@@ -74,3 +74,23 @@ def test_generated_result_is_not_task_completion():
     )
 
     assert event.successful_task is False
+
+
+def test_result_event_records_food_ranking_mode():
+    log_product_event(
+        ProductEvent(
+            task_id="task-ranking",
+            user_id="anon-user",
+            event_type=ProductEventType.RESULT_GENERATED,
+            capabilities=["food"],
+            ranking_mode="shortlist",
+        )
+    )
+
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT ranking_mode FROM product_events WHERE task_id = 'task-ranking'"
+    )
+    assert cursor.fetchone()[0] == "shortlist"
+    conn.close()

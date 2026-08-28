@@ -301,6 +301,8 @@ def chat(
             result.metadata["visitor_identity_verified"] = visitor.verified
         capabilities = result.metadata.get("requested_capabilities", [])
         capability_outcomes = result.metadata.get("capability_outcomes", {})
+        food_skill_metadata = result.metadata.get("skills", {}).get("food", {})
+        ranking_mode = food_skill_metadata.get("ranking_mode")
         result_status = (
             TaskStatus.FAILED
             if "unmatched" in capability_outcomes.values()
@@ -334,6 +336,7 @@ def chat(
                 event_type=ProductEventType.RESULT_GENERATED,
                 capabilities=capabilities,
                 task_status=result_status,
+                ranking_mode=ranking_mode,
             )
         )
 

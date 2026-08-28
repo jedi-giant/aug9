@@ -312,7 +312,8 @@ Potential data sources:
 - [x] Production-data food ranking shadow comparison
 - [x] Three-role diversified food shortlist in shadow mode
 - [x] Query-aware meal, beverage and dessert shortlist suitability
-- [ ] Approve and integrate evaluated food scoring into live `sg_food`
+- [x] Integrate evaluated food scoring behind a disabled-by-default feature flag
+- [ ] Enable shortlist mode and review latency, actions and user outcomes
 - [ ] Availability and opening-hours evidence
 - [ ] Food recommendation outcome analytics
 

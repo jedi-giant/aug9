@@ -24,6 +24,7 @@ class ProductAnalyticsReport:
     failed_results_by_capability: dict[str, int]
     capability_result_success_rate: dict[str, float | None]
     campaign_sources: dict[str, int]
+    ranking_modes: dict[str, int]
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -67,7 +68,8 @@ def build_product_analytics_report(
             capabilities,
             helpful,
             campaign_source,
-            task_status
+            task_status,
+            ranking_mode
         FROM product_events
         WHERE created_at >= {p}
           AND created_at < {p}
@@ -96,6 +98,7 @@ def build_product_analytics_report(
     capabilities: Counter[str] = Counter()
     failed_capabilities: Counter[str] = Counter()
     campaigns: Counter[str] = Counter()
+    ranking_modes: Counter[str] = Counter()
     for row in rows:
         if row[2] == "result_generated":
             try:
@@ -103,6 +106,8 @@ def build_product_analytics_report(
                 capabilities.update(event_capabilities)
                 if row[6] == "failed":
                     failed_capabilities.update(event_capabilities)
+                if row[7]:
+                    ranking_modes[row[7]] += 1
             except (json.JSONDecodeError, TypeError):
                 continue
         if row[2] == "query_submitted":
@@ -140,4 +145,5 @@ def build_product_analytics_report(
             for capability, count in capabilities.most_common()
         },
         campaign_sources=dict(campaigns.most_common()),
+        ranking_modes=dict(ranking_modes.most_common()),
     )

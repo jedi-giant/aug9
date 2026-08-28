@@ -37,6 +37,7 @@ class ProductEvent(BaseModel):
     campaign_source: str | None = Field(default=None, max_length=120)
     campaign_medium: str | None = Field(default=None, max_length=120)
     campaign_name: str | None = Field(default=None, max_length=120)
+    ranking_mode: str | None = Field(default=None, max_length=30)
 
     @property
     def successful_task(self) -> bool:
@@ -59,9 +60,9 @@ def log_product_event(event: ProductEvent) -> None:
         INSERT INTO product_events (
             event_id, task_id, user_id, session_id, event_type, capabilities,
             task_status, action_type, helpful, successful_task,
-            campaign_source, campaign_medium, campaign_name
+            campaign_source, campaign_medium, campaign_name, ranking_mode
         ) VALUES (
-            {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}
+            {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}
         )
         ON CONFLICT(event_id) DO NOTHING
         """,
@@ -79,6 +80,7 @@ def log_product_event(event: ProductEvent) -> None:
             event.campaign_source,
             event.campaign_medium,
             event.campaign_name,
+            event.ranking_mode,
         ),
     )
     conn.commit()

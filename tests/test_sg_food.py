@@ -9,6 +9,7 @@ from aug9.discovery.models import DiscoverySource, SourcePermission
 from aug9.discovery.repository import DiscoveryRepository
 from aug9.discovery.sfa_food_establishments import SFA_SOURCE_ID
 from aug9.sg_food import DatabaseFoodProvider, FoodVenue, SgFoodSkill
+from aug9.sg_food.skill import configured_food_ranking_mode
 
 
 class FakeFoodProvider:
@@ -168,3 +169,31 @@ def test_food_provider_validates_query_bounds():
         DatabaseFoodProvider().discover_pool(
             latitude=1.3, longitude=103.8, limit=501
         )
+
+
+def test_shortlist_feature_flag_caps_and_explains_live_food_results(
+    food_database, monkeypatch
+):
+    monkeypatch.setenv("FOOD_RANKING_MODE", "shortlist")
+    result = SgFoodSkill(
+        DatabaseFoodProvider(limit=8, max_distance_km=3)
+    ).execute(
+        UserContext(
+            intent="Find lunch near me",
+            current_place=Place(name="Here", latitude=1.3, longitude=103.8),
+        ),
+        {},
+    )
+
+    assert result.success is True
+    assert result.data["ranking_mode"] == "shortlist"
+    assert result.data["ranking_mode_requested"] == "shortlist"
+    assert len(result.data["places"]) <= 3
+    assert result.data["places"][0]["recommendation_role"] == "closest_suitable"
+    assert result.actions[0].metadata["ranking_mode"] == "shortlist"
+
+
+def test_invalid_food_ranking_mode_fails_closed_to_legacy(monkeypatch):
+    monkeypatch.setenv("FOOD_RANKING_MODE", "experimental")
+
+    assert configured_food_ranking_mode() == "legacy"

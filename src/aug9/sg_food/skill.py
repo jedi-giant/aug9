@@ -1,14 +1,24 @@
+import os
+import sqlite3
 from typing import Any
 from urllib.parse import quote_plus
+
+import psycopg
 
 from aug9.core.context import UserContext
 from aug9.core.recommendation import RecommendationConstraints
 from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
+from aug9.discovery.food_ranking_shadow import build_food_ranking_shadow_report
 from aug9.food import get_food_recommendations
-from aug9.sg_food.provider import FoodProvider
+from aug9.sg_food.provider import FoodProvider, FoodVenue
 
 
 MAX_COMFORTABLE_WALK_KM = 1.2
+
+
+def configured_food_ranking_mode() -> str:
+    value = os.getenv("FOOD_RANKING_MODE", "legacy").strip().casefold()
+    return value if value in {"legacy", "shortlist"} else "legacy"
 
 
 class SgFoodSkill(Aug9Skill):
@@ -48,12 +58,43 @@ class SgFoodSkill(Aug9Skill):
                     "restaurants yet. Ask for nearby restaurants, or share a café source for verification."
                 ),
             )
-        venues = self.provider.discover(
-            latitude=latitude,
-            longitude=longitude,
-            query=str(query) if query else None,
-            venue_kinds=venue_kinds,
-        )
+        requested_ranking_mode = configured_food_ranking_mode()
+        ranking_mode = "legacy"
+        shortlist_details: dict[str, dict[str, Any]] = {}
+        venues = []
+        if (
+            requested_ranking_mode == "shortlist"
+            and latitude is not None
+            and longitude is not None
+        ):
+            try:
+                report = build_food_ranking_shadow_report(
+                    self.provider,
+                    latitude=latitude,
+                    longitude=longitude,
+                    venue_kinds=venue_kinds,
+                    pool_limit=250,
+                    display_limit=3,
+                    request_text=context.intent or "food",
+                )
+                shortlist = report["recommended_shortlist"]
+                if shortlist:
+                    venues = [
+                        self._shortlist_venue(item) for item in shortlist
+                    ]
+                    shortlist_details = {
+                        item["entity_id"]: item for item in shortlist
+                    }
+                    ranking_mode = "shortlist"
+            except (psycopg.Error, sqlite3.Error):
+                venues = []
+        if ranking_mode == "legacy":
+            venues = self.provider.discover(
+                latitude=latitude,
+                longitude=longitude,
+                query=str(query) if query else None,
+                venue_kinds=venue_kinds,
+            )
         if not venues:
             legacy = self._legacy_result(context)
             if legacy is not None:
@@ -69,6 +110,7 @@ class SgFoodSkill(Aug9Skill):
 
         places = []
         for venue in venues:
+            recommendation = shortlist_details.get(venue.id, {})
             travel_guidance = None
             if venue.distance_km is not None:
                 travel_guidance = (
@@ -91,16 +133,30 @@ class SgFoodSkill(Aug9Skill):
                     "safe_grade_evidence": "Singapore Food Agency",
                     "licensing_evidence": "Singapore Food Agency",
                     "location_evidence": "OneMap",
-                    "taste_evidence": "unknown",
+                    "taste_evidence": (
+                        "active organic editorial evidence"
+                        if recommendation.get(
+                            "positive_organic_editorial_records", 0
+                        )
+                        else "unknown"
+                    ),
                     "opening_hours_evidence": "unknown",
                     "price_evidence": "unknown",
                     "dietary_evidence": "unknown",
+                    "recommendation_role": recommendation.get("role"),
+                    "recommendation_reason": recommendation.get("reason"),
+                    "ranking_score": recommendation.get("proposed_score"),
+                    "editorial_food_quality_records": recommendation.get(
+                        "positive_organic_editorial_records", 0
+                    ),
                 }
             )
 
         descriptions = []
         for place in places:
             details = [place["venue_kind"].replace("_", " ")]
+            if place["recommendation_reason"]:
+                details.append(place["recommendation_reason"])
             if place["distance_km"] is not None:
                 details.append(f'{place["distance_km"]:.1f} km away')
             details.append(f'SFA SAFE grade {place["safe_grade"]}')
@@ -130,6 +186,9 @@ class SgFoodSkill(Aug9Skill):
                     "verified": ["licensing", "safe_grade", "location"],
                     "unknown": ["taste", "opening_hours", "price", "dietary"],
                 },
+                "ranking_mode": ranking_mode,
+                "ranking_mode_requested": requested_ranking_mode,
+                "result_limit": 3 if ranking_mode == "shortlist" else len(places),
             },
             summary=(
                 "Nearby licensed food options: "
@@ -156,10 +215,27 @@ class SgFoodSkill(Aug9Skill):
                         "capability": "food",
                         "place": place["name"],
                         "distance_km": place["distance_km"],
+                        "ranking_mode": ranking_mode,
+                        "recommendation_role": place["recommendation_role"],
                     },
                 )
                 for place in places
             ],
+        )
+
+    @staticmethod
+    def _shortlist_venue(item: dict[str, Any]) -> FoodVenue:
+        return FoodVenue(
+            id=item["entity_id"],
+            name=item["name"],
+            venue_kind=item["venue_kind"],
+            address=item["address"],
+            postal_code=item["postal_code"],
+            latitude=item["latitude"],
+            longitude=item["longitude"],
+            safe_grade=item["safe_grade"],
+            business_type=item["business_type"],
+            distance_km=item["distance_km"],
         )
 
     @staticmethod

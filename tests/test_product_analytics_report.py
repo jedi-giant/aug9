@@ -114,3 +114,20 @@ def test_empty_report_uses_null_rates():
 def test_rejects_invalid_reporting_window():
     with pytest.raises(ValueError, match="between 1 and 366"):
         build_product_analytics_report(days=0)
+
+
+def test_product_analytics_report_groups_ranking_modes():
+    log(
+        ProductEventType.RESULT_GENERATED,
+        event_id="ranking-result",
+        task_id="ranking-task",
+        capabilities=["food"],
+        ranking_mode="shortlist",
+    )
+
+    report = build_product_analytics_report(
+        days=7,
+        now=datetime.now(UTC),
+    )
+
+    assert report.ranking_modes == {"shortlist": 1}

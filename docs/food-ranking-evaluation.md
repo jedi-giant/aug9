@@ -78,3 +78,22 @@ For the `closest_suitable` role, candidates are grouped into 100-metre distance
 tiers. An explicit category match is preferred over `unknown` inside the same
 tier; a venue in a farther tier cannot leapfrog a genuinely closer suitable
 option merely because its name is more descriptive.
+
+## Feature-flagged live integration
+
+The public `sg_food` skill keeps legacy behavior unless Railway sets:
+
+```text
+FOOD_RANKING_MODE=shortlist
+```
+
+When enabled for coordinate-based food requests, Aug9 evaluates a 250-candidate
+pool and returns at most three role-diversified choices. The existing chat API
+shape, legacy location fallback, action links and evidence disclosures remain
+compatible. Database failures in the shortlist evidence path fall back to legacy
+ranking. Missing or unrecognised flag values also resolve to `legacy`.
+
+Skill metadata, direction-action metadata and product result events record the
+effective ranking mode. `aug9-report-product-analytics --days 7` groups result
+generation by `ranking_modes`. Roll back immediately by setting
+`FOOD_RANKING_MODE=legacy` and redeploying; no data migration reversal is needed.
