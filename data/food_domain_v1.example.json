@@ -1,0 +1,77 @@
+{
+  "schema_version": "aug9.food-domain.v1",
+  "generated_at": "2026-08-29T12:00:00+08:00",
+  "source": {
+    "id": "jd_food_collection",
+    "name": "JD Singapore Food Collection",
+    "permission": "user_provided",
+    "attribution": "Compiled and supplied by JD",
+    "base_url": null,
+    "license_name": null
+  },
+  "places": [
+    {
+      "external_id": "example-restaurant-001",
+      "entity_type": "food_venue",
+      "name": "Example Restaurant",
+      "description": "An independently compiled example restaurant.",
+      "status": "active",
+      "location": {
+        "address": "1 Example Street, Singapore 123456",
+        "postal_code": "123456",
+        "latitude": 1.3001,
+        "longitude": 103.8001,
+        "unit_number": "#01-01",
+        "neighbourhood": "Example Estate"
+      },
+      "parent": null,
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": ["Singaporean"],
+        "signature_dishes": ["Example dish"],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 8,
+          "maximum": 20
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 0,
+          "opens_at": "10:00",
+          "closes_at": "20:00"
+        }
+      ],
+      "contact": {},
+      "attributes": {
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "example-dish-claim-001",
+          "dimension": "food_quality",
+          "evidence_type": "community",
+          "direction": "positive",
+          "claim_key": "dish_speciality",
+          "value": {
+            "dish": "Example dish"
+          },
+          "dish_name": "Example dish",
+          "confidence": 0.7,
+          "commercial_status": "organic",
+          "source_url": null,
+          "observed_at": "2026-08-29T12:00:00+08:00",
+          "expires_at": null
+        }
+      ],
+      "provenance": {
+        "source_url": null,
+        "observed_at": "2026-08-29T12:00:00+08:00",
+        "verified_at": null,
+        "notes": "Replace this example with your source notes."
+      }
+    }
+  ]
+}
