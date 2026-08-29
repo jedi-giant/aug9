@@ -127,6 +127,9 @@ def create_plan(
     if any(word in text for word in ["hotel", "hotels", "accommodation"]):
         capabilities.append("hotels")
 
+    if any(word in text for word in ["playground", "playgrounds", "play area"]):
+        capabilities.append("playgrounds")
+
     if any(
         phrase in text
         for phrase in [

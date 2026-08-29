@@ -152,19 +152,9 @@ class SgFoodSkill(Aug9Skill):
                 }
             )
 
-        descriptions = []
-        for place in places:
-            details = [place["venue_kind"].replace("_", " ")]
-            if place["recommendation_reason"]:
-                details.append(place["recommendation_reason"])
-            if place["distance_km"] is not None:
-                details.append(f'{place["distance_km"]:.1f} km away')
-            details.append(f'SFA SAFE grade {place["safe_grade"]}')
-            descriptions.append(f'{place["name"]} ({"; ".join(details)})')
-
         disclosures = [
-            "SAFE grades describe regulatory food-safety track records, not taste or popularity",
-            "opening hours, prices and dietary suitability are not yet verified",
+            "SAFE grades describe food-safety records, not taste or popularity",
+            "I haven't yet verified opening hours, prices or dietary suitability",
         ]
         if constraints.open_now:
             disclosures.append("I cannot yet verify which results are open now")
@@ -191,9 +181,8 @@ class SgFoodSkill(Aug9Skill):
                 "result_limit": 3 if ranking_mode == "shortlist" else len(places),
             },
             summary=(
-                "Nearby licensed food options: "
-                + ", ".join(descriptions)
-                + ". "
+                self._natural_summary(places, ranking_mode)
+                + " "
                 + ". ".join(disclosures)
                 + "."
             ),
@@ -222,6 +211,44 @@ class SgFoodSkill(Aug9Skill):
                 for place in places
             ],
         )
+
+    @classmethod
+    def _natural_summary(
+        cls, places: list[dict[str, Any]], ranking_mode: str
+    ) -> str:
+        if ranking_mode == "shortlist":
+            introductions = [
+                "My closest suitable pick is",
+                "For a little variety, consider",
+                "Another nearby option is",
+            ]
+            sentences = []
+            for index, place in enumerate(places):
+                detail = cls._friendly_distance(place["distance_km"])
+                reason = str(place.get("recommendation_reason") or "").strip()
+                suffix = ", ".join(value for value in (detail, reason) if value)
+                sentences.append(
+                    f'{introductions[min(index, len(introductions) - 1)]} '
+                    f'{place["name"]}{f" — {suffix}" if suffix else ""}.'
+                )
+            return "Here are a few licensed food options nearby. " + " ".join(sentences)
+
+        names = [place["name"] for place in places]
+        if len(names) == 1:
+            joined = names[0]
+        else:
+            joined = ", ".join(names[:-1]) + f", or {names[-1]}"
+        return f"I found these licensed food options nearby: {joined}."
+
+    @staticmethod
+    def _friendly_distance(distance_km: float | None) -> str:
+        if distance_km is None:
+            return ""
+        if distance_km < 0.1:
+            return "less than 100 m away"
+        if distance_km < 1:
+            return f"about {round(distance_km * 10) * 100:.0f} m away"
+        return f"about {distance_km:.1f} km away"
 
     @staticmethod
     def _shortlist_venue(item: dict[str, Any]) -> FoodVenue:

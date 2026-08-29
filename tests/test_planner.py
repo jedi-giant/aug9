@@ -47,6 +47,13 @@ def test_planner_detects_event_discovery():
     assert "events" in plan.required_capabilities
 
 
+def test_planner_detects_playground_discovery():
+    plan = create_plan("Find a playground near me")
+
+    assert "playgrounds" in plan.required_capabilities
+    assert "place_resolution" in plan.required_capabilities
+
+
 def test_planner_detects_government_service_request():
     plan = create_plan("How do I renew my Singapore passport?")
 

@@ -905,6 +905,7 @@ class DiscoveryRepository:
         row = cursor.fetchone()
         allowed = {
             SourcePermission.OPEN_DATA.value,
+            SourcePermission.USER_PROVIDED.value,
             SourcePermission.LICENSED_PARTNER.value,
             SourcePermission.LEGAL_REVIEWED.value,
         }

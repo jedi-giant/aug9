@@ -120,6 +120,8 @@ def test_food_skill_exposes_evidence_and_travel_guidance():
     assert "not taste or popularity" in result.summary
     assert "cannot yet verify which results are open now" in result.summary
     assert result.actions[0].metadata["capability"] == "food"
+    assert result.summary.startswith("I found these licensed food options nearby")
+    assert "Licensed Restaurant (" not in result.summary
 
 
 def test_food_skill_requires_location_when_no_search_results():
@@ -191,6 +193,8 @@ def test_shortlist_feature_flag_caps_and_explains_live_food_results(
     assert len(result.data["places"]) <= 3
     assert result.data["places"][0]["recommendation_role"] == "closest_suitable"
     assert result.actions[0].metadata["ranking_mode"] == "shortlist"
+    assert result.summary.startswith("Here are a few licensed food options nearby")
+    assert "My closest suitable pick is" in result.summary
 
 
 def test_invalid_food_ranking_mode_fails_closed_to_legacy(monkeypatch):

@@ -39,6 +39,7 @@ Available capabilities:
 - hotels: discover licensed Singapore hotels
 - events: discover upcoming Singapore activities and events
 - services: find official Singapore government services
+- playgrounds: find playgrounds suitable for a local family outing
 - lifeops: coordinate a multi-capability Singapore day plan
 
 Return a structured plan.
@@ -54,6 +55,7 @@ Use:
 - hotels when the user asks to find or list hotels or accommodation
 - events when the user asks what to do, or for events, activities, concerts,
   exhibitions, festivals, or weekend plans
+- playgrounds when the user explicitly asks for playgrounds or play areas
 - services when the user asks about Singapore passports, Singpass, CPF, tax,
   HDB, work passes, HealthHub, identity cards, birth registration, marriage,
   driving licences, National Service, school registration, starting a business,

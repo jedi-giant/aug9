@@ -8,6 +8,7 @@ from aug9.sg_events import DatabaseEventProvider, SgEventsSkill
 from aug9.sg_food import DatabaseFoodProvider, SgFoodSkill
 from aug9.sg_services import OfficialGovernmentServiceProvider, SgServicesSkill
 from aug9.sg_planner import SgPlannerSkill
+from aug9.sg_playgrounds import DatabasePlaygroundProvider, SgPlaygroundsSkill
 
 
 def register_default_skills(registry: SkillRegistry = skill_registry) -> SkillRegistry:
@@ -35,4 +36,6 @@ def register_default_skills(registry: SkillRegistry = skill_registry) -> SkillRe
         registry.register(SgServicesSkill(OfficialGovernmentServiceProvider()))
     if registry.get("sg_planner") is None:
         registry.register(SgPlannerSkill())
+    if registry.get("sg_playgrounds") is None:
+        registry.register(SgPlaygroundsSkill(DatabasePlaygroundProvider()))
     return registry

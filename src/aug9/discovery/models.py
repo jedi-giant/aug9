@@ -11,6 +11,7 @@ def utc_now() -> datetime:
 
 class SourcePermission(StrEnum):
     OPEN_DATA = "open_data"
+    USER_PROVIDED = "user_provided"
     LICENSED_PARTNER = "licensed_partner"
     LEGAL_REVIEWED = "legal_reviewed"
     LINK_ONLY = "link_only"
@@ -27,6 +28,7 @@ class EntityType(StrEnum):
     HOTEL = "hotel"
     ATTRACTION = "attraction"
     TOUR = "tour"
+    PLAYGROUND = "playground"
 
 
 class RelationshipType(StrEnum):

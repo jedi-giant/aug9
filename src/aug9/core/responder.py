@@ -66,6 +66,11 @@ def compose_response(
         elif getattr(events, "summary", None):
             messages.append(events.summary)
 
+    playgrounds = execution.outputs.get("playgrounds")
+
+    if playgrounds and getattr(playgrounds, "summary", None):
+        messages.append(playgrounds.summary)
+
     services = execution.outputs.get("services")
 
     if services and getattr(services, "summary", None):

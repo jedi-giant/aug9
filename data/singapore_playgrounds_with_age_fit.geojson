@@ -1,0 +1,828 @@
+{
+  "type": "FeatureCollection",
+  "name": "Singapore_Playgrounds_NParks_PlaySG_OneMap",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.7275,
+          1.3392
+        ]
+      },
+      "properties": {
+        "id": 1,
+        "name": "Forest Ramble @ Jurong Lake Gardens",
+        "park_or_location": "Jurong Lake Gardens",
+        "address": "104 Yuan Ching Road, Singapore 618665",
+        "category": "NParks Destination Nature Playground",
+        "theme": "Nature-inspired 13 adventure stations (crane, otter, frog, butterfly)",
+        "age_fit": "All Ages (2–12 years)",
+        "min_age": 2,
+        "max_age": 12,
+        "age_suitability_details": "Separate zones: Toddler sensory & low swing zones (2–5 yrs); Giant frog trampolines, zip lines, and otter climbing ropes (5–12 yrs)",
+        "features": [
+          "Rope courses",
+          "Trampolines",
+          "Ziplines",
+          "Swings",
+          "Slides",
+          "Inclusive play equipment"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.7272,
+          1.3355
+        ]
+      },
+      "properties": {
+        "id": 2,
+        "name": "Clusia Cove Water Playground",
+        "park_or_location": "Jurong Lake Gardens",
+        "address": "104 Yuan Ching Road, Singapore 618665",
+        "category": "NParks Water Playground",
+        "theme": "Eco-cleansing tidal pool & water dynamics",
+        "age_fit": "Toddlers & Young Kids (2–9 years)",
+        "min_age": 2,
+        "max_age": 9,
+        "age_suitability_details": "Shallow tidal pools and soft sand bed ideal for toddlers (2–5 yrs); interactive sluice gates and pumps for 5–9 yrs",
+        "features": [
+          "Tidal pools",
+          "Sand play area",
+          "Water pumps",
+          "Eco-filtration stream"
+        ],
+        "has_water_play": true,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8966,
+          1.2988
+        ]
+      },
+      "properties": {
+        "id": 3,
+        "name": "Coastal PlayGrove",
+        "park_or_location": "East Coast Park (Area B)",
+        "address": "902 East Coast Park Service Road, Singapore 449874",
+        "category": "NParks Destination Adventure Playground",
+        "theme": "Vertical challenge & maritime park",
+        "age_fit": "All Ages (2–12+ years)",
+        "min_age": 2,
+        "max_age": 14,
+        "age_suitability_details": "Shallow water jet splash area and nature playgarden for toddlers (2–5 yrs); 16m climbing tower and 11.9m slide restricted to 13 yrs or min height (recommend 6–12+ yrs)",
+        "features": [
+          "16m tall Play Tower",
+          "Tallest outdoor slides (7.3m & 11.9m)",
+          "Water play area",
+          "Nature playgarden",
+          "Climbing net"
+        ],
+        "has_water_play": true,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.9118,
+          1.3025
+        ]
+      },
+      "properties": {
+        "id": 4,
+        "name": "Marine Cove Playground",
+        "park_or_location": "East Coast Park (Area C)",
+        "address": "1000 East Coast Parkway, Singapore 449876",
+        "category": "NParks Destination Playground",
+        "theme": "Lighthouse & coastal exploration",
+        "age_fit": "All Ages (2–12 years)",
+        "min_age": 2,
+        "max_age": 12,
+        "age_suitability_details": "Dedicated enclosed toddler area with sensory panels and gentle mounds (2–5 yrs); 8m lighthouse tower with net climbs and rope bridge for 5–12 yrs",
+        "features": [
+          "8m Lighthouse play tower",
+          "Suspension bridge",
+          "Inclusive sensory elements",
+          "Toddler play zone",
+          "Swings"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8162,
+          1.3204
+        ]
+      },
+      "properties": {
+        "id": 5,
+        "name": "COMO Adventure Grove",
+        "park_or_location": "Singapore Botanic Gardens (Gallop Extension)",
+        "address": "5 Gallop Road, Singapore 258960",
+        "category": "NParks Nature Playgarden",
+        "theme": "Botanical forest seeds, saga pods & giant cempedak",
+        "age_fit": "Toddlers & Big Kids (2–12 years)",
+        "min_age": 2,
+        "max_age": 12,
+        "age_suitability_details": "Giant Cempedak tactile structure and low saga seed pods for toddlers (2–5 yrs); high banyan tree climbing ropes and tube slide for older kids (5–12 yrs)",
+        "features": [
+          "Giant Cempedak climbing structure",
+          "Saga seed pods climbing net",
+          "Banyan tree ropes & slides",
+          "Sand play"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8174,
+          1.3218
+        ]
+      },
+      "properties": {
+        "id": 6,
+        "name": "Jacob Ballas Children's Garden",
+        "park_or_location": "Singapore Botanic Gardens",
+        "address": "481 Bukit Timah Road, Singapore 259769",
+        "category": "NParks Children's Garden & Adventure Park",
+        "theme": "Botanical discovery, farm & canopy forest",
+        "age_fit": "Young Children & Pre-teens (Up to 14 years)",
+        "min_age": 2,
+        "max_age": 14,
+        "age_suitability_details": "Entry restricted to children up to 14 accompanied by adults. Sand pits and water play zone for 2–5 yrs; Treehouse slide, flying fox ziplines, and suspension bridge for 6–14 yrs",
+        "features": [
+          "Treehouse slide",
+          "Canopy suspension bridge",
+          "Water play area",
+          "Wheelchair-accessible play area",
+          "Hedge maze",
+          "Flying fox"
+        ],
+        "has_water_play": true,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.7788,
+          1.4422
+        ]
+      },
+      "properties": {
+        "id": 7,
+        "name": "Admiralty Park Playground",
+        "park_or_location": "Admiralty Park",
+        "address": "31 Riverside Road, Singapore 739080",
+        "category": "NParks Destination Mega Playground",
+        "theme": "Hilly terrain & 26 unique slides",
+        "age_fit": "All Ages (2–12+ years)",
+        "min_age": 2,
+        "max_age": 14,
+        "age_suitability_details": "Junior Play zone with gentle wide roller slides for 2–5 yrs; Adventure and Family Terracing zones with 26 high-speed barrel and curved slides for 5–12+ yrs",
+        "features": [
+          "26 outdoor slides (longest & widest in public parks)",
+          "Double barrel slides",
+          "Inclusive tandem swings",
+          "Cargo climbing nets",
+          "Wheelchair swing"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.9515,
+          1.3789
+        ]
+      },
+      "properties": {
+        "id": 8,
+        "name": "Pasir Ris Adventure Playground",
+        "park_or_location": "Pasir Ris Park (Area 3)",
+        "address": "110 Pasir Ris Road, Singapore 519103",
+        "category": "NParks Destination Playground",
+        "theme": "Galactic, music & coastal forest",
+        "age_fit": "All Ages (2–12 years)",
+        "min_age": 2,
+        "max_age": 12,
+        "age_suitability_details": "Music & sensory instruments zone, low rope bridges for toddlers (2–5 yrs); Giant pyramid rope climbing tower and multi-station flying fox for 6–12 yrs",
+        "features": [
+          "Giant rope pyramid",
+          "Galactic rover play",
+          "Flying fox ziplines",
+          "Music & sensory instruments",
+          "Toddler play area",
+          "Swing zone"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.7712,
+          1.4398
+        ]
+      },
+      "properties": {
+        "id": 9,
+        "name": "Marsiling Park Butterfly Playground",
+        "park_or_location": "Marsiling Park",
+        "address": "Woodlands Centre Road, Singapore 738930",
+        "category": "NParks Themed Park Playground",
+        "theme": "Giant Butterfly & nature habitat",
+        "age_fit": "Toddlers & Big Kids (3–12 years)",
+        "min_age": 3,
+        "max_age": 12,
+        "age_suitability_details": "Interactive educational nature panels and musical chime play for 3–5 yrs; 3D butterfly climbing web and suspension rope nets for 5–12 yrs",
+        "features": [
+          "Giant butterfly-shaped rope climbing tower",
+          "Musical play area",
+          "Interactive butterfly education boards",
+          "Mangrove boardwalk play"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8375,
+          1.4631
+        ]
+      },
+      "properties": {
+        "id": 10,
+        "name": "Battleship Playground @ Sembawang Park",
+        "park_or_location": "Sembawang Park",
+        "address": "Sembawang Road, Singapore 758526",
+        "category": "NParks Heritage-Themed Playground",
+        "theme": "Naval battleship honoring Sembawang Naval Base history",
+        "age_fit": "Big Kids (5–12 years)",
+        "min_age": 5,
+        "max_age": 12,
+        "age_suitability_details": "Slanted ship decks, rope ladder turrets, and high tunnel slides best suited for confident climbers aged 5–12 years; sand pit base for younger siblings",
+        "features": [
+          "Naval battleship structure",
+          "Rope ladder gun turrets",
+          "Sand pit base",
+          "Inclined slides & lookouts",
+          "Swings"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.7668,
+          1.2985
+        ]
+      },
+      "properties": {
+        "id": 11,
+        "name": "West Coast Park Mega Playground",
+        "park_or_location": "West Coast Park (Area 3)",
+        "address": "71 West Coast Highway, Singapore 126844",
+        "category": "NParks Destination Adventure Playground",
+        "theme": "Climbing pyramid, obstacle course & sand oasis",
+        "age_fit": "All Ages (2–12+ years)",
+        "min_age": 2,
+        "max_age": 14,
+        "age_suitability_details": "Divided into 8 play zones: Mini Viking ship & toddler swings for 2–5 yrs; Massive 8-sided red rope pyramid, ninja obstacle course, and 4-lane ziplines for 6–14 yrs",
+        "features": [
+          "Iconic red rope climbing pyramid",
+          "Viking ship playground",
+          "Inclusive swings",
+          "Zip lines",
+          "Obstacle course",
+          "Sand play areas"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8465,
+          1.3638
+        ]
+      },
+      "properties": {
+        "id": 12,
+        "name": "Bishan-Ang Mo Kio Park Adventure & Water Playground",
+        "park_or_location": "Bishan-Ang Mo Kio Park (Pond Gardens)",
+        "address": "1384 Ang Mo Kio Avenue 1, Singapore 569932",
+        "category": "NParks Park Playground & Water Area",
+        "theme": "River basin adventure & water gates",
+        "age_fit": "All Ages (2–12 years)",
+        "min_age": 2,
+        "max_age": 12,
+        "age_suitability_details": "Gentle stream water pumps, sluice gates, and sand mound area for 2–6 yrs; Recycled timber climbing ropes and pyramid slide for 5–12 yrs",
+        "features": [
+          "Water channels & sluice gates",
+          "Bubble play fountains",
+          "Recycled timber obstacle course",
+          "Pyramid climbing frame",
+          "Inclusive carousel"
+        ],
+        "has_water_play": true,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8247,
+          1.2869
+        ]
+      },
+      "properties": {
+        "id": 13,
+        "name": "Tiong Bahru Tilting Train Playground",
+        "park_or_location": "Tiong Bahru Park",
+        "address": "1 Henderson Road, Singapore 159561",
+        "category": "NParks Heritage-Themed Playground",
+        "theme": "Tilting locomotive & vintage runaway train",
+        "age_fit": "Toddlers & Big Kids (3–10 years)",
+        "min_age": 3,
+        "max_age": 10,
+        "age_suitability_details": "Sand pit floor and low merry-go-round suitable for toddlers (3–5 yrs); Slanted off-balance train compartments and flying fox for 5–10 yrs",
+        "features": [
+          "Topsy-turvy train carriages",
+          "Sand pit play area",
+          "Flying fox zipline",
+          "Merry-go-round",
+          "Mini maze"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8541,
+          1.3323
+        ]
+      },
+      "properties": {
+        "id": 14,
+        "name": "Toa Payoh Iconic Dragon Playground",
+        "park_or_location": "Toa Payoh Lorong 6",
+        "address": "28 Lorong 6 Toa Payoh, Singapore 310028",
+        "category": "HDB Heritage Playground",
+        "theme": "Iconic 1979 terrazzo tile orange dragon",
+        "age_fit": "Big Kids & Nostalgia (5–12 years)",
+        "min_age": 5,
+        "max_age": 12,
+        "age_suitability_details": "Steel pipe spine and terrazzo slide require firm footing and climbing ability (recommended 5+ yrs)",
+        "features": [
+          "Terrazzo dragon spine slide",
+          "Rope ladder belly",
+          "Sand pit floor",
+          "Singapore cultural icon"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "PlaySG / HDB Heritage / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8655,
+          1.2818
+        ]
+      },
+      "properties": {
+        "id": 15,
+        "name": "Far East Organization Children's Garden",
+        "park_or_location": "Gardens by the Bay",
+        "address": "18 Marina Gardens Drive, Singapore 018953",
+        "category": "Water & Adventure Park",
+        "theme": "Hydro-sensor water tunnels & rainforest treehouses",
+        "age_fit": "All Ages (1–12 years)",
+        "min_age": 1,
+        "max_age": 12,
+        "age_suitability_details": "Dedicated Toddler Play Zone with stepping springs and fish fountains for 1–5 yrs; Water Play area with motion sensors and 7.5m treehouse adventure course for 6–12 yrs",
+        "features": [
+          "Hydro-vault motion water jets",
+          "Toddler water play pool",
+          "7.5m treehouses with suspension bridge",
+          "Spider web rope courses"
+        ],
+        "has_water_play": true,
+        "is_sheltered": false,
+        "sources": "NParks / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8712,
+          1.2806
+        ]
+      },
+      "properties": {
+        "id": 16,
+        "name": "Water Playground @ Marina Barrage",
+        "park_or_location": "Marina Barrage",
+        "address": "8 Marina Way, Singapore 018951",
+        "category": "Public Water Playground",
+        "theme": "Fountain wading pool & green roof",
+        "age_fit": "Toddlers & Young Kids (2–9 years)",
+        "min_age": 2,
+        "max_age": 9,
+        "age_suitability_details": "Zero-depth zero-entry wading fountain area with gentle spray jets ideal for toddlers and young children",
+        "features": [
+          "Wading water pool",
+          "Interactive water jets",
+          "Expansive green rooftop for kite flying",
+          "Panoramic skyline views"
+        ],
+        "has_water_play": true,
+        "is_sheltered": false,
+        "sources": "PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8306,
+          1.4468
+        ]
+      },
+      "properties": {
+        "id": 17,
+        "name": "Canberra Park Inclusive Playground",
+        "park_or_location": "Canberra Park",
+        "address": "Canberra Link, Singapore 752311",
+        "category": "NParks Inclusive Neighborhood Park",
+        "theme": "All-abilities inclusive sensory & physical play",
+        "age_fit": "All Ages (2–12 years)",
+        "min_age": 2,
+        "max_age": 12,
+        "age_suitability_details": "Wheelchair accessible ramps and sensory chime bells for 2–6 yrs; Aeroplane swings, multi-seater seesaws, and obstacle course for 5–12 yrs",
+        "features": [
+          "Wheelchair-accessible ramps",
+          "Aeroplane themed swings",
+          "Bell and drum sensory stations",
+          "Braille interactive play panels"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks / PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 18,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8398,
+          1.4182
+        ]
+      },
+      "properties": {
+        "id": 18,
+        "name": "Yishun N8 Park Treehouse Playground",
+        "park_or_location": "Yishun N8 Park",
+        "address": "808 Yishun Ring Road, Singapore 760808",
+        "category": "HDB / Town Council Neighborhood Park",
+        "theme": "Colorful stilt treehouses & climbing mesh",
+        "age_fit": "Toddlers & Big Kids (3–12 years)",
+        "min_age": 3,
+        "max_age": 12,
+        "age_suitability_details": "Low hammocks and sensory stepping stones for 3–5 yrs; 3 multi-level connected treehouses and high tube slide for 5–12 yrs",
+        "features": [
+          "3 connected pastel treehouse towers",
+          "Net bridges",
+          "Tube slides",
+          "Hammock swings",
+          "Toddler obstacle circuit"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "PlaySG / HDB / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.9318,
+          1.3572
+        ]
+      },
+      "properties": {
+        "id": 19,
+        "name": "Tampines GreenForest Park Playground",
+        "park_or_location": "Tampines GreenForest Park",
+        "address": "879A Tampines Avenue 8, Singapore 521879",
+        "category": "HDB / Town Council Community Park",
+        "theme": "Forest adventure high-tower & cargo net",
+        "age_fit": "Big Kids (5–12 years)",
+        "min_age": 5,
+        "max_age": 12,
+        "age_suitability_details": "High climbing pyramid and 3-storey tower tube slide require upper-body strength and confidence with heights (5–12 yrs); adjacent toddler sand zone for 2–5 yrs",
+        "features": [
+          "Tall climbing tower with giant spiral tube slide",
+          "High suspension net bridge",
+          "Sand play excavation zone",
+          "Fitness corner"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "PlaySG / HDB / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 20,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8697,
+          1.4116
+        ]
+      },
+      "properties": {
+        "id": 20,
+        "name": "The Oval @ Seletar Aerospace Park Playground",
+        "park_or_location": "Seletar Aerospace Park",
+        "address": "3 Park Lane, Singapore 798387",
+        "category": "Themed Public Park Playground",
+        "theme": "Aviation propeller aeroplane & control tower",
+        "age_fit": "Toddlers & Big Kids (2–10 years)",
+        "min_age": 2,
+        "max_age": 10,
+        "age_suitability_details": "Small propeller plane and giant life-sized board games for 2–5 yrs; Air traffic control tower with spiral slide for 5–10 yrs",
+        "features": [
+          "Propeller aeroplane climbing structure",
+          "Air traffic control tower slide",
+          "Giant Ludo & Snakes and Ladders board",
+          "Runway runway swings"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.7885,
+          1.4391
+        ]
+      },
+      "properties": {
+        "id": 21,
+        "name": "Fu Shan Garden Dinosaur Playground",
+        "park_or_location": "Fu Shan Garden",
+        "address": "81 Woodlands Street 81, Singapore 730827",
+        "category": "HDB Neighborhood Park",
+        "theme": "Prehistoric dinosaur statues & cave slides",
+        "age_fit": "Toddlers & Primary Schoolers (2–10 years)",
+        "min_age": 2,
+        "max_age": 10,
+        "age_suitability_details": "Low climbing dinosaurs, cave tunnels, and stepping stones ideal for imaginative preschool and early primary play",
+        "features": [
+          "Sauropod and Tyrannosaurus climbing statues",
+          "Pterodactyl lookout",
+          "Dinosaur cave slide",
+          "Stegosaurus stepping stones"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "PlaySG / HDB / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 22,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.9022,
+          1.4068
+        ]
+      },
+      "properties": {
+        "id": 22,
+        "name": "Waterway Point Splash & Slide Happy Park",
+        "park_or_location": "Waterway Point (Level 2 Rooftop)",
+        "address": "83 Punggol Central, Singapore 828761",
+        "category": "Sheltered & Rooftop Community Play",
+        "theme": "Lily pad water fountains & wetland playground",
+        "age_fit": "Toddlers & Young Kids (2–10 years)",
+        "min_age": 2,
+        "max_age": 10,
+        "age_suitability_details": "Gentle water sprays and lily pad splash zone for 2–5 yrs; Dry climbing terraces and tube slide for 5–10 yrs",
+        "features": [
+          "Wet play splash pad with cascading water curtains",
+          "Dry play terraced climbing ramps",
+          "Tunnel slides",
+          "Overlooking Punggol Waterway"
+        ],
+        "has_water_play": true,
+        "is_sheltered": true,
+        "sources": "PlaySG / OneMap"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 23,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.7972,
+          1.2801
+        ]
+      },
+      "properties": {
+        "id": 23,
+        "name": "HortPark Nature Playgarden",
+        "park_or_location": "HortPark (Southern Ridges)",
+        "address": "33 Hyderabad Road, Singapore 119578",
+        "category": "NParks Biophilic Nature Playgarden",
+        "theme": "Sensory nature immersion & natural elements",
+        "age_fit": "Preschoolers & Early Primary (2–8 years)",
+        "min_age": 2,
+        "max_age": 8,
+        "age_suitability_details": "Designed specifically for early childhood biophilic play: bamboo teepees, gravel streams, mud kitchens, and logs tailored for ages 2–8",
+        "features": [
+          "Log teeter-totters",
+          "Bamboo teepees",
+          "Mud & sand sensory valley",
+          "Gravel balance beam",
+          "Secret garden tunnels"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 24,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.8715,
+          1.3412
+        ]
+      },
+      "properties": {
+        "id": 24,
+        "name": "Bidadari Park Playground & Alkaff Lake Play Area",
+        "park_or_location": "Bidadari Park",
+        "address": "Upper Aljunied Road / Bidadari Park Drive, Singapore 367887",
+        "category": "NParks / HDB Regional Green Space",
+        "theme": "Bird nest climbing structures & undulating hillocks",
+        "age_fit": "All Ages (2–12 years)",
+        "min_age": 2,
+        "max_age": 12,
+        "age_suitability_details": "Low terrain mounds and hollow log crawlway for 2–5 yrs; 5m Bird Nest climbing tower and obstacle ropes for 5–12 yrs",
+        "features": [
+          "5m Bird Nest tower",
+          "Hollow trunk crawling slides",
+          "Rope hill climbs",
+          "Lake boardwalk trails"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks / HDB Pulse / PlaySG"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 25,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.7765,
+          1.3489
+        ]
+      },
+      "properties": {
+        "id": 25,
+        "name": "Hindhede Nature Park Playground",
+        "park_or_location": "Hindhede Nature Park (Bukit Timah)",
+        "address": "Hindhede Drive, Singapore 589318",
+        "category": "NParks Nature Reserve Playground",
+        "theme": "Quarry forest adventure & rustic climbing",
+        "age_fit": "Big Kids (5–12 years)",
+        "min_age": 5,
+        "max_age": 12,
+        "age_suitability_details": "Rustic timber structures and zipline intended for ages 5–12; requires adult supervision for zipline",
+        "features": [
+          "Rustic wooden climbing poles",
+          "Cargo scramble nets",
+          "Forest zipline (flying fox)",
+          "Swings surrounded by rainforest"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "sources": "NParks Playgrounds Directory / PlaySG"
+      }
+    }
+  ]
+}

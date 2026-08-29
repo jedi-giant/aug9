@@ -65,7 +65,7 @@ def can_use_rule_plan(rule_plan, memory=None) -> bool:
         if not (has_origin and entities.get("destination")):
             return False
 
-    if capabilities.intersection({"weather", "food"}) and not has_location:
+    if capabilities.intersection({"weather", "food", "playgrounds"}) and not has_location:
         return False
 
     if "place_resolution" in capabilities and not (
