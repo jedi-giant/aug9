@@ -316,17 +316,20 @@ def _food_ranking_signals(
     placeholders = ", ".join(p for _ in entity_ids)
     cursor.execute(
         f"""
-        SELECT entity_id,
+        SELECT COALESCE(rel.parent_entity_id, evidence.entity_id) AS canonical_entity_id,
                COUNT(*) AS editorial_count,
-               MAX(observed_at) AS latest_observed_at
-        FROM discovery_food_evidence
-        WHERE entity_id IN ({placeholders})
-          AND dimension = 'food_quality'
-          AND evidence_type = 'editorial'
-          AND direction = 'positive'
-          AND commercial_status = 'organic'
-          AND (expires_at IS NULL OR expires_at >= {p})
-        GROUP BY entity_id
+               MAX(evidence.observed_at) AS latest_observed_at
+        FROM discovery_food_evidence evidence
+        LEFT JOIN discovery_entity_relationships rel
+          ON rel.child_entity_id = evidence.entity_id
+         AND rel.relationship_type = 'same_as'
+        WHERE COALESCE(rel.parent_entity_id, evidence.entity_id) IN ({placeholders})
+          AND evidence.dimension = 'food_quality'
+          AND evidence.evidence_type = 'editorial'
+          AND evidence.direction = 'positive'
+          AND evidence.commercial_status = 'organic'
+          AND (evidence.expires_at IS NULL OR evidence.expires_at >= {p})
+        GROUP BY COALESCE(rel.parent_entity_id, evidence.entity_id)
         """,
         (*entity_ids, now.isoformat()),
     )

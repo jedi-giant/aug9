@@ -34,6 +34,7 @@ class EntityType(StrEnum):
 class RelationshipType(StrEnum):
     CONTAINS = "contains"
     LOCATED_IN = "located_in"
+    SAME_AS = "same_as"
 
 
 class FoodEvidenceDimension(StrEnum):

@@ -17,6 +17,11 @@ from aug9.discovery.models import (
     FoodEvidenceDimension,
     FoodEvidenceType,
     SourcePermission,
+    DiscoveryEntity,
+    EntityType,
+    FieldProvenance,
+    RelationshipType,
+    SourceRecord,
 )
 from aug9.discovery.repository import DiscoveryRepository
 from aug9.discovery.sfa_food_establishments import SFA_SOURCE_ID
@@ -138,6 +143,69 @@ def test_shadow_report_handles_no_nearby_candidates(repository):
     assert report["displayed_candidate_count"] == 0
     assert report["rank_changes"] == 0
     assert report["recommended_shortlist"] == []
+
+
+def test_shadow_report_uses_editorial_evidence_from_verified_same_as_entity(
+    repository,
+):
+    external = DiscoveryEntity(
+        id="food:editorial:linked",
+        entity_type=EntityType.FOOD_VENUE,
+        name="Linked Editorial Venue",
+        latitude=1.304,
+        longitude=103.8,
+    )
+    repository.upsert_entity(
+        external,
+        SourceRecord(
+            source_id="editorial",
+            external_id="linked",
+            entity_id=external.id,
+        ),
+        [
+            FieldProvenance(
+                entity_id=external.id,
+                field_name="name",
+                source_id="editorial",
+                value=external.name,
+            )
+        ],
+    )
+    repository.upsert_food_evidence(
+        FoodEvidence(
+            id="editorial:linked",
+            entity_id=external.id,
+            external_id="linked",
+            dimension=FoodEvidenceDimension.FOOD_QUALITY,
+            evidence_type=FoodEvidenceType.EDITORIAL,
+            direction=EvidenceDirection.POSITIVE,
+            claim_key="editorial_recommendation",
+            value={"recommended": True},
+            confidence=0.8,
+            source_id="editorial",
+            observed_at=datetime(2026, 8, 1, tzinfo=UTC),
+            expires_at=datetime(2027, 8, 1, tzinfo=UTC),
+            commercial_status=CommercialStatus.ORGANIC,
+        )
+    )
+    repository.add_relationship(
+        "food:nearest",
+        external.id,
+        RelationshipType.SAME_AS,
+        source_id="editorial",
+    )
+
+    report = build_food_ranking_shadow_report(
+        DatabaseFoodProvider(limit=10, max_distance_km=3),
+        latitude=1.3,
+        longitude=103.8,
+        now=datetime(2026, 8, 29, tzinfo=UTC),
+    )
+
+    nearest = next(
+        item for item in report["candidates"] if item["entity_id"] == "food:nearest"
+    )
+    assert nearest["positive_organic_editorial_records"] == 1
 
 
 def test_shadow_report_scores_a_larger_pool_before_display_limit(repository):

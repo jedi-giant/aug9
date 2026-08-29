@@ -46,6 +46,7 @@ aug9-enrich-event-venues = "aug9.discovery.enrich_event_venues:main"
 aug9-import-playgrounds = "aug9.discovery.import_playgrounds:main"
 aug9-import-food-domain = "aug9.discovery.import_food_domain:main"
 aug9-prepare-google-takeout-food = "aug9.discovery.prepare_google_takeout_food:main"
+aug9-match-food-domain = "aug9.discovery.match_food_domain:main"
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]

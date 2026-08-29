@@ -8,7 +8,6 @@ import psycopg
 from aug9.core.context import UserContext
 from aug9.core.recommendation import RecommendationConstraints
 from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
-from aug9.discovery.food_ranking_shadow import build_food_ranking_shadow_report
 from aug9.food import get_food_recommendations
 from aug9.sg_food.provider import FoodProvider, FoodVenue
 
@@ -68,6 +67,10 @@ class SgFoodSkill(Aug9Skill):
             and longitude is not None
         ):
             try:
+                from aug9.discovery.food_ranking_shadow import (
+                    build_food_ranking_shadow_report,
+                )
+
                 report = build_food_ranking_shadow_report(
                     self.provider,
                     latitude=latitude,
