@@ -54,6 +54,16 @@ def test_planner_detects_playground_discovery():
     assert "place_resolution" in plan.required_capabilities
 
 
+def test_planner_extracts_playground_preferences():
+    plan = create_plan(
+        "Find a sheltered water-play playground for ages 3 and 7 near me"
+    )
+
+    assert plan.entities["child_ages"] == [3, 7]
+    assert plan.entities["water_play"] is True
+    assert plan.entities["sheltered"] is True
+
+
 def test_planner_detects_government_service_request():
     plan = create_plan("How do I renew my Singapore passport?")
 

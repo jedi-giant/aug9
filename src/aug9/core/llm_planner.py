@@ -13,6 +13,9 @@ class PlanEntities(BaseModel):
     meal_type: str | None = None
     dietary_preferences: list[str] = Field(default_factory=list)
     open_now: bool = False
+    child_ages: list[int] = Field(default_factory=list)
+    water_play: bool = False
+    sheltered: bool = False
 
 
 class LLMPlan(BaseModel):

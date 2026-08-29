@@ -24,20 +24,40 @@ class Playground:
     features: tuple[str, ...] = ()
     has_water_play: bool = False
     is_sheltered: bool = False
+    min_age: int | None = None
+    max_age: int | None = None
 
 
 class PlaygroundProvider(Protocol):
-    def discover(self, *, latitude: float | None, longitude: float | None) -> list[Playground]: ...
+    def discover(
+        self,
+        *,
+        latitude: float | None,
+        longitude: float | None,
+        child_ages: tuple[int, ...] = (),
+        water_play: bool = False,
+        sheltered: bool = False,
+        prefer_sheltered: bool = False,
+    ) -> list[Playground]: ...
 
 
 class DatabasePlaygroundProvider:
-    def __init__(self, repository: DiscoveryRepository | None = None, *, limit: int = 5) -> None:
+    def __init__(self, repository: DiscoveryRepository | None = None, *, limit: int = 3) -> None:
         if limit < 1 or limit > 20:
             raise ValueError("limit must be between 1 and 20")
         self.repository = repository or DiscoveryRepository()
         self.limit = limit
 
-    def discover(self, *, latitude: float | None, longitude: float | None) -> list[Playground]:
+    def discover(
+        self,
+        *,
+        latitude: float | None,
+        longitude: float | None,
+        child_ages: tuple[int, ...] = (),
+        water_play: bool = False,
+        sheltered: bool = False,
+        prefer_sheltered: bool = False,
+    ) -> list[Playground]:
         try:
             conn = database.get_connection()
             cursor = conn.cursor()
@@ -80,10 +100,33 @@ class DatabasePlaygroundProvider:
                     features=tuple(properties.get("features") or ()),
                     has_water_play=bool(properties.get("has_water_play")),
                     is_sheltered=bool(properties.get("is_sheltered")),
+                    min_age=properties.get("min_age"),
+                    max_age=properties.get("max_age"),
                 )
             )
-        if latitude is not None and longitude is not None:
-            results.sort(key=lambda item: item.distance_km or float("inf"))
+        if child_ages:
+            results = [
+                item
+                for item in results
+                if item.min_age is not None
+                and item.max_age is not None
+                and all(item.min_age <= age <= item.max_age for age in child_ages)
+            ]
+        if water_play:
+            results = [item for item in results if item.has_water_play]
+        if sheltered:
+            results = [item for item in results if item.is_sheltered]
+        results.sort(
+            key=lambda item: (
+                (
+                    item.distance_km
+                    if item.distance_km is not None
+                    else float("inf")
+                )
+                - (2.0 if prefer_sheltered and item.is_sheltered else 0.0),
+                item.name,
+            )
+        )
         return results[: self.limit]
 
     @staticmethod

@@ -14,7 +14,7 @@ class Plan(BaseModel):
 
 def extract_entities(
     user_input: str,
-) -> dict[str, str]:
+) -> dict[str, Any]:
 
     entities = {}
 
@@ -37,6 +37,27 @@ def extract_entities(
     if "from" in lowered and "to" in lowered and len(matched_locations) >= 2:
         entities["origin"] = matched_locations[0]
         entities["destination"] = matched_locations[1]
+
+    ages = {
+        int(value)
+        for pattern in (
+            r"\b(\d{1,2})\s*[- ]?year[- ]old\b",
+            r"\baged?\s+(\d{1,2})\b",
+            r"\bages?\s+(\d{1,2})(?:\s*(?:and|&)\s*(\d{1,2}))?",
+        )
+        for match in re.finditer(pattern, lowered)
+        for value in match.groups()
+        if value is not None and 0 <= int(value) <= 17
+    }
+    if ages:
+        entities["child_ages"] = sorted(ages)
+    if any(
+        phrase in lowered
+        for phrase in ("water play", "water-play", "water playground", "splash")
+    ):
+        entities["water_play"] = True
+    if any(word in lowered for word in ("sheltered", "indoor", "under cover")):
+        entities["sheltered"] = True
 
     return entities
 

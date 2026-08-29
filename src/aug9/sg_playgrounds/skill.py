@@ -22,9 +22,34 @@ class SgPlaygroundsSkill(Aug9Skill):
         place = context.current_place
         latitude = place.latitude if place else None
         longitude = place.longitude if place else None
-        playgrounds = self.provider.discover(latitude=latitude, longitude=longitude)
+        child_ages = tuple(
+            age for age in entities.get("child_ages", []) if isinstance(age, int)
+        )
+        water_play = entities.get("water_play") is True
+        sheltered = entities.get("sheltered") is True
+        intent = (context.intent or "").casefold()
+        wet_weather = any(word in intent for word in ("rain", "rainy", "wet weather"))
+        playgrounds = self.provider.discover(
+            latitude=latitude,
+            longitude=longitude,
+            child_ages=child_ages,
+            water_play=water_play,
+            sheltered=sheltered,
+            prefer_sheltered=wet_weather and not sheltered,
+        )
         if not playgrounds:
-            return SkillResult(success=False, summary="I couldn't find a matching playground yet.")
+            criteria = []
+            if child_ages:
+                criteria.append("the requested ages")
+            if water_play:
+                criteria.append("water play")
+            if sheltered:
+                criteria.append("shelter")
+            suffix = " for " + ", ".join(criteria) if criteria else " nearby"
+            return SkillResult(
+                success=False,
+                summary=f"I couldn't find a playground matching your preferences{suffix}.",
+            )
         descriptions = []
         for playground in playgrounds:
             distance = (
@@ -39,10 +64,34 @@ class SgPlaygroundsSkill(Aug9Skill):
                 details.append("sheltered")
             suffix = " — " + ", ".join(details) if details else ""
             descriptions.append(f"{playground.name}{suffix}")
+        preference_summary = []
+        if child_ages:
+            preference_summary.append(
+                "ages " + ", ".join(str(age) for age in child_ages)
+            )
+        if water_play:
+            preference_summary.append("water play")
+        if sheltered or wet_weather:
+            preference_summary.append("shelter")
+        opening = (
+            "These are the strongest nearby matches for "
+            + ", ".join(preference_summary)
+            + ": "
+            if preference_summary
+            else "Here are three nearby playgrounds to consider: "
+        )
         return SkillResult(
             success=True,
-            data={"playgrounds": [playground.__dict__ for playground in playgrounds]},
-            summary="Here are a few playgrounds to consider: " + "; ".join(descriptions) + ".",
+            data={
+                "playgrounds": [playground.__dict__ for playground in playgrounds],
+                "filters": {
+                    "child_ages": list(child_ages),
+                    "water_play": water_play,
+                    "sheltered": sheltered,
+                    "weather_aware_shelter_preference": wet_weather and not sheltered,
+                },
+            },
+            summary=opening + "; ".join(descriptions) + ".",
             actions=[
                 SkillAction(
                     type="open_url",
