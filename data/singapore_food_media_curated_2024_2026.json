@@ -1,0 +1,3014 @@
+{
+  "schema_version": "aug9.food-domain.v1",
+  "generated_at": "2026-08-29T12:00:00+08:00",
+  "source": {
+    "id": "singapore_food_media_curated_2024_2026",
+    "name": "Singapore Food Media Curated Collection (2024–2026)",
+    "permission": "legal_reviewed",
+    "attribution": "Curated from Miss Tam Chiak, ieatishootipost, SETHLUI.com, DanielFoodDiary, and Eatbook.sg with source URLs retained"
+  },
+  "places": [
+    {
+      "external_id": "ieat-anto-pizza-001",
+      "entity_type": "food_venue",
+      "name": "ANTO pizza e aperitivi",
+      "description": "Top-rated authentic Neapolitan pizzeria on Jiak Chuan Road ranked #15 in 50 Top Pizza Asia-Pacific 2026.",
+      "status": "active",
+      "location": {
+        "address": "2 Jiak Chuan Road",
+        "postal_code": "089260",
+        "latitude": 1.2801,
+        "longitude": 103.8415,
+        "unit_number": null,
+        "neighbourhood": "Chinatown / Keong Saik"
+      },
+      "parent": {
+        "external_id": "jiak-chuan-shophouses",
+        "name": "Jiak Chuan Conservation Shophouses",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Italian",
+          "Neapolitan Pizza",
+          "Aperitivi"
+        ],
+        "signature_dishes": [
+          "Napoletana Pizza with Long Fermentation",
+          "Burrata Pizza",
+          "Artisanal Aperitivi"
+        ],
+        "dietary_attributes": [
+          "Vegetarian Options"
+        ],
+        "price": {
+          "currency": "SGD",
+          "minimum": 30,
+          "maximum": 75
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        }
+      ],
+      "contact": {
+        "website": "https://antopizza.com",
+        "telephone": "96896869",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "ieat-evidence-anto-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "50 Top Pizza Asia-Pacific 2026 (#15 in APAC / #1 in SG)"
+          },
+          "dish_name": "Neapolitan Sourdough Pizza",
+          "confidence": 0.95,
+          "commercial_status": "organic",
+          "source_name": "ieatishootipost",
+          "source_url": "https://ieatishootipost.sg/anto-pizza-e-apertivi-whats-the-fuss-with-singapores-highest-rated-pizzeria/",
+          "observed_at": "2026-06-10T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://ieatishootipost.sg/anto-pizza-e-apertivi-whats-the-fuss-with-singapores-highest-rated-pizzeria/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Reviewed by Dr. Leslie Tay in June 2026."
+      }
+    },
+    {
+      "external_id": "ieat-eastern-house-002",
+      "entity_type": "food_venue",
+      "name": "Eastern House of Seafood",
+      "description": "Acclaimed traditional Cantonese and Malaysian-style zi char restaurant in Marymount.",
+      "status": "active",
+      "location": {
+        "address": "37 Jalan Pemimpin #B1-02 Mapex",
+        "postal_code": "577177",
+        "latitude": 1.3524,
+        "longitude": 103.8443,
+        "unit_number": "#B1-02",
+        "neighbourhood": "Marymount / Bishan"
+      },
+      "parent": {
+        "external_id": "mapex-building",
+        "name": "Mapex Building",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Singaporean",
+          "Chinese",
+          "Cantonese",
+          "Zi Char",
+          "Seafood"
+        ],
+        "signature_dishes": [
+          "Salted Egg Crab",
+          "KL-Style Dark Hokkien Mee",
+          "Signature Herbal Crab",
+          "Claypot Tofu"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 25,
+          "maximum": 65
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 2,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": "91508172",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "ieat-evidence-eastern-house-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "ieatishootipost 20th Anniversary Dinner Host Venue"
+          },
+          "dish_name": "KL-Style Dark Hokkien Mee & Crabs",
+          "confidence": 0.94,
+          "commercial_status": "organic",
+          "source_name": "ieatishootipost",
+          "source_url": "https://ieatishootipost.sg/ieat-20th-anniversary-dinner-eastern-house-of-seafood/",
+          "observed_at": "2026-08-18T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://ieatishootipost.sg/ieat-20th-anniversary-dinner-eastern-house-of-seafood/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published August 2026."
+      }
+    },
+    {
+      "external_id": "mtc-pure-gem-003",
+      "entity_type": "food_venue",
+      "name": "Pure Gem Chinese Cuisine 璞珍.精致潮粤菜",
+      "description": "Refined Chaozhou and Cantonese seafood restaurant in the CBD celebrating classic wok craftsmanship and fresh crabs.",
+      "status": "active",
+      "location": {
+        "address": "60 Robinson Road #01-00/#02-00 BEA Building",
+        "postal_code": "068892",
+        "latitude": 1.2796,
+        "longitude": 103.8498,
+        "unit_number": "#01-00/#02-00",
+        "neighbourhood": "Downtown / CBD"
+      },
+      "parent": {
+        "external_id": "bea-building",
+        "name": "BEA Building",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Chinese",
+          "Cantonese",
+          "Teochew",
+          "Seafood"
+        ],
+        "signature_dishes": [
+          "Singapore Chilli Crab",
+          "Teochew Cold Crab",
+          "Braised Superior Broth Shark Fin"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 40,
+          "maximum": 120
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "11:30",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "11:30",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "11:30",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "11:30",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "11:30",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "11:30",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "11:30",
+          "closes_at": "22:30"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": "69701788",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-pure-gem-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review 2026"
+          },
+          "dish_name": "Singapore Chilli Crab Specials",
+          "confidence": 0.92,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-08-01T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published August 2026."
+      }
+    },
+    {
+      "external_id": "mtc-plu-goodwood-004",
+      "entity_type": "food_venue",
+      "name": "PLU at Goodwood Park Hotel",
+      "description": "Bangkok Michelin Bib Gourmand Thai restaurant branch at Goodwood Park Hotel.",
+      "status": "active",
+      "location": {
+        "address": "22 Scotts Road",
+        "postal_code": "228221",
+        "latitude": 1.3094,
+        "longitude": 103.8344,
+        "unit_number": "Lobby Level",
+        "neighbourhood": "Orchard"
+      },
+      "parent": {
+        "external_id": "goodwood-park-hotel",
+        "name": "Goodwood Park Hotel",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Thai",
+          "Southeast Asian"
+        ],
+        "signature_dishes": [
+          "Thai Crab Curry",
+          "Tom Yum Goong",
+          "Grilled Pork Neck"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 30,
+          "maximum": 85
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        }
+      ],
+      "contact": {
+        "website": "https://www.goodwoodparkhotel.com",
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-plu-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "Michelin Bib Gourmand Bangkok Outpost"
+          },
+          "dish_name": "Thai Crab Curry",
+          "confidence": 0.93,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-06-01T00:00:00+08:00"
+        },
+        {
+          "external_id": "mtc-evidence-plu",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "Michelin Bib Gourmand (Bangkok) Singapore Branch"
+          },
+          "dish_name": "Authentic Thai Dishes",
+          "confidence": 0.92,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-08-29T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published June 2026."
+      }
+    },
+    {
+      "external_id": "sethlui-rajarani-thosai-005",
+      "entity_type": "food_stall",
+      "name": "Rajarani Thosai",
+      "description": "Traditional South Indian stall famous for freshly made paper thosai, appam, and crispy vadai at Tampines Round Market.",
+      "status": "active",
+      "location": {
+        "address": "137 Tampines Street 11 #01-33",
+        "postal_code": "521137",
+        "latitude": 1.3468,
+        "longitude": 103.9442,
+        "unit_number": "#01-33",
+        "neighbourhood": "Tampines"
+      },
+      "parent": {
+        "external_id": "tampines-round-market-food-centre",
+        "name": "Tampines Round Market & Food Centre",
+        "entity_type": "hawker_centre"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Indian",
+          "South Indian",
+          "Vegetarian"
+        ],
+        "signature_dishes": [
+          "Masala Thosai",
+          "Egg Appam with Coconut Milk",
+          "Medu Vadai"
+        ],
+        "dietary_attributes": [
+          "Vegetarian Options",
+          "Halal-Friendly"
+        ],
+        "price": {
+          "currency": "SGD",
+          "minimum": 2,
+          "maximum": 6
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "07:15",
+          "closes_at": "13:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "07:15",
+          "closes_at": "13:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "07:15",
+          "closes_at": "13:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "07:15",
+          "closes_at": "13:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "07:15",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "07:15",
+          "closes_at": "13:30"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": false,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "sethlui-evidence-rajarani-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "Michelin Bib Gourmand 2026 New Entrant"
+          },
+          "dish_name": "Masala Thosai & Appam",
+          "confidence": 0.93,
+          "commercial_status": "organic",
+          "source_name": "SETHLUI.com",
+          "source_url": "https://sethlui.com/michelin-guide-singapore-aug-2026/",
+          "observed_at": "2026-08-04T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://sethlui.com/michelin-guide-singapore-aug-2026/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in August 2026 Michelin Guide Singapore coverage."
+      }
+    },
+    {
+      "external_id": "sethlui-boon-keng-fishhead-006",
+      "entity_type": "food_stall",
+      "name": "Boon Keng Road Fish Head Bee Hoon",
+      "description": "Acclaimed stall at Upper Boon Keng Market serving thick, comforting fish head soup and crispy fried fish slices.",
+      "status": "active",
+      "location": {
+        "address": "17 Upper Boon Keng Road #01-05",
+        "postal_code": "380017",
+        "latitude": 1.3142,
+        "longitude": 103.8715,
+        "unit_number": "#01-05",
+        "neighbourhood": "Kallang / Boon Keng"
+      },
+      "parent": {
+        "external_id": "upper-boon-keng-market-food-centre",
+        "name": "Upper Boon Keng Market & Food Centre",
+        "entity_type": "hawker_centre"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Singaporean",
+          "Chinese",
+          "Seafood"
+        ],
+        "signature_dishes": [
+          "Fried Fish Head Bee Hoon",
+          "Sliced Fish Soup with Bittergourd",
+          "Seafood Soup"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 5.5,
+          "maximum": 12
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "08:30",
+          "closes_at": "19:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "08:30",
+          "closes_at": "19:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "08:30",
+          "closes_at": "19:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "08:30",
+          "closes_at": "19:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "08:30",
+          "closes_at": "19:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "08:30",
+          "closes_at": "19:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": false,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "sethlui-evidence-boon-keng-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "Michelin Bib Gourmand 2026 New Entrant"
+          },
+          "dish_name": "Fried Fish Head Bee Hoon",
+          "confidence": 0.94,
+          "commercial_status": "organic",
+          "source_name": "SETHLUI.com",
+          "source_url": "https://sethlui.com/michelin-guide-singapore-aug-2026/",
+          "observed_at": "2026-08-04T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://sethlui.com/michelin-guide-singapore-aug-2026/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in 2026 Michelin Guide coverage."
+      }
+    },
+    {
+      "external_id": "sethlui-hup-kee-oyster-007",
+      "entity_type": "food_stall",
+      "name": "Hup Kee Fried Oyster Omelette",
+      "description": "Veteran stall at Newton Food Centre serving crispy, gooey starch fried oyster omelette with plump oysters.",
+      "status": "active",
+      "location": {
+        "address": "500 Clemenceau Avenue North #01-73",
+        "postal_code": "229495",
+        "latitude": 1.312,
+        "longitude": 103.8398,
+        "unit_number": "#01-73",
+        "neighbourhood": "Newton"
+      },
+      "parent": {
+        "external_id": "newton-food-centre",
+        "name": "Newton Food Centre",
+        "entity_type": "hawker_centre"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Singaporean",
+          "Teochew",
+          "Seafood"
+        ],
+        "signature_dishes": [
+          "Crispy Fried Oyster Omelette (Orh Luak)",
+          "Oyster Egg"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 6,
+          "maximum": 12
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 2,
+          "opens_at": "18:00",
+          "closes_at": "23:30"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "18:00",
+          "closes_at": "23:30"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "18:00",
+          "closes_at": "23:30"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "18:00",
+          "closes_at": "23:30"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "18:00",
+          "closes_at": "23:30"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "18:00",
+          "closes_at": "23:30"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": false,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "sethlui-evidence-hup-kee-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "Michelin Bib Gourmand 2026 New Entrant"
+          },
+          "dish_name": "Fried Oyster Omelette",
+          "confidence": 0.92,
+          "commercial_status": "organic",
+          "source_name": "SETHLUI.com",
+          "source_url": "https://sethlui.com/michelin-guide-singapore-aug-2026/",
+          "observed_at": "2026-08-04T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://sethlui.com/michelin-guide-singapore-aug-2026/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in August 2026 Michelin Guide announcement."
+      }
+    },
+    {
+      "external_id": "dfd-jia-xiang-008",
+      "entity_type": "food_stall",
+      "name": "Jia Xiang (家香)",
+      "description": "Chinatown Complex stall renowned for handmade Teochew rice cakes, dumplings, and heritage snacks.",
+      "status": "active",
+      "location": {
+        "address": "335 Smith Street #02-196",
+        "postal_code": "050335",
+        "latitude": 1.2824,
+        "longitude": 103.8432,
+        "unit_number": "#02-196",
+        "neighbourhood": "Chinatown"
+      },
+      "parent": {
+        "external_id": "chinatown-complex-food-centre",
+        "name": "Chinatown Complex Food Centre",
+        "entity_type": "hawker_centre"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Singaporean",
+          "Teochew",
+          "Chinese"
+        ],
+        "signature_dishes": [
+          "Teochew Soon Kueh",
+          "Peng Kueh",
+          "Ku Chai Kueh"
+        ],
+        "dietary_attributes": [
+          "Vegetarian Options"
+        ],
+        "price": {
+          "currency": "SGD",
+          "minimum": 1.5,
+          "maximum": 6
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 2,
+          "opens_at": "07:30",
+          "closes_at": "14:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "07:30",
+          "closes_at": "14:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "07:30",
+          "closes_at": "14:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "07:30",
+          "closes_at": "14:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "07:30",
+          "closes_at": "14:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "07:30",
+          "closes_at": "14:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "dfd-evidence-jia-xiang-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "Michelin Bib Gourmand 2026 New Entrant"
+          },
+          "dish_name": "Handmade Teochew Kueh",
+          "confidence": 0.93,
+          "commercial_status": "organic",
+          "source_name": "DanielFoodDiary",
+          "source_url": "https://danielfooddiary.com/2026/08/04/michelinsingapore2026/",
+          "observed_at": "2026-08-04T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://danielfooddiary.com/2026/08/04/michelinsingapore2026/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in August 2026 Michelin Guide Singapore coverage."
+      }
+    },
+    {
+      "external_id": "dfd-zuicho-009",
+      "entity_type": "food_venue",
+      "name": "Zuicho (Mandarin Oriental Singapore)",
+      "description": "High-end Japanese Kappo restaurant at Mandarin Oriental Singapore awarded Michelin recognition.",
+      "status": "active",
+      "location": {
+        "address": "5 Raffles Avenue Level 3 Mandarin Oriental",
+        "postal_code": "039797",
+        "latitude": 1.2908,
+        "longitude": 103.8582,
+        "unit_number": "Level 3",
+        "neighbourhood": "Marina Bay"
+      },
+      "parent": {
+        "external_id": "mandarin-oriental-singapore",
+        "name": "Mandarin Oriental Singapore",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Japanese",
+          "Kappo",
+          "Kaiseki"
+        ],
+        "signature_dishes": [
+          "Seasonal Kappo Omakase",
+          "Kuroge Wagyu Tenderloin",
+          "Claypot Seasonal Rice"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 250,
+          "maximum": 450
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "12:00",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "12:00",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "12:00",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "12:00",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "12:00",
+          "closes_at": "22:30"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "12:00",
+          "closes_at": "22:30"
+        }
+      ],
+      "contact": {
+        "website": "https://www.mandarinoriental.com/singapore",
+        "telephone": "68853595",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": false
+      },
+      "evidence": [
+        {
+          "external_id": "dfd-evidence-zuicho-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "MICHELIN Selected Singapore 2026"
+          },
+          "dish_name": "Kappo Tasting Menu",
+          "confidence": 0.95,
+          "commercial_status": "organic",
+          "source_name": "DanielFoodDiary",
+          "source_url": "https://danielfooddiary.com/2026/08/04/michelinsingapore2026/",
+          "observed_at": "2026-08-04T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://danielfooddiary.com/2026/08/04/michelinsingapore2026/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in August 2026 Michelin Guide coverage."
+      }
+    },
+    {
+      "external_id": "dfd-54-steakhouse-010",
+      "entity_type": "food_venue",
+      "name": "54° Steakhouse",
+      "description": "Contemporary artisanal steakhouse on Amoy Street offering precision-grilled prime cuts and curated sides.",
+      "status": "active",
+      "location": {
+        "address": "54 Amoy Street",
+        "postal_code": "069880",
+        "latitude": 1.2805,
+        "longitude": 103.8475,
+        "unit_number": null,
+        "neighbourhood": "Telok Ayer / CBD"
+      },
+      "parent": {
+        "external_id": "amoy-street-shophouses",
+        "name": "Amoy Street Shophouses",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Western",
+          "Steakhouse",
+          "American"
+        ],
+        "signature_dishes": [
+          "Dry-Aged Bone-in Ribeye",
+          "Charcoal-Grilled Wagyu",
+          "Truffle Mac and Cheese"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 65,
+          "maximum": 180
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": "88937701",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "dfd-evidence-54steak-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "MICHELIN Selected Singapore 2026"
+          },
+          "dish_name": "Dry-Aged Wagyu Ribeye",
+          "confidence": 0.92,
+          "commercial_status": "organic",
+          "source_name": "DanielFoodDiary",
+          "source_url": "https://danielfooddiary.com/2026/08/04/michelinsingapore2026/",
+          "observed_at": "2026-08-04T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://danielfooddiary.com/2026/08/04/michelinsingapore2026/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in August 2026 Michelin selection."
+      }
+    },
+    {
+      "external_id": "eatbook-seroja-011",
+      "entity_type": "food_venue",
+      "name": "Seroja",
+      "description": "Michelin 1-Star & Green Star restaurant at Duo Galleria championing the culinary traditions of the Malay Archipelago.",
+      "status": "active",
+      "location": {
+        "address": "7 Fraser Street #01-30/33 Duo Galleria",
+        "postal_code": "189356",
+        "latitude": 1.3001,
+        "longitude": 103.8588,
+        "unit_number": "#01-30/33",
+        "neighbourhood": "Bugis"
+      },
+      "parent": {
+        "external_id": "duo-galleria",
+        "name": "Duo Galleria",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Malay Archipelago",
+          "Southeast Asian",
+          "Contemporary"
+        ],
+        "signature_dishes": [
+          "Nusantara Degustation Menu",
+          "Slow-Cooked Short Ribs with Kerisik",
+          "Borneo Rice Porridge"
+        ],
+        "dietary_attributes": [
+          "Sustainable Sourcing"
+        ],
+        "price": {
+          "currency": "SGD",
+          "minimum": 188,
+          "maximum": 298
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 2,
+          "opens_at": "18:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "18:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "18:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "12:00",
+          "closes_at": "23:00"
+        }
+      ],
+      "contact": {
+        "website": "https://seroja.sg",
+        "telephone": "85222926",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": false
+      },
+      "evidence": [
+        {
+          "external_id": "eatbook-evidence-seroja-2025",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "1-Michelin Star & Green Star / Eatbook Top Eatery"
+          },
+          "dish_name": "Malay Archipelago Tasting Menu",
+          "confidence": 0.96,
+          "commercial_status": "organic",
+          "source_name": "Eatbook",
+          "source_url": "https://eatbook.sg/tag/best-eateries-2025/",
+          "observed_at": "2025-11-01T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://eatbook.sg/tag/best-eateries-2025/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in Eatbook Best Eateries series."
+      }
+    },
+    {
+      "external_id": "eatbook-seng-kee-012",
+      "entity_type": "food_venue",
+      "name": "Seng Kee Black Chicken Herbal Soup (成基黑鸡药补)",
+      "description": "Legendary supper restaurant along Changi Road renowned for its herbal black chicken soup and pork kidney mee sua.",
+      "status": "active",
+      "location": {
+        "address": "475 Changi Road",
+        "postal_code": "419892",
+        "latitude": 1.3198,
+        "longitude": 103.9082,
+        "unit_number": null,
+        "neighbourhood": "Kembangan / Eunos"
+      },
+      "parent": {
+        "external_id": "changi-road-shophouses",
+        "name": "Changi Road Shophouses",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Singaporean",
+          "Chinese",
+          "Herbal Soup",
+          "Zi Char"
+        ],
+        "signature_dishes": [
+          "Black Chicken Herbal Soup",
+          "Pork Kidney Mee Sua",
+          "Chao Ta Bee Hoon"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 6,
+          "maximum": 25
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "11:00",
+          "closes_at": "02:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "11:00",
+          "closes_at": "02:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "11:00",
+          "closes_at": "02:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "11:00",
+          "closes_at": "02:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "11:00",
+          "closes_at": "02:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "11:00",
+          "closes_at": "02:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "11:00",
+          "closes_at": "02:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": "67464089",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "eatbook-evidence-seng-kee-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "award_or_recognition",
+          "value": {
+            "recognition": "Michelin Bib Gourmand 2026 New Entrant"
+          },
+          "dish_name": "Pork Kidney Mee Sua & Herbal Soup",
+          "confidence": 0.94,
+          "commercial_status": "organic",
+          "source_name": "Eatbook",
+          "source_url": "https://eatbook.sg/tag/best-singapore-food/",
+          "observed_at": "2026-08-04T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://eatbook.sg/tag/best-singapore-food/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in Eatbook Singapore Food Guides 2026."
+      }
+    },
+    {
+      "external_id": "mtc-fai-kee-fishhead-013",
+      "entity_type": "food_stall",
+      "name": "Fai Kee Fishhead Bee Hoon",
+      "description": "50-year-old Cantonese zi char and fish head bee hoon stall at Commonwealth Crescent.",
+      "status": "active",
+      "location": {
+        "address": "31 Commonwealth Crescent #02-74",
+        "postal_code": "149644",
+        "latitude": 1.3069,
+        "longitude": 103.8001,
+        "unit_number": "#02-74",
+        "neighbourhood": "Commonwealth"
+      },
+      "parent": {
+        "external_id": "commonwealth-crescent-market-food-centre",
+        "name": "Commonwealth Crescent Market & Food Centre",
+        "entity_type": "hawker_centre"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Singaporean",
+          "Cantonese",
+          "Zi Char"
+        ],
+        "signature_dishes": [
+          "Fishhead Bee Hoon",
+          "Fried Fish Head Soup",
+          "Cantonese Zi Char"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 6,
+          "maximum": 18
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 2,
+          "opens_at": "15:00",
+          "closes_at": "21:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "15:00",
+          "closes_at": "21:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "15:00",
+          "closes_at": "21:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "15:00",
+          "closes_at": "21:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "15:00",
+          "closes_at": "21:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": false,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-fai-kee-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review 2026"
+          },
+          "dish_name": "Fishhead Bee Hoon",
+          "confidence": 0.92,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-07-01T00:00:00+08:00"
+        },
+        {
+          "external_id": "mtc-evidence-fai-kee",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review"
+          },
+          "dish_name": "Fishhead Bee Hoon",
+          "confidence": 0.9,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-08-29T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published July 2026."
+      }
+    },
+    {
+      "external_id": "mtc-chai-chee-kway-chap-014",
+      "entity_type": "food_stall",
+      "name": "Chai Chee Kway Chap",
+      "description": "Famous braised kway chap stall at Bedok 216 serving tender braised pork belly and silky kway.",
+      "status": "active",
+      "location": {
+        "address": "216 Bedok North Street 1 #01-38",
+        "postal_code": "460216",
+        "latitude": 1.3262,
+        "longitude": 103.9332,
+        "unit_number": "#01-38",
+        "neighbourhood": "Bedok"
+      },
+      "parent": {
+        "external_id": "bedok-216-market-food-centre",
+        "name": "Bedok 216 Market & Food Centre",
+        "entity_type": "hawker_centre"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Singaporean",
+          "Teochew",
+          "Chinese"
+        ],
+        "signature_dishes": [
+          "Kway Chap",
+          "Braised Pork Belly",
+          "Braised Intestines",
+          "Tau Pok"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 4,
+          "maximum": 12
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 3,
+          "opens_at": "06:30",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "06:30",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "06:30",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "06:30",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "06:30",
+          "closes_at": "13:30"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": false,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-chai-chee-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review 2026"
+          },
+          "dish_name": "Kway Chap",
+          "confidence": 0.89,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-06-01T00:00:00+08:00"
+        },
+        {
+          "external_id": "mtc-evidence-chai-chee-kway-chap",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review"
+          },
+          "dish_name": "Kway Chap",
+          "confidence": 0.88,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-08-29T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published June 2026."
+      }
+    },
+    {
+      "external_id": "mtc-hoe-hokkien-015",
+      "entity_type": "food_stall",
+      "name": "Hoe Hokkien Mee",
+      "description": "Traditional old-school fried Hokkien prawn mee stall at North Bridge Road Market & Food Centre.",
+      "status": "active",
+      "location": {
+        "address": "861 North Bridge Road #01-93",
+        "postal_code": "198783",
+        "latitude": 1.3054,
+        "longitude": 103.8617,
+        "unit_number": "#01-93",
+        "neighbourhood": "Kampong Glam / Jalan Sultan"
+      },
+      "parent": {
+        "external_id": "north-bridge-road-market-food-centre",
+        "name": "North Bridge Road Market & Food Centre",
+        "entity_type": "hawker_centre"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Singaporean",
+          "Hokkien",
+          "Chinese"
+        ],
+        "signature_dishes": [
+          "Fried Hokkien Prawn Mee",
+          "Crispy Pork Lard Hokkien Mee"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 5,
+          "maximum": 10
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 2,
+          "opens_at": "11:00",
+          "closes_at": "19:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "11:00",
+          "closes_at": "19:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "11:00",
+          "closes_at": "19:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "11:00",
+          "closes_at": "19:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "11:00",
+          "closes_at": "19:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "11:00",
+          "closes_at": "19:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": false,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-hoe-hokkien-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review 2026"
+          },
+          "dish_name": "Fried Hokkien Mee",
+          "confidence": 0.9,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-05-01T00:00:00+08:00"
+        },
+        {
+          "external_id": "mtc-evidence-hoe-hokkien-mee",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review"
+          },
+          "dish_name": "Fried Hokkien Mee",
+          "confidence": 0.89,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-08-29T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published May 2026."
+      }
+    },
+    {
+      "external_id": "mtc-niku-niku-westgate-016",
+      "entity_type": "food_venue",
+      "name": "Niku Niku Oh!! Kome (Westgate)",
+      "description": "Live teppan Japanese hamburg steak restaurant at Westgate with premium beef and free-flow Japanese rice.",
+      "status": "active",
+      "location": {
+        "address": "3 Gateway Drive #B1-01 Westgate",
+        "postal_code": "608532",
+        "latitude": 1.3344,
+        "longitude": 103.7431,
+        "unit_number": "#B1-01",
+        "neighbourhood": "Jurong East"
+      },
+      "parent": {
+        "external_id": "westgate",
+        "name": "Westgate",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Japanese",
+          "Steakhouse"
+        ],
+        "signature_dishes": [
+          "Live Teppan Hamburg Steak",
+          "Cheese Hamburg Steak Set",
+          "Free-Flow Niigata Rice"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 16.8,
+          "maximum": 35
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-niku-niku-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review 2026"
+          },
+          "dish_name": "Live Teppan Hamburg Steaks",
+          "confidence": 0.9,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-05-01T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published May 2026."
+      }
+    },
+    {
+      "external_id": "mtc-xiang-xiang-amk-017",
+      "entity_type": "food_venue",
+      "name": "Xiang Xiang Hunan Cuisine (AMK Hub)",
+      "description": "Spicy, wok-tossed authentic Hunan dishes and sour-spicy fish at AMK Hub.",
+      "status": "active",
+      "location": {
+        "address": "53 Ang Mo Kio Avenue 3 #02-26",
+        "postal_code": "569933",
+        "latitude": 1.3695,
+        "longitude": 103.8483,
+        "unit_number": "#02-26",
+        "neighbourhood": "Ang Mo Kio"
+      },
+      "parent": {
+        "external_id": "amk-hub",
+        "name": "AMK Hub",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Chinese",
+          "Hunan",
+          "Spicy"
+        ],
+        "signature_dishes": [
+          "Hunan Stir-Fry Pork",
+          "Golden Broth Sour and Spicy Fish",
+          "18-Second Angus Beef Stir-Fry"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 20,
+          "maximum": 45
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "11:00",
+          "closes_at": "21:30"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "11:00",
+          "closes_at": "21:30"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "11:00",
+          "closes_at": "21:30"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "11:00",
+          "closes_at": "21:30"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-xiang-xiang-2025",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Food Guide 2025"
+          },
+          "dish_name": "Hunan Stir-Fry Pork",
+          "confidence": 0.9,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/amk-hub-food/",
+          "observed_at": "2025-01-22T00:00:00+08:00"
+        },
+        {
+          "external_id": "mtc-evidence-xiang-xiang",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Featured in Miss Tam Chiak Food Guides (AMK Hub)"
+          },
+          "dish_name": "Hunan Stir-Fry Pork",
+          "confidence": 0.89,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/amk-hub-food/",
+          "observed_at": "2026-08-29T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/amk-hub-food/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published January 2025 in AMK Hub Guide."
+      }
+    },
+    {
+      "external_id": "mtc-legendary-hk-018",
+      "entity_type": "food_venue",
+      "name": "Legendary Hong Kong Restaurant @ Jurong Point",
+      "description": "Iconic Cha Chaan Teng serving Hong Kong roast meats, wanton noodles, and dim sum.",
+      "status": "active",
+      "location": {
+        "address": "63 Jurong West Central 3 #03-80",
+        "postal_code": "648331",
+        "latitude": 1.3403,
+        "longitude": 103.7061,
+        "unit_number": "#03-80",
+        "neighbourhood": "Jurong West"
+      },
+      "parent": {
+        "external_id": "jurong-point",
+        "name": "Jurong Point",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Hong Kong",
+          "Cantonese",
+          "Chinese"
+        ],
+        "signature_dishes": [
+          "Roasted London Duck",
+          "Crispy Pork Belly",
+          "Custard Crust Bun with Butter"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 18,
+          "maximum": 40
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "10:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "10:00",
+          "closes_at": "22:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": "92973511",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-legendary-hk-2024",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Jurong Point Guide 2024"
+          },
+          "dish_name": "Roasted London Duck",
+          "confidence": 0.9,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/jurong-point-favourite-eats/",
+          "observed_at": "2024-12-31T00:00:00+08:00"
+        },
+        {
+          "external_id": "mtc-evidence-legendary-hk",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Featured in Miss Tam Chiak Food Guides (Jurong Point)"
+          },
+          "dish_name": "Roasted London Duck",
+          "confidence": 0.9,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/jurong-point-favourite-eats/",
+          "observed_at": "2026-08-29T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/jurong-point-favourite-eats/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published December 2024 in Jurong Point Guide."
+      }
+    },
+    {
+      "external_id": "mtc-cai-lin-ji-019",
+      "entity_type": "food_venue",
+      "name": "Cai Lin Ji 蔡林记 (Jurong Point)",
+      "description": "Centuries-old Wuhan heritage noodle brand famous for its authentic sesame hot dry noodles and doupi.",
+      "status": "active",
+      "location": {
+        "address": "1 Jurong West Central 2 #03-56",
+        "postal_code": "648886",
+        "latitude": 1.34,
+        "longitude": 103.7063,
+        "unit_number": "#03-56",
+        "neighbourhood": "Jurong West"
+      },
+      "parent": {
+        "external_id": "jurong-point",
+        "name": "Jurong Point",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Chinese",
+          "Hubei",
+          "Wuhan"
+        ],
+        "signature_dishes": [
+          "Wuhan Hot Dry Noodles (Reganmian)",
+          "Three Delicacies Doupi",
+          "Wonton Soup"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 8,
+          "maximum": 18
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "08:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "08:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "08:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "08:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "08:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "08:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "08:00",
+          "closes_at": "22:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-cai-lin-ji-2024",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Featured in Miss Tam Chiak Food Guides (Jurong Point)"
+          },
+          "dish_name": "Wuhan Hot Dry Noodles",
+          "confidence": 0.88,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/jurong-point-favourite-eats/",
+          "observed_at": "2024-12-31T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/jurong-point-favourite-eats/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in Jurong Point guide."
+      }
+    },
+    {
+      "external_id": "mtc-ah-hock-hokkien-020",
+      "entity_type": "food_stall",
+      "name": "Ah Hock Fried Hokkien Noodles 亚福",
+      "description": "Famous charcoal-fried Hokkien prawn mee stall at Chomp Chomp Food Centre.",
+      "status": "active",
+      "location": {
+        "address": "20 Kensington Park Road #01-27",
+        "postal_code": "557269",
+        "latitude": 1.3644,
+        "longitude": 103.8665,
+        "unit_number": "#01-27",
+        "neighbourhood": "Serangoon Garden"
+      },
+      "parent": {
+        "external_id": "chomp-chomp-food-centre",
+        "name": "Chomp Chomp Food Centre",
+        "entity_type": "hawker_centre"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Singaporean",
+          "Hokkien",
+          "Chinese"
+        ],
+        "signature_dishes": [
+          "Fried Hokkien Prawn Noodles"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 5,
+          "maximum": 12
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 2,
+          "opens_at": "17:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "17:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "17:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "17:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "16:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "16:30",
+          "closes_at": "21:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": "92962192",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": false,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-ah-hock-2025",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Featured in Singapore Food Guides"
+          },
+          "dish_name": "Fried Hokkien Prawn Noodles",
+          "confidence": 0.9,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/guides/",
+          "observed_at": "2025-01-01T00:00:00+08:00"
+        },
+        {
+          "external_id": "mtc-evidence-ah-hock",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Featured in Miss Tam Chiak Ultimate Food Guides"
+          },
+          "dish_name": "Fried Hokkien Prawn Noodles",
+          "confidence": 0.9,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/guides/",
+          "observed_at": "2026-08-29T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/guides/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in Singapore Food Guides."
+      }
+    },
+    {
+      "external_id": "mtc-bomul-samgyetang-004",
+      "entity_type": "food_venue",
+      "name": "BOMUL Samgyetang CHIJMES",
+      "description": "Traditional Korean ginseng chicken soup and nourishing herbal stews at historic CHIJMES.",
+      "status": "active",
+      "location": {
+        "address": "30 Victoria Street #01-11/12 CHIJMES",
+        "postal_code": "187996",
+        "latitude": 1.2952,
+        "longitude": 103.8522,
+        "unit_number": "#01-11/12",
+        "neighbourhood": "City Hall / Bras Basah"
+      },
+      "parent": {
+        "external_id": "chijmes",
+        "name": "CHIJMES",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Korean"
+        ],
+        "signature_dishes": [
+          "Samgyetang (Ginseng Chicken Soup)",
+          "Abalone Ginseng Chicken Soup",
+          "Korean Seafood Pancake"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 22,
+          "maximum": 50
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "11:00",
+          "closes_at": "22:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": "92323838",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-bomul-2025",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review 2025"
+          },
+          "dish_name": "Samgyetang",
+          "confidence": 0.91,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2025-10-01T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published late 2025."
+      }
+    },
+    {
+      "external_id": "mtc-allora-changi-005",
+      "entity_type": "food_venue",
+      "name": "Allora Ristorante & Bar (Crowne Plaza Changi Airport)",
+      "description": "Upscale Italian restaurant and bar featuring seasonal chef residencies and modern European brunch experiences.",
+      "status": "active",
+      "location": {
+        "address": "75 Airport Boulevard Terminal 3",
+        "postal_code": "819664",
+        "latitude": 1.3556,
+        "longitude": 103.9864,
+        "unit_number": "Lobby Level",
+        "neighbourhood": "Changi"
+      },
+      "parent": {
+        "external_id": "crowne-plaza-changi-airport",
+        "name": "Crowne Plaza Changi Airport",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Italian",
+          "European",
+          "Korean Fusion"
+        ],
+        "signature_dishes": [
+          "Korean-Italian Tasting Menu",
+          "Handcrafted Pizza",
+          "Truffle Pasta"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 35,
+          "maximum": 95
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "06:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "06:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "06:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "06:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "06:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "06:00",
+          "closes_at": "23:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "06:00",
+          "closes_at": "23:00"
+        }
+      ],
+      "contact": {
+        "website": "https://changiairport.crowneplaza.com",
+        "telephone": "93363125",
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-allora-2026",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Featured Residency 2026"
+          },
+          "dish_name": "Korean-Italian 4-Day Residency Dishes",
+          "confidence": 0.91,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-07-01T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published July 2026."
+      }
+    },
+    {
+      "external_id": "mtc-imperial-fish-soup-008",
+      "entity_type": "food_stall",
+      "name": "Imperial Fish Soup",
+      "description": "Rich collagen fish soup stall at Ang Mo Kio 628 Market serving fresh sliced batang and red garoupa.",
+      "status": "active",
+      "location": {
+        "address": "628 Ang Mo Kio Avenue 4 #01-72",
+        "postal_code": "560628",
+        "latitude": 1.3808,
+        "longitude": 103.8402,
+        "unit_number": "#01-72",
+        "neighbourhood": "Ang Mo Kio"
+      },
+      "parent": {
+        "external_id": "amk-628-market-food-centre",
+        "name": "Ang Mo Kio 628 Market & Food Centre",
+        "entity_type": "hawker_centre"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Singaporean",
+          "Chinese",
+          "Seafood"
+        ],
+        "signature_dishes": [
+          "Sliced Batang Fish Soup",
+          "Fried Fish Soup with Milk",
+          "Seafood Soup"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 6,
+          "maximum": 14
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "07:00",
+          "closes_at": "19:30"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "07:00",
+          "closes_at": "19:30"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "07:00",
+          "closes_at": "19:30"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "07:00",
+          "closes_at": "19:30"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "07:00",
+          "closes_at": "19:30"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "07:00",
+          "closes_at": "19:30"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "07:00",
+          "closes_at": "19:30"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": false,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-imperial-fish-2025",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review 2025"
+          },
+          "dish_name": "Sliced Batang Fish Soup",
+          "confidence": 0.88,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2025-08-01T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published mid 2025."
+      }
+    },
+    {
+      "external_id": "mtc-tiong-bahru-lor-mee-012",
+      "entity_type": "food_stall",
+      "name": "Tiong Bahru Lor Mee (Bukit Batok)",
+      "description": "Traditional starchy Lor Mee stall in Bukit Batok served with crispy fried fish nuggets and ngoh hiang.",
+      "status": "active",
+      "location": {
+        "address": "155 Bukit Batok Street 11 #01-00",
+        "postal_code": "650155",
+        "latitude": 1.3485,
+        "longitude": 103.7445,
+        "unit_number": "#01-00",
+        "neighbourhood": "Bukit Batok"
+      },
+      "parent": {
+        "external_id": "blk-155-bukit-batok-coffeeshop",
+        "name": "Blk 155 Bukit Batok Coffeeshop",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Singaporean",
+          "Hokkien",
+          "Chinese"
+        ],
+        "signature_dishes": [
+          "Traditional Lor Mee",
+          "Fried Fish Lor Mee",
+          "Ngoh Hiang"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 4.5,
+          "maximum": 8
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "07:00",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "07:00",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "07:00",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "07:00",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "07:00",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "07:00",
+          "closes_at": "13:30"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "07:00",
+          "closes_at": "13:30"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": false,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-lor-mee-2025",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Eat Review 2025"
+          },
+          "dish_name": "Traditional Lor Mee",
+          "confidence": 0.88,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2025-05-01T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Published mid 2025."
+      }
+    },
+    {
+      "external_id": "mtc-wan-hao-marriott-004",
+      "entity_type": "food_venue",
+      "name": "Wan Hao Chinese Restaurant",
+      "description": "Award-winning Cantonese fine dining restaurant specializing in dim sum, handcrafted dumplings, and Cantonese roast.",
+      "status": "active",
+      "location": {
+        "address": "320 Orchard Road",
+        "postal_code": "238865",
+        "latitude": 1.3048,
+        "longitude": 103.8333,
+        "unit_number": "Level 3",
+        "neighbourhood": "Orchard"
+      },
+      "parent": {
+        "external_id": "singapore-marriott-tang-plaza-hotel",
+        "name": "Singapore Marriott Tang Plaza Hotel",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "restaurant",
+        "cuisines": [
+          "Chinese",
+          "Cantonese"
+        ],
+        "signature_dishes": [
+          "Handcrafted Gourmet Rice Dumplings",
+          "Peking Duck",
+          "Cantonese Dim Sum"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 45,
+          "maximum": 150
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 3,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "11:30",
+          "closes_at": "22:00"
+        }
+      ],
+      "contact": {
+        "website": "https://www.singaporemarriott.com",
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": true,
+        "air_conditioned": true,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-wan-hao",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Miss Tam Chiak Featured Festive Dining"
+          },
+          "dish_name": "Handcrafted Gourmet Rice Dumplings",
+          "confidence": 0.91,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/eat/",
+          "observed_at": "2026-08-29T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/eat/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured review in Eat section."
+      }
+    },
+    {
+      "external_id": "mtc-sungei-road-laksa-010",
+      "entity_type": "food_stall",
+      "name": "Sungei Road Laksa",
+      "description": "Historic charcoal-cooked Katong-style laksa served with spoon only at Jalan Berseh.",
+      "status": "active",
+      "location": {
+        "address": "27 Jalan Berseh #01-100 Jin Shui Kopitiam",
+        "postal_code": "209037",
+        "latitude": 1.3068,
+        "longitude": 103.8568,
+        "unit_number": "#01-100",
+        "neighbourhood": "Jalan Besar"
+      },
+      "parent": {
+        "external_id": "jin-shui-kopitiam",
+        "name": "Jin Shui Kopitiam",
+        "entity_type": "food_venue"
+      },
+      "food_profile": {
+        "venue_kind": "hawker_stall",
+        "cuisines": [
+          "Singaporean",
+          "Peranakan",
+          "Chinese"
+        ],
+        "signature_dishes": [
+          "Traditional Charcoal Laksa",
+          "Fresh Cockles Laksa"
+        ],
+        "dietary_attributes": [],
+        "price": {
+          "currency": "SGD",
+          "minimum": 4,
+          "maximum": 8
+        },
+        "reservation_url": null
+      },
+      "opening_hours": [
+        {
+          "day_of_week": 1,
+          "opens_at": "09:30",
+          "closes_at": "16:00"
+        },
+        {
+          "day_of_week": 2,
+          "opens_at": "09:30",
+          "closes_at": "16:00"
+        },
+        {
+          "day_of_week": 4,
+          "opens_at": "09:30",
+          "closes_at": "16:00"
+        },
+        {
+          "day_of_week": 5,
+          "opens_at": "09:30",
+          "closes_at": "16:00"
+        },
+        {
+          "day_of_week": 6,
+          "opens_at": "09:30",
+          "closes_at": "16:00"
+        },
+        {
+          "day_of_week": 0,
+          "opens_at": "09:30",
+          "closes_at": "16:00"
+        }
+      ],
+      "contact": {
+        "website": null,
+        "telephone": null,
+        "booking_url": null,
+        "google_maps_url": null
+      },
+      "attributes": {
+        "indoor": false,
+        "air_conditioned": false,
+        "wheelchair_accessible": true,
+        "halal_certified": false,
+        "takeaway_available": true
+      },
+      "evidence": [
+        {
+          "external_id": "mtc-evidence-sungei-road-laksa",
+          "dimension": "food_quality",
+          "evidence_type": "editorial",
+          "direction": "positive",
+          "claim_key": "editorial_recommendation",
+          "value": {
+            "recognition": "Featured in Miss Tam Chiak Ultimate Food Guides"
+          },
+          "dish_name": "Traditional Charcoal Laksa",
+          "confidence": 0.93,
+          "commercial_status": "organic",
+          "source_name": "Miss Tam Chiak",
+          "source_url": "https://www.misstamchiak.com/guides/",
+          "observed_at": "2026-08-29T00:00:00+08:00"
+        }
+      ],
+      "provenance": {
+        "source_url": "https://www.misstamchiak.com/guides/",
+        "observed_at": "2026-08-29T00:00:00+08:00",
+        "verified_at": null,
+        "notes": "Featured in national food guide."
+      }
+    }
+  ]
+}
+
