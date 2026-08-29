@@ -180,3 +180,20 @@ def test_response_supports_registered_hotel_skill_result():
     )
 
     assert compose_response(result) == "Licensed hotels: Hotel Bencoolen."
+
+
+def test_response_supports_registered_playground_skill_result():
+    result = ExecutionResult(
+        plan=Plan(intent="playgrounds", required_capabilities=["playgrounds"]),
+        outputs={
+            "playgrounds": SkillResult(
+                success=True,
+                data={"playgrounds": [{"name": "Neighbourhood Playground"}]},
+                summary="Here are a few playgrounds to consider: Neighbourhood Playground.",
+            )
+        },
+    )
+
+    assert compose_response(result) == (
+        "Here are a few playgrounds to consider: Neighbourhood Playground."
+    )

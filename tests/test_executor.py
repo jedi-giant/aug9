@@ -86,6 +86,22 @@ class FakeFoodSkill(Aug9Skill):
         )
 
 
+class FakePlaygroundsSkill(Aug9Skill):
+    name = "fake_playgrounds"
+    description = "Fake playgrounds"
+
+    @property
+    def capabilities(self):
+        return ["playgrounds"]
+
+    def execute(self, context, entities):
+        return SkillResult(
+            success=True,
+            data={"playgrounds": [{"name": "Neighbourhood Playground"}]},
+            summary="Here are a few playgrounds to consider: Neighbourhood Playground.",
+        )
+
+
 def test_executor_routes_place_resolution_through_registry():
     registry = SkillRegistry()
     registry.register(SgPlaceSkill(FakePlaceProvider()))
@@ -167,6 +183,22 @@ def test_executor_runs_food_capability():
     assert result.outputs["food"].data["evidence_scope"]["verified"] == [
         "licensing", "safe_grade", "location"
     ]
+
+
+def test_executor_runs_playgrounds_capability():
+    registry = SkillRegistry()
+    registry.register(FakePlaygroundsSkill())
+    plan = Plan(
+        intent="Find a playground near me",
+        required_capabilities=["playgrounds"],
+    )
+
+    result = execute_plan(plan, UserContext(), registry=registry)
+
+    assert result.outputs["playgrounds"].success is True
+    assert result.outputs["playgrounds"].data["playgrounds"][0]["name"] == (
+        "Neighbourhood Playground"
+    )
 
 
 def test_executor_routes_transport_through_registry():
