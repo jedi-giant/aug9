@@ -199,12 +199,7 @@ class FoodDomainImporter:
         run = self.repository.start_ingestion(source.id)
         upserted = rejected = 0
         try:
-            for place in document.places:
-                try:
-                    self.ingest_place(place, source.id)
-                    upserted += 1
-                except (KeyError, TypeError, ValueError):
-                    rejected += 1
+            upserted = self.ingest_document(document, source.id)
             self.repository.complete_ingestion(
                 run,
                 records_received=len(document.places),
@@ -221,6 +216,260 @@ class FoodDomainImporter:
                 error=type(exc).__name__,
             )
             raise
+
+    def ingest_document(
+        self, document: FoodDomainDocument, source_id: str
+    ) -> int:
+        """Persist a validated document in one transaction and one connection."""
+        from aug9.core import database
+
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        parent_ids: set[str] = set()
+        try:
+            self.repository._require_ingestable_source(cursor, source_id, p)
+            for place in document.places:
+                parent_id = None
+                if place.parent is not None:
+                    parent_id = self._entity_id(
+                        source_id,
+                        place.parent.external_id,
+                        place.parent.entity_type,
+                    )
+                    if parent_id not in parent_ids:
+                        cursor.execute(
+                            f"SELECT 1 FROM discovery_entities WHERE id = {p}",
+                            (parent_id,),
+                        )
+                        if cursor.fetchone() is None:
+                            parent, record, provenance = self._parent_bundle(
+                                place.parent, parent_id, source_id
+                            )
+                            self.repository._upsert_entity_rows(
+                                cursor, p, parent, record, provenance
+                            )
+                        parent_ids.add(parent_id)
+
+                entity, record, provenance = self._place_bundle(place, source_id)
+                self.repository._upsert_entity_rows(
+                    cursor, p, entity, record, provenance
+                )
+                entity_id = entity.id
+                if place.food_profile is not None:
+                    food = place.food_profile
+                    cursor.execute(
+                        f"""
+                        INSERT INTO discovery_food_profiles (
+                            entity_id, venue_kind, price_min, price_max, currency,
+                            dietary_attributes, reservation_url, source_id
+                        ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                        ON CONFLICT(entity_id) DO UPDATE SET
+                            venue_kind = excluded.venue_kind,
+                            price_min = excluded.price_min,
+                            price_max = excluded.price_max,
+                            currency = excluded.currency,
+                            dietary_attributes = excluded.dietary_attributes,
+                            reservation_url = excluded.reservation_url,
+                            source_id = excluded.source_id,
+                            updated_at = CURRENT_TIMESTAMP
+                        """,
+                        (
+                            entity_id,
+                            food.venue_kind,
+                            food.price.minimum,
+                            food.price.maximum,
+                            food.price.currency,
+                            json.dumps(food.dietary_attributes),
+                            str(food.reservation_url) if food.reservation_url else None,
+                            source_id,
+                        ),
+                    )
+                    cursor.execute(
+                        f"DELETE FROM discovery_entity_tags WHERE entity_id = {p}",
+                        (entity_id,),
+                    )
+                    for category, values in (
+                        ("cuisine", food.cuisines),
+                        ("dish", food.signature_dishes),
+                    ):
+                        for value in values:
+                            cursor.execute(
+                                f"""
+                                INSERT INTO discovery_entity_tags (
+                                    entity_id, tag, category, source_id
+                                ) VALUES ({p}, {p}, {p}, {p})
+                                """,
+                                (entity_id, value, category, source_id),
+                            )
+                    cursor.execute(
+                        f"""
+                        DELETE FROM discovery_opening_hours
+                        WHERE entity_id = {p} AND source_id = {p}
+                        """,
+                        (entity_id, source_id),
+                    )
+                    for period in place.opening_hours:
+                        cursor.execute(
+                            f"""
+                            INSERT INTO discovery_opening_hours (
+                                entity_id, day_of_week, opens_at, closes_at, source_id
+                            ) VALUES ({p}, {p}, {p}, {p}, {p})
+                            """,
+                            (
+                                entity_id,
+                                period.day_of_week,
+                                period.opens_at,
+                                period.closes_at,
+                                source_id,
+                            ),
+                        )
+                if parent_id is not None:
+                    cursor.execute(
+                        f"""
+                        INSERT INTO discovery_entity_relationships (
+                            parent_entity_id, child_entity_id,
+                            relationship_type, source_id
+                        ) VALUES ({p}, {p}, {p}, {p})
+                        ON CONFLICT(parent_entity_id, child_entity_id, relationship_type)
+                        DO UPDATE SET source_id = excluded.source_id
+                        """,
+                        (
+                            parent_id,
+                            entity_id,
+                            RelationshipType.CONTAINS.value,
+                            source_id,
+                        ),
+                    )
+                for item in place.evidence:
+                    evidence = self._evidence(item, entity_id, source_id)
+                    cursor.execute(
+                        f"""
+                        INSERT INTO discovery_food_evidence (
+                            id, entity_id, external_id, dimension, evidence_type,
+                            direction, claim_key, value, dish_name, confidence,
+                            source_id, source_url, observed_at, expires_at,
+                            commercial_status
+                        ) VALUES (
+                            {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p},
+                            {p}, {p}, {p}, {p}, {p}
+                        )
+                        ON CONFLICT(source_id, external_id) DO UPDATE SET
+                            entity_id = excluded.entity_id,
+                            dimension = excluded.dimension,
+                            evidence_type = excluded.evidence_type,
+                            direction = excluded.direction,
+                            claim_key = excluded.claim_key,
+                            value = excluded.value,
+                            dish_name = excluded.dish_name,
+                            confidence = excluded.confidence,
+                            source_url = excluded.source_url,
+                            observed_at = excluded.observed_at,
+                            expires_at = excluded.expires_at,
+                            commercial_status = excluded.commercial_status,
+                            updated_at = CURRENT_TIMESTAMP
+                        """,
+                        self.repository._food_evidence_values(evidence),
+                    )
+            conn.commit()
+            return len(document.places)
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def _place_bundle(self, place: DomainPlace, source_id: str):
+        entity_id = self._entity_id(source_id, place.external_id, place.entity_type)
+        entity = DiscoveryEntity(
+            id=entity_id,
+            entity_type=place.entity_type,
+            name=place.name,
+            description=place.description,
+            address=place.location.address,
+            postal_code=place.location.postal_code,
+            latitude=place.location.latitude,
+            longitude=place.location.longitude,
+            status=place.status,
+            quality_score=self._quality_score(place),
+        )
+        record = SourceRecord(
+            source_id=source_id,
+            external_id=place.external_id,
+            entity_id=entity_id,
+            source_url=(
+                str(place.provenance.source_url)
+                if place.provenance.source_url
+                else None
+            ),
+            raw_payload=place.model_dump(mode="json"),
+            fetched_at=place.provenance.observed_at,
+            verified_at=place.provenance.verified_at,
+        )
+        provenance = [
+            FieldProvenance(
+                entity_id=entity_id,
+                field_name=field,
+                source_id=source_id,
+                value=value,
+            )
+            for field, value in entity.model_dump().items()
+            if field not in {"id", "entity_type", "quality_score"}
+            and value is not None
+        ]
+        return entity, record, provenance
+
+    def _parent_bundle(
+        self, parent: DomainParent, entity_id: str, source_id: str
+    ):
+        location = parent.location
+        entity = DiscoveryEntity(
+            id=entity_id,
+            entity_type=parent.entity_type,
+            name=parent.name,
+            address=location.address if location else None,
+            postal_code=location.postal_code if location else None,
+            latitude=location.latitude if location else None,
+            longitude=location.longitude if location else None,
+            quality_score=0.8 if location else 0.4,
+        )
+        return (
+            entity,
+            SourceRecord(
+                source_id=source_id,
+                external_id=parent.external_id,
+                entity_id=entity_id,
+                raw_payload=parent.model_dump(mode="json"),
+            ),
+            [
+                FieldProvenance(
+                    entity_id=entity_id,
+                    field_name="name",
+                    source_id=source_id,
+                    value=parent.name,
+                )
+            ],
+        )
+
+    @staticmethod
+    def _evidence(item: DomainEvidence, entity_id: str, source_id: str):
+        return FoodEvidence(
+            id=f"food-evidence:{source_id}:{item.external_id}",
+            entity_id=entity_id,
+            external_id=item.external_id,
+            dimension=item.dimension,
+            evidence_type=item.evidence_type,
+            direction=item.direction,
+            claim_key=item.claim_key,
+            value=item.value,
+            dish_name=item.dish_name,
+            confidence=item.confidence,
+            source_id=source_id,
+            source_url=str(item.source_url) if item.source_url else None,
+            observed_at=item.observed_at,
+            expires_at=item.expires_at,
+            commercial_status=item.commercial_status,
+        )
 
     def ingest_place(self, place: DomainPlace, source_id: str) -> None:
         parent_id = None
