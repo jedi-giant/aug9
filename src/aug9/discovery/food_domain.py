@@ -229,6 +229,12 @@ class FoodDomainImporter:
         parent_ids: set[str] = set()
         try:
             self.repository._require_ingestable_source(cursor, source_id, p)
+            if self._can_bulk_import(document):
+                self._bulk_import_simple_places(
+                    cursor, p, document.places, source_id
+                )
+                conn.commit()
+                return len(document.places)
             for place in document.places:
                 parent_id = None
                 if place.parent is not None:
@@ -378,6 +384,158 @@ class FoodDomainImporter:
             raise
         finally:
             conn.close()
+
+    @staticmethod
+    def _can_bulk_import(document: FoodDomainDocument) -> bool:
+        return all(
+            place.parent is None
+            and not place.opening_hours
+            and not place.evidence
+            and place.food_profile is not None
+            and not place.food_profile.cuisines
+            and not place.food_profile.signature_dishes
+            for place in document.places
+        )
+
+    def _bulk_import_simple_places(
+        self,
+        cursor,
+        p: str,
+        places: list[DomainPlace],
+        source_id: str,
+    ) -> None:
+        entity_rows = []
+        source_rows = []
+        profile_rows = []
+        provenance_rows = []
+        for place in places:
+            entity, record, provenance = self._place_bundle(place, source_id)
+            entity_rows.append(
+                (
+                    entity.id,
+                    entity.entity_type.value,
+                    entity.name,
+                    entity.description,
+                    entity.address,
+                    entity.postal_code,
+                    entity.latitude,
+                    entity.longitude,
+                    entity.status,
+                    entity.quality_score,
+                )
+            )
+            source_rows.append(
+                (
+                    record.source_id,
+                    record.external_id,
+                    record.entity_id,
+                    record.source_url,
+                    json.dumps(record.raw_payload, sort_keys=True),
+                    record.fetched_at.isoformat(),
+                    record.verified_at.isoformat() if record.verified_at else None,
+                )
+            )
+            food = place.food_profile
+            profile_rows.append(
+                (
+                    entity.id,
+                    food.venue_kind,
+                    food.price.minimum,
+                    food.price.maximum,
+                    food.price.currency,
+                    json.dumps(food.dietary_attributes),
+                    str(food.reservation_url) if food.reservation_url else None,
+                    source_id,
+                )
+            )
+            provenance_rows.extend(
+                (
+                    item.entity_id,
+                    item.field_name,
+                    item.source_id,
+                    json.dumps(item.value, sort_keys=True),
+                    record.external_id,
+                )
+                for item in provenance
+            )
+
+        cursor.executemany(
+            f"""
+            INSERT INTO discovery_entities (
+                id, entity_type, name, description, address, postal_code,
+                latitude, longitude, status, quality_score
+            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+            ON CONFLICT(id) DO UPDATE SET
+                entity_type = excluded.entity_type,
+                name = excluded.name,
+                description = excluded.description,
+                address = excluded.address,
+                postal_code = excluded.postal_code,
+                latitude = excluded.latitude,
+                longitude = excluded.longitude,
+                status = excluded.status,
+                quality_score = excluded.quality_score,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            entity_rows,
+        )
+        cursor.executemany(
+            f"""
+            INSERT INTO discovery_source_records (
+                source_id, external_id, entity_id, source_url, raw_payload,
+                fetched_at, verified_at
+            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p})
+            ON CONFLICT(source_id, external_id) DO UPDATE SET
+                entity_id = excluded.entity_id,
+                source_url = excluded.source_url,
+                raw_payload = excluded.raw_payload,
+                fetched_at = excluded.fetched_at,
+                verified_at = excluded.verified_at
+            """,
+            source_rows,
+        )
+        cursor.executemany(
+            f"""
+            INSERT INTO discovery_food_profiles (
+                entity_id, venue_kind, price_min, price_max, currency,
+                dietary_attributes, reservation_url, source_id
+            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+            ON CONFLICT(entity_id) DO UPDATE SET
+                venue_kind = excluded.venue_kind,
+                price_min = excluded.price_min,
+                price_max = excluded.price_max,
+                currency = excluded.currency,
+                dietary_attributes = excluded.dietary_attributes,
+                reservation_url = excluded.reservation_url,
+                source_id = excluded.source_id,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            profile_rows,
+        )
+        cursor.executemany(
+            f"""
+            INSERT INTO discovery_field_provenance (
+                entity_id, field_name, source_id, source_record_id, value
+            )
+            SELECT {p}, {p}, {p}, records.id, {p}
+            FROM discovery_source_records records
+            WHERE records.source_id = {p} AND records.external_id = {p}
+            ON CONFLICT(entity_id, field_name, source_id) DO UPDATE SET
+                source_record_id = excluded.source_record_id,
+                value = excluded.value,
+                created_at = CURRENT_TIMESTAMP
+            """,
+            [
+                (entity_id, field_name, provenance_source, value, source_id, external_id)
+                for (
+                    entity_id,
+                    field_name,
+                    provenance_source,
+                    value,
+                    external_id,
+                ) in provenance_rows
+            ],
+        )
 
     def _place_bundle(self, place: DomainPlace, source_id: str):
         entity_id = self._entity_id(source_id, place.external_id, place.entity_type)

@@ -136,3 +136,29 @@ def test_food_domain_requires_parent_for_stalls():
 
     with pytest.raises(ValidationError, match="require a parent"):
         FoodDomainDocument.model_validate(payload)
+
+
+def test_food_domain_bulk_imports_simple_place_records(repository, tmp_path):
+    payload = domain_payload()
+    place = payload["places"][0]
+    place["opening_hours"] = []
+    place["evidence"] = []
+    place["food_profile"]["cuisines"] = []
+    place["food_profile"]["signature_dishes"] = []
+    payload["places"] = [place]
+    path = tmp_path / "simple-food-domain.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    summary = FoodDomainImporter(repository).run(path)
+    listings = repository.search_food_listings()
+
+    assert summary.upserted == 1
+    assert listings[0].entity.name == "Independent Restaurant"
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT COUNT(*) FROM discovery_field_provenance WHERE entity_id = ?",
+        (listings[0].entity.id,),
+    )
+    assert cursor.fetchone()[0] >= 4
+    conn.close()
