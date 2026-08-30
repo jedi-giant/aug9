@@ -50,7 +50,10 @@ class SgTransportSkill(Aug9Skill):
         if origin is None or destination is None:
             return SkillResult(
                 success=False,
-                summary="Both origin and destination are required.",
+                summary=(
+                    "Where are you starting from, and where are you heading? "
+                    "Share both places and I'll work out the route."
+                ),
             )
 
         explicit_mode = self._requested_mode(entities, context.intent)
@@ -114,7 +117,8 @@ class SgTransportSkill(Aug9Skill):
             )
             summary = (
                 f"{origin.name} to {destination.name}{distance_text}. "
-                "Open public transport directions for the current transit options."
+                "Public transport makes more sense — open the directions below "
+                "for the latest options."
             )
 
         if (
@@ -129,15 +133,14 @@ class SgTransportSkill(Aug9Skill):
             distance_km = policy_distance / 1000
             if policy_distance > LONG_TRANSIT_JOURNEY_METERS:
                 summary = (
-                    f"{origin.name} to {destination.name} is about "
-                    f"{distance_km:.1f} km. Public transport is recommended; "
-                    "taxi or private hire is an alternative."
+                    f"A bit far to walk, this one — about {distance_km:.1f} km. "
+                    "Public transport makes more sense; taxi or private hire "
+                    "also can."
                 )
             else:
                 summary = (
-                    f"{origin.name} to {destination.name} is about "
-                    f"{distance_km:.1f} km. Public transport is recommended "
-                    "instead of walking."
+                    f"A bit far to walk, this one — about {distance_km:.1f} km. "
+                    "Public transport makes more sense."
                 )
 
         route_data = result.route.model_dump()

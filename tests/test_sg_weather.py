@@ -38,7 +38,9 @@ def test_sg_weather_requires_a_resolved_place():
     result = SgWeatherSkill(provider).execute(UserContext(), {})
 
     assert result.success is False
-    assert result.summary == "No location available"
+    assert result.summary == (
+        "Which part of Singapore are you checking the weather for?"
+    )
     assert provider.places == []
 
 

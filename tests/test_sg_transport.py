@@ -62,7 +62,7 @@ def test_sg_transport_requires_both_places():
     )
 
     assert result.success is False
-    assert result.summary == "Both origin and destination are required."
+    assert "Where are you starting from" in result.summary
 
 
 def test_sg_transport_recovers_endpoints_from_intent():
@@ -143,7 +143,7 @@ def test_long_route_recommends_transit_and_offers_taxi_alternative():
     )
 
     assert result.data["recommended_mode"] == "public_transport"
-    assert "Public transport is recommended" in result.summary
+    assert "Public transport makes more sense" in result.summary
     assert [action.metadata["travel_mode"] for action in result.actions] == [
         "public_transport",
         "taxi_or_drive",
@@ -318,7 +318,8 @@ def test_transit_fallback_does_not_surface_walking_summary():
     assert result.data["recommended_mode"] == "public_transport"
     assert result.summary == (
         "Maxwell Food Centre to Marina Bay Sands is about 3.3 km. "
-        "Open public transport directions for the current transit options."
+        "Public transport makes more sense — open the directions below "
+        "for the latest options."
     )
     assert not result.summary.startswith("Walk from")
     assert "travelmode=transit" in result.actions[0].url

@@ -80,11 +80,12 @@ def compose_response(
 
     if weather:
         if getattr(weather, "success", False):
+            summary = getattr(weather, "summary", None)
             forecast = weather.data.get("weather", {}).get("forecast")
-            if forecast:
-                messages.append(
-                    f"Weather forecast: {forecast}."
-                )
+            if summary:
+                messages.append(summary)
+            elif forecast:
+                messages.append(f"Weather forecast: {forecast}.")
         if hasattr(weather, "weather"):
             if weather.weather:
                 messages.append(
