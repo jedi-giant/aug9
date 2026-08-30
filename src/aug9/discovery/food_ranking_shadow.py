@@ -220,11 +220,9 @@ def _select_shortlist(
 
 def _shortlist_item(row: dict[str, Any], role: str) -> dict[str, Any]:
     reasons = {
-        "best_supported": "Strongest active organic editorial support nearby",
-        "closest_suitable": (
-            "Best request-compatible licensed option in the closest 100 m tier"
-        ),
-        "nearby_alternative": "Nearby option from a different mapped location",
+        "best_supported": "Food bloggers' favourite",
+        "closest_suitable": "I'm guessing you might like this",
+        "nearby_alternative": "Another one nearby — can consider also",
     }
     return {
         "role": role,

@@ -47,14 +47,17 @@ class SgFoodSkill(Aug9Skill):
             if not query:
                 return SkillResult(
                     success=False,
-                    summary="Share a starting location so I can find nearby licensed food establishments.",
+                    summary=(
+                        "Where are you starting from? Share a Singapore place "
+                        "and I'll find something nearby."
+                    ),
                 )
         if self._requests_cafe(context.intent or ""):
             return SkillResult(
                 success=False,
                 summary=(
-                    "The current SFA evidence does not reliably distinguish cafés from other "
-                    "restaurants yet. Ask for nearby restaurants, or share a café source for verification."
+                    "Cafés are a bit tricky in my current data. Try asking for "
+                    "nearby restaurants for now, and I'll give it my best shot."
                 ),
             )
         requested_ranking_mode = configured_food_ranking_mode()
@@ -105,9 +108,13 @@ class SgFoodSkill(Aug9Skill):
             return SkillResult(
                 success=False,
                 summary=(
-                    "I couldn't find a matching licensed food establishment nearby."
+                    "Hmm, I couldn't find a solid food match nearby. "
+                    "Want to try another neighbourhood?"
                     if latitude is not None and longitude is not None
-                    else "Share a starting location so I can find nearby licensed food establishments."
+                    else (
+                        "Where are you starting from? Share a Singapore place "
+                        "and I'll find something nearby."
+                    )
                 ),
             )
 
@@ -264,7 +271,7 @@ class SgFoodSkill(Aug9Skill):
                 )
                 else "licensed food options"
             )
-            return f"Here are a few {scope} nearby. " + " ".join(sentences)
+            return f"Can — here are a few {scope} nearby. " + " ".join(sentences)
 
         names = [place["name"] for place in places]
         if len(names) == 1:

@@ -130,7 +130,7 @@ def test_food_skill_requires_location_when_no_search_results():
     )
 
     assert result.success is False
-    assert "starting location" in result.summary
+    assert "Where are you starting from?" in result.summary
 
 
 def test_food_skill_preserves_legacy_beta_fallback():
@@ -158,7 +158,7 @@ def test_food_skill_does_not_infer_cafes_from_restaurant_licences():
     )
 
     assert result.success is False
-    assert "does not reliably distinguish cafés" in result.summary
+    assert "Cafés are a bit tricky" in result.summary
     assert provider.calls == []
 
 
@@ -193,7 +193,7 @@ def test_shortlist_feature_flag_caps_and_explains_live_food_results(
     assert len(result.data["places"]) <= 3
     assert result.data["places"][0]["recommendation_role"] == "closest_suitable"
     assert result.actions[0].metadata["ranking_mode"] == "shortlist"
-    assert result.summary.startswith("Here are a few licensed food options nearby")
+    assert result.summary.startswith("Can — here are a few licensed food options nearby")
     assert "My closest suitable pick is" in result.summary
 
 
