@@ -18,9 +18,10 @@ class FoodVenue:
     postal_code: str | None
     latitude: float | None
     longitude: float | None
-    safe_grade: str
-    business_type: str
+    safe_grade: str | None
+    business_type: str | None
     distance_km: float | None = None
+    catalog_basis: str = "sfa_licensed"
 
 
 class FoodProvider(Protocol):
@@ -81,6 +82,7 @@ class DatabaseFoodProvider:
             query=None,
             venue_kinds=venue_kinds,
             result_limit=limit,
+            include_supported_standalone=True,
         )
 
     def _discover(
@@ -91,6 +93,7 @@ class DatabaseFoodProvider:
         query: str | None,
         venue_kinds: tuple[str, ...],
         result_limit: int,
+        include_supported_standalone: bool = False,
     ) -> list[FoodVenue]:
         try:
             rows = self._fetch_candidates(
@@ -98,6 +101,7 @@ class DatabaseFoodProvider:
                 longitude=longitude,
                 query=query,
                 venue_kinds=venue_kinds,
+                include_supported_standalone=include_supported_standalone,
             )
         except (psycopg.Error, sqlite3.Error):
             return []
@@ -137,15 +141,42 @@ class DatabaseFoodProvider:
         longitude: float | None,
         query: str | None,
         venue_kinds: tuple[str, ...],
+        include_supported_standalone: bool = False,
     ) -> list[tuple]:
         conn = database.get_connection()
         cursor = conn.cursor()
         p = database.placeholder()
-        conditions = [
-            "e.status = 'active'",
-            f"sfa.source_id = {p}",
-        ]
+        sfa_record = (
+            "EXISTS (SELECT 1 FROM discovery_source_records sfa "
+            f"WHERE sfa.entity_id = e.id AND sfa.source_id = {p})"
+        )
         params: list[object] = [SFA_SOURCE_ID]
+        catalog_condition = sfa_record
+        if include_supported_standalone:
+            catalog_condition = f"""(
+                {sfa_record}
+                OR (
+                    fs.entity_id IS NULL
+                    AND EXISTS (
+                        SELECT 1 FROM discovery_food_evidence evidence
+                        WHERE evidence.entity_id = e.id
+                          AND evidence.dimension = 'food_quality'
+                          AND evidence.evidence_type = 'editorial'
+                          AND evidence.direction = 'positive'
+                          AND evidence.commercial_status = 'organic'
+                          AND (
+                              evidence.expires_at IS NULL
+                              OR evidence.expires_at >= CURRENT_TIMESTAMP
+                          )
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1 FROM discovery_entity_relationships rel
+                        WHERE rel.child_entity_id = e.id
+                          AND rel.relationship_type = 'same_as'
+                    )
+                )
+            )"""
+        conditions = ["e.status = 'active'", catalog_condition]
         if latitude is not None and longitude is not None:
             latitude_delta = self.max_distance_km / 111.0
             longitude_scale = max(math.cos(math.radians(latitude)), 0.1)
@@ -178,11 +209,13 @@ class DatabaseFoodProvider:
         cursor.execute(
             f"""
             SELECT e.id, e.name, fp.venue_kind, e.address, e.postal_code,
-                   e.latitude, e.longitude, fs.safe_grade, fs.business_type
+                   e.latitude, e.longitude, fs.safe_grade, fs.business_type,
+                   NULL AS distance_km,
+                   CASE WHEN fs.entity_id IS NOT NULL
+                        THEN 'sfa_licensed' ELSE 'editorial_standalone' END
             FROM discovery_entities e
-            JOIN discovery_source_records sfa ON sfa.entity_id = e.id
             JOIN discovery_food_profiles fp ON fp.entity_id = e.id
-            JOIN discovery_food_safety_profiles fs ON fs.entity_id = e.id
+            LEFT JOIN discovery_food_safety_profiles fs ON fs.entity_id = e.id
             WHERE {' AND '.join(conditions)}
             ORDER BY e.quality_score DESC, e.name ASC
             {result_limit}

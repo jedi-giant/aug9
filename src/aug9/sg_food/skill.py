@@ -133,8 +133,15 @@ class SgFoodSkill(Aug9Skill):
                     "distance_km": venue.distance_km,
                     "travel_guidance": travel_guidance,
                     "safe_grade": venue.safe_grade,
-                    "safe_grade_evidence": "Singapore Food Agency",
-                    "licensing_evidence": "Singapore Food Agency",
+                    "safe_grade_evidence": (
+                        "Singapore Food Agency" if venue.safe_grade else "unknown"
+                    ),
+                    "licensing_evidence": (
+                        "Singapore Food Agency"
+                        if venue.catalog_basis == "sfa_licensed"
+                        else "not independently verified"
+                    ),
+                    "catalog_basis": venue.catalog_basis,
                     "location_evidence": "OneMap",
                     "taste_evidence": (
                         "active organic editorial evidence"
@@ -155,10 +162,22 @@ class SgFoodSkill(Aug9Skill):
                 }
             )
 
+        has_standalone = any(
+            place.get("catalog_basis") == "editorial_standalone"
+            for place in places
+        )
         disclosures = [
-            "SAFE grades describe food-safety records, not taste or popularity",
+            (
+                "SAFE grades, where shown, describe food-safety records, "
+                "not taste or popularity"
+            ),
             "I haven't yet verified opening hours, prices or dietary suitability",
         ]
+        if has_standalone:
+            disclosures.append(
+                "editorial picks without a SAFE grade have not yet been "
+                "independently matched to an SFA licence"
+            )
         if constraints.open_now:
             disclosures.append("I cannot yet verify which results are open now")
         if constraints.budget_sgd is not None:
@@ -234,7 +253,15 @@ class SgFoodSkill(Aug9Skill):
                     f'{introductions[min(index, len(introductions) - 1)]} '
                     f'{place["name"]}{f" — {suffix}" if suffix else ""}.'
                 )
-            return "Here are a few licensed food options nearby. " + " ".join(sentences)
+            scope = (
+                "well-supported food options"
+                if any(
+                    place.get("catalog_basis") == "editorial_standalone"
+                    for place in places
+                )
+                else "licensed food options"
+            )
+            return f"Here are a few {scope} nearby. " + " ".join(sentences)
 
         names = [place["name"] for place in places]
         if len(names) == 1:
@@ -266,6 +293,7 @@ class SgFoodSkill(Aug9Skill):
             safe_grade=item["safe_grade"],
             business_type=item["business_type"],
             distance_km=item["distance_km"],
+            catalog_basis=item["catalog_basis"],
         )
 
     @staticmethod

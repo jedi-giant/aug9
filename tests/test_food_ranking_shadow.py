@@ -206,6 +206,113 @@ def test_shadow_report_uses_editorial_evidence_from_verified_same_as_entity(
         item for item in report["candidates"] if item["entity_id"] == "food:nearest"
     )
     assert nearest["positive_organic_editorial_records"] == 1
+    assert external.id not in {
+        item["entity_id"] for item in report["candidates"]
+    }
+
+
+def test_shadow_pool_includes_supported_unmatched_editorial_place(repository):
+    external = DiscoveryEntity(
+        id="food:editorial:standalone",
+        entity_type=EntityType.FOOD_VENUE,
+        name="Independent Editorial Bistro",
+        address="2 Example Street",
+        postal_code="123457",
+        latitude=1.302,
+        longitude=103.8,
+    )
+    repository.upsert_entity(
+        external,
+        SourceRecord(
+            source_id="editorial",
+            external_id="standalone",
+            entity_id=external.id,
+        ),
+        [],
+    )
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO discovery_food_profiles "
+        "(entity_id, venue_kind, currency, dietary_attributes, source_id) "
+        "VALUES (?, 'restaurant', 'SGD', '[]', 'editorial')",
+        (external.id,),
+    )
+    conn.commit()
+    conn.close()
+    repository.upsert_food_evidence(
+        FoodEvidence(
+            id="editorial:standalone",
+            entity_id=external.id,
+            external_id="standalone-evidence",
+            dimension=FoodEvidenceDimension.FOOD_QUALITY,
+            evidence_type=FoodEvidenceType.EDITORIAL,
+            direction=EvidenceDirection.POSITIVE,
+            claim_key="editorial_recommendation",
+            value={"recommended": True},
+            confidence=0.8,
+            source_id="editorial",
+            observed_at=datetime(2026, 8, 1, tzinfo=UTC),
+            expires_at=datetime(2027, 8, 1, tzinfo=UTC),
+            commercial_status=CommercialStatus.ORGANIC,
+        )
+    )
+
+    report = build_food_ranking_shadow_report(
+        DatabaseFoodProvider(limit=10, max_distance_km=3),
+        latitude=1.3,
+        longitude=103.8,
+        now=datetime(2026, 8, 29, tzinfo=UTC),
+    )
+
+    item = next(
+        row
+        for row in report["candidates"]
+        if row["entity_id"] == external.id
+    )
+    assert item["catalog_basis"] == "editorial_standalone"
+    assert item["safe_grade"] is None
+    assert item["positive_organic_editorial_records"] == 1
+
+
+def test_shadow_pool_excludes_unsupported_unmatched_place(repository):
+    external = DiscoveryEntity(
+        id="food:editorial:unsupported",
+        entity_type=EntityType.FOOD_VENUE,
+        name="Unsupported Saved Place",
+        latitude=1.302,
+        longitude=103.8,
+    )
+    repository.upsert_entity(
+        external,
+        SourceRecord(
+            source_id="editorial",
+            external_id="unsupported",
+            entity_id=external.id,
+        ),
+        [],
+    )
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO discovery_food_profiles "
+        "(entity_id, venue_kind, currency, dietary_attributes, source_id) "
+        "VALUES (?, 'restaurant', 'SGD', '[]', 'editorial')",
+        (external.id,),
+    )
+    conn.commit()
+    conn.close()
+
+    report = build_food_ranking_shadow_report(
+        DatabaseFoodProvider(limit=10, max_distance_km=3),
+        latitude=1.3,
+        longitude=103.8,
+        now=datetime(2026, 8, 29, tzinfo=UTC),
+    )
+
+    assert external.id not in {
+        row["entity_id"] for row in report["candidates"]
+    }
 
 
 def test_shadow_report_scores_a_larger_pool_before_display_limit(repository):
