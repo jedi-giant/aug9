@@ -48,6 +48,13 @@ def add_entity(entity_id, name, postal_code, latitude, source_id):
         "VALUES (?, ?, ?, '{}', ?)",
         (source_id, entity_id, entity_id, now),
     )
+    if source_id != SFA_SOURCE_ID:
+        cursor.execute(
+            "INSERT INTO discovery_food_profiles "
+            "(entity_id, venue_kind, currency, dietary_attributes, source_id) "
+            "VALUES (?, 'restaurant', 'SGD', '[]', ?)",
+            (entity_id, source_id),
+        )
     conn.commit()
     conn.close()
 

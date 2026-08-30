@@ -83,6 +83,7 @@ class FoodEntityMatcher:
                    e.latitude, e.longitude, sr.source_id
             FROM discovery_entities e
             JOIN discovery_source_records sr ON sr.entity_id = e.id
+            JOIN discovery_food_profiles fp ON fp.entity_id = e.id
             WHERE sr.source_id IN ({source_placeholders})
               AND e.entity_type IN ('food_venue', 'food_stall')
               AND e.status = 'active'
