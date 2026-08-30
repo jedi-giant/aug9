@@ -29,6 +29,13 @@ def test_planner_routes_nearby_food_through_food_skill_and_extracts_constraints(
     assert plan.entities["open_now"] is True
 
 
+def test_planner_extracts_numbered_street_location_for_food():
+    plan = create_plan("Recommend three places for dinner near 2 Jiak Chuan Road.")
+
+    assert plan.required_capabilities == ["place_resolution", "food"]
+    assert plan.entities["location"] == "2 Jiak Chuan Road"
+
+
 def test_planner_detects_hawker_discovery():
     plan = create_plan("Show me hawker centres in Singapore")
 

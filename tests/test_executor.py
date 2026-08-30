@@ -86,6 +86,16 @@ class FakeFoodSkill(Aug9Skill):
         )
 
 
+class LocationAwareFoodSkill(FakeFoodSkill):
+    def execute(self, context, entities):
+        if context.current_place is None:
+            return SkillResult(success=False, summary="No resolved location")
+        return SkillResult(
+            success=True,
+            data={"resolved_place": context.current_place.name},
+        )
+
+
 class FakePlaygroundsSkill(Aug9Skill):
     name = "fake_playgrounds"
     description = "Fake playgrounds"
@@ -118,6 +128,23 @@ def test_executor_routes_place_resolution_through_registry():
         result.outputs["place_resolution"].data["place"]["name"]
         == "Maxwell Food Centre"
     )
+
+
+def test_executor_passes_resolved_place_to_following_food_skill():
+    registry = SkillRegistry()
+    registry.register(SgPlaceSkill(FakePlaceProvider()))
+    registry.register(LocationAwareFoodSkill())
+    plan = Plan(
+        intent="Recommend dinner near 2 Jiak Chuan Road",
+        required_capabilities=["place_resolution", "food"],
+        entities={"location": "2 Jiak Chuan Road"},
+    )
+
+    result = execute_plan(plan, UserContext(), registry=registry)
+
+    assert result.outputs["place_resolution"].success is True
+    assert result.outputs["food"].success is True
+    assert result.outputs["food"].data["resolved_place"] == "2 Jiak Chuan Road"
 
 def test_executor_runs_weather_capability():
     registry = SkillRegistry()

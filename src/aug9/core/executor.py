@@ -5,6 +5,7 @@ from aug9.core.planner import Plan
 from aug9.core.capabilities import CAPABILITIES
 from aug9.core.default_skills import register_default_skills
 from aug9.core.skill_registry import SkillRegistry, skill_registry
+from aug9.core.models import Place
 
 class ExecutionResult(BaseModel):
     plan: Plan
@@ -58,6 +59,12 @@ def execute_plan(
 
         if skill is not None:
             outputs[capability] = skill.execute(context, execution_entities)
+            if capability == "place_resolution":
+                place_data = getattr(outputs[capability], "data", {}).get("place")
+                if getattr(outputs[capability], "success", False) and place_data:
+                    context = context.model_copy(
+                        update={"current_place": Place.model_validate(place_data)}
+                    )
             continue
 
         tool = CAPABILITIES.get(capability)

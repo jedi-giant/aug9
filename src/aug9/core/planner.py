@@ -28,6 +28,17 @@ def extract_entities(
         if location.lower() in user_input.lower():
             entities["location"] = location
 
+    street_location = re.search(
+        r"\b(?:near|at|around)\s+"
+        r"(\d{1,4}[a-z]?\s+(?:[a-z0-9'’.-]+\s+){0,5}"
+        r"(?:road|street|avenue|lane|drive|walk|close|crescent|terrace|"
+        r"place|link|view|way|rise|grove|boulevard))\b",
+        user_input,
+        flags=re.IGNORECASE,
+    )
+    if street_location:
+        entities["location"] = street_location.group(1).strip()
+
     lowered = user_input.lower()
     matched_locations = [
         location
