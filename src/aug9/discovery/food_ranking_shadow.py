@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 import re
 from typing import Any
+from urllib.parse import urlparse
 
 from aug9.core import database
 from aug9.discovery.food_ranking_evaluation import (
@@ -108,6 +109,7 @@ def build_food_ranking_shadow_report(
                 "positive_organic_editorial_records": (
                     item.candidate.positive_organic_editorial_records
                 ),
+                "editorial_sources": signal.get("editorial_sources", []),
                 "factors": [factor.__dict__ for factor in item.factors],
             }
         )
@@ -243,6 +245,7 @@ def _shortlist_item(row: dict[str, Any], role: str) -> dict[str, Any]:
         "positive_organic_editorial_records": row[
             "positive_organic_editorial_records"
         ],
+        "editorial_sources": row["editorial_sources"],
     }
 
 
@@ -319,8 +322,9 @@ def _food_ranking_signals(
     cursor.execute(
         f"""
         SELECT COALESCE(rel.parent_entity_id, evidence.entity_id) AS canonical_entity_id,
-               COUNT(*) AS editorial_count,
-               MAX(evidence.observed_at) AS latest_observed_at
+               evidence.source_url,
+               evidence.source_id,
+               evidence.observed_at
         FROM discovery_food_evidence evidence
         LEFT JOIN discovery_entity_relationships rel
           ON rel.child_entity_id = evidence.entity_id
@@ -331,30 +335,70 @@ def _food_ranking_signals(
           AND evidence.direction = 'positive'
           AND evidence.commercial_status = 'organic'
           AND (evidence.expires_at IS NULL OR evidence.expires_at >= {p})
-        GROUP BY COALESCE(rel.parent_entity_id, evidence.entity_id)
         """,
         (*entity_ids, now.isoformat()),
     )
     signals: dict[str, dict[str, Any]] = {}
-    for entity_id, count, observed_at in cursor.fetchall():
-        signals[entity_id] = {
-            "editorial_count": int(count),
-            "freshness_score": _freshness_score(observed_at, now),
-        }
+    for entity_id, source_url, source_id, observed_at in cursor.fetchall():
+        signal = signals.setdefault(
+            entity_id,
+            {
+                "editorial_count": 0,
+                "latest_observed_at": None,
+                "editorial_sources": set(),
+            },
+        )
+        signal["editorial_count"] += 1
+        observed = _as_datetime(observed_at)
+        if signal["latest_observed_at"] is None or (
+            observed is not None and observed > signal["latest_observed_at"]
+        ):
+            signal["latest_observed_at"] = observed
+        signal["editorial_sources"].add(
+            _editorial_source_label(source_url, source_id)
+        )
     conn.close()
+    for signal in signals.values():
+        signal["freshness_score"] = _freshness_score(
+            signal.pop("latest_observed_at"), now
+        )
+        signal["editorial_sources"] = sorted(signal["editorial_sources"])
     return signals
+
+
+def _editorial_source_label(source_url: str | None, source_id: str) -> str:
+    hostname = urlparse(source_url).hostname if source_url else None
+    domain = (hostname or "").removeprefix("www.").casefold()
+    labels = {
+        "ieatishootipost.sg": "ieatishootipost",
+        "misstamchiak.com": "Miss Tam Chiak",
+        "sethlui.com": "SETHLUI.com",
+        "danielfooddiary.com": "DanielFoodDiary",
+        "eatbook.sg": "Eatbook",
+        "guide.michelin.com": "Michelin Guide",
+    }
+    if domain in labels:
+        return labels[domain]
+    return source_id.replace("_", " ").strip().title()
+
+
+def _as_datetime(value: datetime | str | None) -> datetime | None:
+    if value is None:
+        return None
+    parsed = (
+        datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if isinstance(value, str)
+        else value
+    )
+    return parsed.replace(tzinfo=UTC) if parsed.tzinfo is None else parsed
 
 
 def _freshness_score(observed_at: datetime | str | None, now: datetime) -> float:
     if observed_at is None:
         return 0.5
-    value = (
-        datetime.fromisoformat(observed_at.replace("Z", "+00:00"))
-        if isinstance(observed_at, str)
-        else observed_at
-    )
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=UTC)
+    value = _as_datetime(observed_at)
+    if value is None:
+        return 0.5
     age_days = max(0, (now - value).days)
     if age_days <= 90:
         return 0.9

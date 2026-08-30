@@ -273,6 +273,7 @@ def test_shadow_pool_includes_supported_unmatched_editorial_place(repository):
     assert item["catalog_basis"] == "editorial_standalone"
     assert item["safe_grade"] is None
     assert item["positive_organic_editorial_records"] == 1
+    assert item["editorial_sources"] == ["Editorial"]
 
 
 def test_shadow_pool_excludes_unsupported_unmatched_place(repository):

@@ -159,6 +159,9 @@ class SgFoodSkill(Aug9Skill):
                     "editorial_food_quality_records": recommendation.get(
                         "positive_organic_editorial_records", 0
                     ),
+                    "editorial_sources": recommendation.get(
+                        "editorial_sources", []
+                    ),
                 }
             )
 
