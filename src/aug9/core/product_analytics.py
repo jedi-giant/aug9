@@ -38,6 +38,12 @@ class ProductEvent(BaseModel):
     campaign_medium: str | None = Field(default=None, max_length=120)
     campaign_name: str | None = Field(default=None, max_length=120)
     ranking_mode: str | None = Field(default=None, max_length=30)
+    feedback_scope: str | None = Field(default=None, pattern="^(response|card)$")
+    target_id: str | None = Field(default=None, max_length=200)
+    reason_code: str | None = Field(
+        default=None,
+        pattern="^(inaccurate|outdated|too_far|lost_context|not_relevant|other)$",
+    )
 
     @property
     def successful_task(self) -> bool:
@@ -60,9 +66,11 @@ def log_product_event(event: ProductEvent) -> None:
         INSERT INTO product_events (
             event_id, task_id, user_id, session_id, event_type, capabilities,
             task_status, action_type, helpful, successful_task,
-            campaign_source, campaign_medium, campaign_name, ranking_mode
+            campaign_source, campaign_medium, campaign_name, ranking_mode,
+            feedback_scope, target_id, reason_code
         ) VALUES (
-            {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}
+            {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p},
+            {p}, {p}, {p}
         )
         ON CONFLICT(event_id) DO NOTHING
         """,
@@ -81,6 +89,9 @@ def log_product_event(event: ProductEvent) -> None:
             event.campaign_medium,
             event.campaign_name,
             event.ranking_mode,
+            event.feedback_scope,
+            event.target_id,
+            event.reason_code,
         ),
     )
     conn.commit()

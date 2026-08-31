@@ -18,6 +18,7 @@ def build_context(
     user_id: str = "",
     memory: ConversationState | None = None,
     supplied_place: Place | None = None,
+    session_id: str | None = None,
 ) -> UserContext:
 
     load_dotenv()
@@ -30,10 +31,20 @@ def build_context(
             )
             if resolved.status is SearchStatus.SUCCESS and resolved.location is not None:
                 supplied_place = resolved.location
+        resolved_memory = memory or get_memory(user_id, session_id=session_id)
+        state = ConversationState(
+            current_place=supplied_place,
+            last_intent=user_input,
+            history=[*resolved_memory.history, user_input][-20:],
+            preferences=resolved_memory.preferences,
+        )
+        update_memory(
+            user_id, state, session_id=session_id, persist=False
+        )
         return UserContext(
             current_place=supplied_place,
             intent=user_input,
-            memory=memory or get_memory(user_id),
+            memory=state,
         )
 
     base_url = os.getenv(
@@ -55,7 +66,7 @@ def build_context(
     )
 
     if token is None:
-        memory = memory or get_memory(user_id)
+        memory = memory or get_memory(user_id, session_id=session_id)
 
         return UserContext(
             current_place=memory.current_place,
@@ -95,6 +106,7 @@ def build_context(
         update_memory(
             user_id,
             state,
+            session_id=session_id,
             persist=False,
         )
 
@@ -104,7 +116,7 @@ def build_context(
             memory=state,
         )
 
-    memory = memory or get_memory(user_id)
+    memory = memory or get_memory(user_id, session_id=session_id)
 
     return UserContext(
         current_place=memory.current_place,

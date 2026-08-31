@@ -218,6 +218,20 @@ def initialise_database():
             """
         )
 
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS conversation_contexts (
+            user_id TEXT NOT NULL,
+            session_id TEXT NOT NULL,
+            current_place TEXT,
+            last_intent TEXT,
+            history TEXT NOT NULL DEFAULT '[]',
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(user_id, session_id)
+        )
+        """
+    )
+
     initialise_discovery_schema(
         cursor,
         postgres=is_postgres(),

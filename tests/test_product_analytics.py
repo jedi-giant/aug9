@@ -94,3 +94,27 @@ def test_result_event_records_food_ranking_mode():
     )
     assert cursor.fetchone()[0] == "shortlist"
     conn.close()
+
+
+def test_card_feedback_records_target_and_reason():
+    log_product_event(
+        ProductEvent(
+            task_id="task-card-feedback",
+            user_id="anon-user",
+            event_type=ProductEventType.FEEDBACK,
+            capabilities=["food"],
+            helpful=False,
+            feedback_scope="card",
+            target_id="food:sfa:123",
+            reason_code="lost_context",
+        )
+    )
+
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT feedback_scope, target_id, reason_code
+           FROM product_events WHERE task_id = 'task-card-feedback'"""
+    )
+    assert cursor.fetchone() == ("card", "food:sfa:123", "lost_context")
+    conn.close()

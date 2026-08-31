@@ -42,7 +42,7 @@ def run_aug9(
     }
 
     stage_started = time.perf_counter()
-    memory = get_memory(user_id)
+    memory = get_memory(user_id, session_id=session_id)
     timings_ms["memory_load"] = int(
         (time.perf_counter() - stage_started) * 1000
     )
@@ -67,6 +67,7 @@ def run_aug9(
         user_id=user_id,
         memory=memory,
         supplied_place=supplied_place,
+        session_id=session_id,
     )
     timings_ms["context"] = int(
         (time.perf_counter() - stage_started) * 1000

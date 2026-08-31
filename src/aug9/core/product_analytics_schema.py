@@ -18,6 +18,9 @@ def initialise_product_analytics_schema(cursor, *, postgres: bool) -> None:
             campaign_medium TEXT,
             campaign_name TEXT,
             ranking_mode TEXT,
+            feedback_scope TEXT,
+            target_id TEXT,
+            reason_code TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
@@ -26,10 +29,28 @@ def initialise_product_analytics_schema(cursor, *, postgres: bool) -> None:
         cursor.execute(
             "ALTER TABLE product_events ADD COLUMN IF NOT EXISTS ranking_mode TEXT"
         )
+        cursor.execute(
+            "ALTER TABLE product_events ADD COLUMN IF NOT EXISTS feedback_scope TEXT"
+        )
+        cursor.execute(
+            "ALTER TABLE product_events ADD COLUMN IF NOT EXISTS target_id TEXT"
+        )
+        cursor.execute(
+            "ALTER TABLE product_events ADD COLUMN IF NOT EXISTS reason_code TEXT"
+        )
     else:
         cursor.execute("PRAGMA table_info(product_events)")
-        if "ranking_mode" not in {row[1] for row in cursor.fetchall()}:
-            cursor.execute("ALTER TABLE product_events ADD COLUMN ranking_mode TEXT")
+        columns = {row[1] for row in cursor.fetchall()}
+        for column in (
+            "ranking_mode",
+            "feedback_scope",
+            "target_id",
+            "reason_code",
+        ):
+            if column not in columns:
+                cursor.execute(
+                    f"ALTER TABLE product_events ADD COLUMN {column} TEXT"
+                )
     cursor.execute(
         """
         CREATE INDEX IF NOT EXISTS product_events_task_id_idx
