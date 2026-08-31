@@ -77,7 +77,14 @@ class FakeFoodSkill(Aug9Skill):
         return SkillResult(
             success=True,
             data={
-                "places": [{"name": "Licensed stall"}],
+                "places": [
+                    {
+                        "name": "Licensed stall",
+                        "address": "4A Jalan Batu",
+                        "latitude": 1.3023,
+                        "longitude": 103.8839,
+                    }
+                ],
                 "evidence_scope": {
                     "verified": ["licensing", "safe_grade", "location"]
                 },

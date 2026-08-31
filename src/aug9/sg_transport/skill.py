@@ -42,9 +42,15 @@ class SgTransportSkill(Aug9Skill):
         origin_query = entities.get("origin") or intent_origin
         destination_query = entities.get("destination") or intent_destination
 
-        origin = self._resolve(origin_query) or context.current_place
-        destination = self._resolve(destination_query)
-        if destination is None and entities.get("location"):
+        origin = self._provided_place(entities.get("_origin_place"))
+        origin = origin or self._resolve(origin_query) or context.current_place
+        destination = self._provided_place(entities.get("_destination_place"))
+        destination = destination or self._resolve(destination_query)
+        if (
+            destination is None
+            and destination_query is None
+            and entities.get("location")
+        ):
             destination = self._resolve(entities.get("location"))
 
         if origin is None or destination is None:
@@ -222,6 +228,15 @@ class SgTransportSkill(Aug9Skill):
         if result.status != SearchStatus.SUCCESS:
             return None
         return result.location
+
+    @staticmethod
+    def _provided_place(value: Any) -> Place | None:
+        if not value:
+            return None
+        try:
+            return Place.model_validate(value)
+        except (TypeError, ValueError):
+            return None
 
     @staticmethod
     def _requested_mode(entities: dict[str, Any], intent: str | None) -> str | None:

@@ -78,6 +78,32 @@ def test_sg_transport_does_not_generate_a_route_to_the_same_place():
     assert "already at" in result.summary
 
 
+def test_sg_transport_uses_selected_journey_place_without_re_resolving_it():
+    result = SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()).execute(
+        UserContext(current_place=Place(name="Katong")),
+        {
+            "origin": "Katong",
+            "destination": "Unresolvable formatted address",
+            "_origin_place": {
+                "name": "Katong",
+                "latitude": 1.3004,
+                "longitude": 103.8848,
+            },
+            "_destination_place": {
+                "name": "Selected food",
+                "address": "4A Jalan Batu",
+                "latitude": 1.3023,
+                "longitude": 103.8839,
+            },
+        },
+    )
+
+    assert result.success is True
+    assert result.data["route"]["origin"] == "Katong"
+    assert result.data["route"]["destination"] == "Selected food"
+    assert result.data["recommended_mode"] != "none"
+
+
 def test_sg_transport_recovers_endpoints_from_intent():
     result = SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()).execute(
         UserContext(

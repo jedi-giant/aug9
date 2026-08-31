@@ -47,13 +47,20 @@ def execute_plan(
             if context.current_place is None:
                 continue
             destination = _first_journey_destination(outputs)
-            if not destination:
+            if destination is None:
                 continue
             origin = context.current_place.name
-            if origin.strip().casefold() == destination.strip().casefold():
+            destination_label = destination.address or destination.name
+            if origin.strip().casefold() == destination_label.strip().casefold():
                 continue
             execution_entities["origin"] = origin
-            execution_entities["destination"] = destination
+            execution_entities["destination"] = destination_label
+            execution_entities["_origin_place"] = context.current_place.model_dump(
+                exclude_none=True
+            )
+            execution_entities["_destination_place"] = destination.model_dump(
+                exclude_none=True
+            )
 
         skill = registry.find_by_capability(capability)
 
@@ -86,22 +93,35 @@ def execute_plan(
     )
 
 
-def _first_journey_destination(outputs: dict[str, object]) -> str | None:
+def _first_journey_destination(outputs: dict[str, object]) -> Place | None:
     """Select the first real stop before executing the dependent route."""
     if composite_journeys_enabled():
         food_output = outputs.get("food")
         food_places = getattr(food_output, "data", {}).get("places", [])
         if food_places:
             first_food = food_places[0]
-            destination = first_food.get("address") or first_food.get("name")
-            if destination:
-                return str(destination)
+            name = first_food.get("name")
+            if name:
+                return Place(
+                    name=str(name),
+                    place_type="food",
+                    address=first_food.get("address"),
+                    postal_code=first_food.get("postal_code"),
+                    latitude=first_food.get("latitude"),
+                    longitude=first_food.get("longitude"),
+                )
 
     event_output = outputs.get("events")
     event_items = getattr(event_output, "data", {}).get("events", [])
     if event_items:
         first_event = event_items[0]
-        destination = first_event.get("address") or first_event.get("name")
-        if destination:
-            return str(destination)
+        route_name = first_event.get("address") or first_event.get("name")
+        if route_name:
+            return Place(
+                name=str(route_name),
+                place_type="event",
+                address=first_event.get("address"),
+                latitude=first_event.get("latitude"),
+                longitude=first_event.get("longitude"),
+            )
     return None
