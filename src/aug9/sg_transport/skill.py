@@ -56,8 +56,30 @@ class SgTransportSkill(Aug9Skill):
                 ),
             )
 
-        explicit_mode = self._requested_mode(entities, context.intent)
         straight_distance = self._straight_distance_meters(origin, destination)
+        if (
+            origin.name.strip().casefold() == destination.name.strip().casefold()
+            or (straight_distance is not None and straight_distance <= 25)
+        ):
+            summary = f"You're already at {destination.name}."
+            return SkillResult(
+                success=True,
+                data={
+                    "route": {
+                        "origin": origin.name,
+                        "destination": destination.name,
+                        "steps": [],
+                        "summary": summary,
+                        "distance_meters": straight_distance or 0,
+                        "duration_minutes": 0,
+                    },
+                    "status": SearchStatus.SUCCESS.value,
+                    "recommended_mode": "none",
+                },
+                summary=summary,
+            )
+
+        explicit_mode = self._requested_mode(entities, context.intent)
         selected_mode = explicit_mode or (
             "walk"
             if straight_distance is not None

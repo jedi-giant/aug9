@@ -9,6 +9,8 @@ from aug9.core.responder import compose_response
 from aug9.core.planner_adapter import llm_plan_to_plan
 from aug9.core.trace import AgentTrace
 from aug9.core.session import get_memory
+from aug9.core.session import update_memory
+from aug9.core.journey import build_journey_state
 from aug9.core.memory_agent import extract_memories, should_extract_memories
 from aug9.core.database import save_memory
 from aug9.core.agent_response import AgentResponse, compose_agent_response
@@ -82,6 +84,19 @@ def run_aug9(
         (time.perf_counter() - stage_started) * 1000
     )
 
+    journey_state = build_journey_state(memory, plan, context, execution)
+    if journey_state is not None:
+        conversation_state = (context.memory or memory).model_copy(
+            update={"journey": journey_state}
+        )
+        update_memory(
+            user_id,
+            conversation_state,
+            session_id=session_id,
+            persist=False,
+        )
+        context = context.model_copy(update={"memory": conversation_state})
+
     stage_started = time.perf_counter()
     response = compose_response(
         execution
@@ -110,5 +125,9 @@ def run_aug9(
     if structured:
         agent_response = compose_agent_response(execution)
         agent_response.metadata["timings_ms"] = timings_ms
+        if journey_state is not None:
+            agent_response.metadata["journey"] = journey_state.model_dump(
+                exclude_none=True
+            )
         return agent_response
     return response

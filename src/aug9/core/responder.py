@@ -109,8 +109,45 @@ def compose_response(
         elif getattr(transport, "summary", None):
             messages.append(transport.summary)
 
-    response = " ".join(messages)
     lifeops = execution.outputs.get("lifeops")
+    if lifeops and getattr(lifeops, "success", False):
+        location_available = lifeops.data.get("location_available", False)
+        itinerary = lifeops.data.get("itinerary", [])
+        if itinerary and location_available:
+            plan_messages = []
+            for stop in itinerary:
+                if stop.get("type") == "start":
+                    plan_messages.append(stop.get("title"))
+                elif stop.get("type") == "food":
+                    plan_messages.append(f"Food stop: {stop.get('title')}")
+                elif stop.get("title"):
+                    plan_messages.append(f"Then: {stop.get('title')}")
+
+            weather_summary = getattr(weather, "summary", None) if weather else None
+            if weather and not weather_summary:
+                forecast = getattr(weather, "data", {}).get("weather", {}).get(
+                    "forecast"
+                )
+                if forecast:
+                    weather_summary = f"Weather forecast: {forecast}."
+            transport_summary = None
+            if transport:
+                transport_summary = (
+                    getattr(transport, "data", {})
+                    .get("route", {})
+                    .get("summary")
+                    or getattr(transport, "summary", None)
+                )
+            plan_messages.extend(
+                item
+                for item in (weather_summary, transport_summary)
+                if item
+            )
+            return "Your Singapore day plan: " + ". ".join(
+                item.rstrip(".") for item in plan_messages if item
+            ) + "."
+
+    response = " ".join(messages)
     if lifeops and getattr(lifeops, "success", False):
         location_available = lifeops.data.get("location_available", False)
         if response:

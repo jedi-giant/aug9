@@ -20,6 +20,9 @@ def initialise_product_analytics_schema(cursor, *, postgres: bool) -> None:
             ranking_mode TEXT,
             feedback_scope TEXT,
             target_id TEXT,
+            journey_type TEXT,
+            journey_status TEXT,
+            failure_stage TEXT,
             reason_code TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -38,6 +41,15 @@ def initialise_product_analytics_schema(cursor, *, postgres: bool) -> None:
         cursor.execute(
             "ALTER TABLE product_events ADD COLUMN IF NOT EXISTS reason_code TEXT"
         )
+        cursor.execute(
+            "ALTER TABLE product_events ADD COLUMN IF NOT EXISTS journey_type TEXT"
+        )
+        cursor.execute(
+            "ALTER TABLE product_events ADD COLUMN IF NOT EXISTS journey_status TEXT"
+        )
+        cursor.execute(
+            "ALTER TABLE product_events ADD COLUMN IF NOT EXISTS failure_stage TEXT"
+        )
     else:
         cursor.execute("PRAGMA table_info(product_events)")
         columns = {row[1] for row in cursor.fetchall()}
@@ -46,6 +58,9 @@ def initialise_product_analytics_schema(cursor, *, postgres: bool) -> None:
             "feedback_scope",
             "target_id",
             "reason_code",
+            "journey_type",
+            "journey_status",
+            "failure_stage",
         ):
             if column not in columns:
                 cursor.execute(

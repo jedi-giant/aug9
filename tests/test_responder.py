@@ -197,3 +197,39 @@ def test_response_supports_registered_playground_skill_result():
     assert compose_response(result) == (
         "Here are a few playgrounds to consider: Neighbourhood Playground."
     )
+
+
+def test_lifeops_response_composes_food_weather_and_transport_as_one_plan():
+    result = ExecutionResult(
+        plan=Plan(
+            intent="Plan a Singapore day out",
+            required_capabilities=["food", "weather", "transport", "lifeops"],
+        ),
+        outputs={
+            "weather": SkillResult(
+                success=True,
+                data={"weather": {"forecast": "Afternoon showers"}},
+            ),
+            "transport": SkillResult(
+                success=True,
+                data={"route": {"summary": "Walk there in about 8 minutes."}},
+            ),
+            "lifeops": SkillResult(
+                success=True,
+                data={
+                    "location_available": True,
+                    "itinerary": [
+                        {"type": "start", "title": "Start at Katong"},
+                        {"type": "food", "title": "Katong Laksa"},
+                    ],
+                },
+            ),
+        },
+    )
+
+    response = compose_response(result)
+
+    assert response.startswith("Your Singapore day plan: Start at Katong")
+    assert "Food stop: Katong Laksa" in response
+    assert "Afternoon showers" in response
+    assert "Walk there in about 8 minutes" in response

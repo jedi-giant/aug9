@@ -30,7 +30,10 @@ class SgPlannerSkill(Aug9Skill):
         itinerary = self._order_event_stops(itinerary)
         self._assign_times(itinerary, context.intent)
         itinerary = self._order_by_schedule(itinerary)
-        travel_legs, actions = self._build_travel_legs(itinerary)
+        transport_data = self._skill_data(outputs, "transport")
+        travel_legs, actions = self._build_travel_legs(
+            itinerary, transport_data
+        )
         return SkillResult(
             success=True,
             data={
@@ -39,7 +42,7 @@ class SgPlannerSkill(Aug9Skill):
                 "itinerary": itinerary,
                 "travel_legs": travel_legs,
                 "weather": self._skill_data(outputs, "weather").get("weather"),
-                "transport": self._skill_data(outputs, "transport").get("route"),
+                "transport": transport_data.get("route"),
             },
             summary=(
                 f"Your Singapore day plan has {len(itinerary)} planned stops."
@@ -95,6 +98,32 @@ class SgPlannerSkill(Aug9Skill):
                     ),
                 }
             )
+        else:
+            food_data = cls._skill_data(outputs, "food")
+            places = food_data.get("places", [])
+            if places:
+                place = places[0]
+                itinerary.append(
+                    {
+                        "order": len(itinerary) + 1,
+                        "type": "food",
+                        "title": place.get("name"),
+                        "description": (
+                            place.get("recommendation_reason")
+                            or place.get("travel_guidance")
+                        ),
+                        "location": place.get("address") or place.get("name"),
+                        "latitude": place.get("latitude"),
+                        "longitude": place.get("longitude"),
+                        "provenance": {
+                            "licensing": place.get("licensing_evidence"),
+                            "location": place.get("location_evidence"),
+                            "opening_hours": place.get(
+                                "opening_hours_evidence"
+                            ),
+                        },
+                    }
+                )
 
         for event in cls._skill_data(outputs, "events").get("events", []):
             itinerary.append(
@@ -220,10 +249,14 @@ class SgPlannerSkill(Aug9Skill):
 
     @classmethod
     def _build_travel_legs(
-        cls, itinerary: list[dict[str, Any]]
+        cls,
+        itinerary: list[dict[str, Any]],
+        transport_data: dict[str, Any] | None = None,
     ) -> tuple[list[dict[str, Any]], list[SkillAction]]:
         legs: list[dict[str, Any]] = []
         actions: list[SkillAction] = []
+        transport_data = transport_data or {}
+        routed_first_leg = transport_data.get("route") or {}
         for origin, destination in zip(itinerary, itinerary[1:]):
             if not origin.get("location") or not destination.get("location"):
                 continue
@@ -235,6 +268,10 @@ class SgPlannerSkill(Aug9Skill):
                 if distance is not None and distance <= WALKABLE_LEG_METERS
                 else "public_transport"
             )
+            route = routed_first_leg if not legs else {}
+            if route:
+                distance = route.get("distance_meters", distance)
+                mode = transport_data.get("recommended_mode") or mode
             google_mode = "walking" if mode == "walk" else "transit"
             legs.append(
                 {
@@ -242,6 +279,8 @@ class SgPlannerSkill(Aug9Skill):
                     "from": origin["location"],
                     "to": destination["location"],
                     "distance_meters": round(distance) if distance is not None else None,
+                    "duration_minutes": route.get("duration_minutes"),
+                    "summary": route.get("summary"),
                     "recommended_mode": mode,
                 }
             )

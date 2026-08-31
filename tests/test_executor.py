@@ -282,6 +282,31 @@ def test_lifeops_derives_route_destination_from_first_event():
     )
 
 
+def test_lifeops_routes_to_selected_food_before_event():
+    registry = SkillRegistry()
+    registry.register(FakeFoodSkill())
+    registry.register(FakeEventsSkill())
+    registry.register(SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()))
+    registry.register(SgPlannerSkill())
+    plan = Plan(
+        intent="Plan a day with food, weather and transport",
+        required_capabilities=["food", "events", "transport", "lifeops"],
+        entities={"plan_type": "day"},
+    )
+    context = UserContext(
+        current_place=Place(name="Katong", latitude=1.30, longitude=103.90)
+    )
+
+    result = execute_plan(plan, context, registry=registry)
+
+    assert result.outputs["transport"].data["route"]["origin"] == "Katong"
+    assert result.outputs["transport"].data["route"]["destination"] == (
+        "Licensed stall"
+    )
+    itinerary = result.outputs["lifeops"].data["itinerary"]
+    assert [item["type"] for item in itinerary[:2]] == ["start", "food"]
+
+
 def test_lifeops_defers_transport_without_starting_location():
     registry = SkillRegistry()
     registry.register(FakeEventsSkill())

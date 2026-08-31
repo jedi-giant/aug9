@@ -53,6 +53,44 @@ def test_chat_succeeds_when_usage_analytics_write_fails(monkeypatch):
     asyncio.run(background_tasks())
 
 
+def test_chat_result_event_includes_journey_outcome(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(main.rate_limiter, "check", lambda user_id: None)
+    monkeypatch.setattr(
+        main,
+        "run_aug9",
+        lambda *args, **kwargs: AgentResponse(
+            response="Partial day plan",
+            metadata={
+                "requested_capabilities": ["food", "transport", "lifeops"],
+                "capability_outcomes": {
+                    "food": "matched",
+                    "transport": "unmatched",
+                    "lifeops": "matched",
+                },
+                "journey": {"journey_type": "day", "status": "partial"},
+            },
+        ),
+    )
+    monkeypatch.setattr(main, "try_log_usage", lambda **kwargs: True)
+    monkeypatch.setattr(
+        main,
+        "try_log_product_event",
+        lambda event: captured.update(event=event) or True,
+    )
+
+    background_tasks = BackgroundTasks()
+    main.chat(
+        main.ChatRequest(user_id="user", session_id="session", message="Plan my day"),
+        background_tasks,
+    )
+    asyncio.run(background_tasks())
+
+    assert captured["event"].journey_type == "day"
+    assert captured["event"].journey_status == "partial"
+    assert captured["event"].failure_stage == "transport"
+
+
 def test_chat_returns_stable_503_for_unexpected_dependency_failure(monkeypatch):
     monkeypatch.setattr(main.rate_limiter, "check", lambda user_id: None)
     monkeypatch.setattr(

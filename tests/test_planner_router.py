@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from aug9.core.llm_planner import LLMPlan, PlanEntities
 from aug9.core.planner_router import plan
-from aug9.core.memory import ConversationState
+from aug9.core.memory import ConversationState, JourneyState
 
 
 @patch("aug9.core.planner_router.PLANNER_MODE", "llm")
@@ -97,4 +97,29 @@ def test_short_location_reply_repairs_previous_food_request(mock_llm_plan):
     assert "place_resolution" in result.required_capabilities
     assert result.entities["location"] == "Punggol"
     assert "transport" not in result.required_capabilities
+    mock_llm_plan.assert_not_called()
+
+
+@patch("aug9.core.planner_router.PLANNER_MODE", "llm")
+@patch("aug9.core.planner_router.create_llm_plan")
+def test_short_location_reply_continues_original_composite_journey(mock_llm_plan):
+    original = "Help me plan a Singapore day out with food, weather and transport"
+    memory = ConversationState(
+        last_intent="Katong",
+        history=[original, "Katong"],
+        journey=JourneyState(
+            journey_type="day",
+            original_intent=original,
+            requested_capabilities=["food", "weather", "transport", "lifeops"],
+        ),
+    )
+
+    result = plan("Katong", memory)
+
+    assert {"food", "weather", "transport", "lifeops"}.issubset(
+        result.required_capabilities
+    )
+    assert result.entities["location"] == "Katong"
+    assert result.entities["origin"] == "Katong"
+    assert "destination" not in result.entities
     mock_llm_plan.assert_not_called()

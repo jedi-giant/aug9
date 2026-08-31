@@ -65,6 +65,19 @@ def test_sg_transport_requires_both_places():
     assert "Where are you starting from" in result.summary
 
 
+def test_sg_transport_does_not_generate_a_route_to_the_same_place():
+    result = SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()).execute(
+        UserContext(current_place=Place(name="Maxwell Food Centre")),
+        {"destination": "Maxwell Food Centre"},
+    )
+
+    assert result.success is True
+    assert result.data["recommended_mode"] == "none"
+    assert result.data["route"]["duration_minutes"] == 0
+    assert result.actions == []
+    assert "already at" in result.summary
+
+
 def test_sg_transport_recovers_endpoints_from_intent():
     result = SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()).execute(
         UserContext(

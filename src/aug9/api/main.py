@@ -303,6 +303,15 @@ def chat(
         capability_outcomes = result.metadata.get("capability_outcomes", {})
         food_skill_metadata = result.metadata.get("skills", {}).get("food", {})
         ranking_mode = food_skill_metadata.get("ranking_mode")
+        journey_metadata = result.metadata.get("journey", {})
+        failure_stage = next(
+            (
+                capability
+                for capability, outcome in capability_outcomes.items()
+                if outcome == "unmatched"
+            ),
+            None,
+        )
         result_status = (
             TaskStatus.FAILED
             if "unmatched" in capability_outcomes.values()
@@ -337,6 +346,9 @@ def chat(
                 capabilities=capabilities,
                 task_status=result_status,
                 ranking_mode=ranking_mode,
+                journey_type=journey_metadata.get("journey_type"),
+                journey_status=journey_metadata.get("status"),
+                failure_stage=failure_stage,
             )
         )
 

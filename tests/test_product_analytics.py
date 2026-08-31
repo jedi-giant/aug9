@@ -96,6 +96,29 @@ def test_result_event_records_food_ranking_mode():
     conn.close()
 
 
+def test_result_event_records_bounded_journey_outcome():
+    log_product_event(
+        ProductEvent(
+            task_id="task-journey",
+            user_id="visitor-journey",
+            session_id="session-journey",
+            event_type=ProductEventType.RESULT_GENERATED,
+            journey_type="day",
+            journey_status="partial",
+            failure_stage="transport",
+        )
+    )
+
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT journey_type, journey_status, failure_stage "
+        "FROM product_events WHERE task_id = 'task-journey'"
+    )
+    assert cursor.fetchone() == ("day", "partial", "transport")
+    conn.close()
+
+
 def test_card_feedback_records_target_and_reason():
     log_product_event(
         ProductEvent(

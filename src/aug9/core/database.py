@@ -226,11 +226,26 @@ def initialise_database():
             current_place TEXT,
             last_intent TEXT,
             history TEXT NOT NULL DEFAULT '[]',
+            journey_state TEXT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY(user_id, session_id)
         )
         """
     )
+    if is_postgres():
+        cursor.execute(
+            """
+            ALTER TABLE conversation_contexts
+            ADD COLUMN IF NOT EXISTS journey_state TEXT
+            """
+        )
+    else:
+        cursor.execute("PRAGMA table_info(conversation_contexts)")
+        existing_columns = {row[1] for row in cursor.fetchall()}
+        if "journey_state" not in existing_columns:
+            cursor.execute(
+                "ALTER TABLE conversation_contexts ADD COLUMN journey_state TEXT"
+            )
 
     initialise_discovery_schema(
         cursor,

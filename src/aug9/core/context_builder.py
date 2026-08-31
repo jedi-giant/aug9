@@ -37,6 +37,7 @@ def build_context(
             last_intent=user_input,
             history=[*resolved_memory.history, user_input][-20:],
             preferences=resolved_memory.preferences,
+            journey=resolved_memory.journey,
         )
         update_memory(
             user_id, state, session_id=session_id, persist=False
@@ -117,6 +118,7 @@ def build_context(
                 user_input,
             ],
             preferences=existing_memory.preferences,
+            journey=existing_memory.journey,
         )
 
         update_memory(
@@ -155,6 +157,7 @@ def _remember_turn(
         last_intent=user_input,
         history=[*memory.history, user_input][-20:],
         preferences=memory.preferences,
+        journey=memory.journey,
     )
     update_memory(user_id, state, session_id=session_id, persist=False)
     return state

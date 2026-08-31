@@ -40,6 +40,9 @@ class ProductEvent(BaseModel):
     ranking_mode: str | None = Field(default=None, max_length=30)
     feedback_scope: str | None = Field(default=None, pattern="^(response|card)$")
     target_id: str | None = Field(default=None, max_length=200)
+    journey_type: str | None = Field(default=None, max_length=40)
+    journey_status: str | None = Field(default=None, max_length=40)
+    failure_stage: str | None = Field(default=None, max_length=40)
     reason_code: str | None = Field(
         default=None,
         pattern="^(inaccurate|outdated|too_far|lost_context|not_relevant|other)$",
@@ -67,10 +70,11 @@ def log_product_event(event: ProductEvent) -> None:
             event_id, task_id, user_id, session_id, event_type, capabilities,
             task_status, action_type, helpful, successful_task,
             campaign_source, campaign_medium, campaign_name, ranking_mode,
-            feedback_scope, target_id, reason_code
+            feedback_scope, target_id, journey_type, journey_status,
+            failure_stage, reason_code
         ) VALUES (
             {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p},
-            {p}, {p}, {p}
+            {p}, {p}, {p}, {p}, {p}, {p}
         )
         ON CONFLICT(event_id) DO NOTHING
         """,
@@ -91,6 +95,9 @@ def log_product_event(event: ProductEvent) -> None:
             event.ranking_mode,
             event.feedback_scope,
             event.target_id,
+            event.journey_type,
+            event.journey_status,
+            event.failure_stage,
             event.reason_code,
         ),
     )

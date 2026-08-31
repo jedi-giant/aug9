@@ -5,7 +5,7 @@ from aug9.core.session import (
     get_memory,
     update_memory,
 )
-from aug9.core.memory import ConversationState
+from aug9.core.memory import ConversationState, JourneyState
 from aug9.core.models import Place
 from aug9.core import session
 
@@ -75,3 +75,39 @@ def test_conversation_locations_are_isolated_by_session():
     other_chat = get_memory("same_user", session_id="new-chat")
 
     assert other_chat.current_place is None
+
+
+def test_composite_journey_survives_process_cache_reset():
+    journey = JourneyState(
+        journey_type="day",
+        original_intent="Plan a day out with food and weather",
+        requested_capabilities=["food", "weather", "lifeops"],
+        pending_slots=["origin"],
+    )
+    update_memory(
+        "journey_user",
+        ConversationState(last_intent="Plan my day", journey=journey),
+        session_id="journey-chat",
+        persist=False,
+    )
+
+    session._sessions.clear()
+    restored = get_memory("journey_user", session_id="journey-chat")
+
+    assert restored.journey == journey
+
+
+def test_invalid_persisted_journey_state_does_not_break_chat_memory():
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO conversation_contexts "
+        "(user_id, session_id, history, journey_state) VALUES (?, ?, '[]', ?)",
+        ("invalid_user", "invalid-chat", "not-json"),
+    )
+    conn.commit()
+    conn.close()
+
+    restored = get_memory("invalid_user", session_id="invalid-chat")
+
+    assert restored.journey is None

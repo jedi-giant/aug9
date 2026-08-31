@@ -93,8 +93,13 @@ def create_plan(
         for phrase in [
             "plan my day", "plan my saturday", "plan my sunday",
             "plan my weekend", "plan a day", "day itinerary",
-            "weekend itinerary",
+            "weekend itinerary", "day out",
         ]
+    ) or bool(
+        re.search(
+            r"\bplan(?:ning)?\b.{0,50}\b(?:day|outing|itinerary|errands?)\b",
+            text,
+        )
     )
     if lifeops_request:
         capabilities.extend(["events", "food", "weather", "transport", "lifeops"])

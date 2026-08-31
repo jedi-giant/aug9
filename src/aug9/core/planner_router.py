@@ -57,7 +57,11 @@ def plan(
 def _location_repair_plan(user_input: str, memory=None):
     """Apply a short place reply to the user's preceding location-dependent task."""
     words = user_input.strip().split()
-    previous_input = getattr(memory, "last_intent", None)
+    journey = getattr(memory, "journey", None)
+    previous_input = (
+        getattr(journey, "original_intent", None)
+        or getattr(memory, "last_intent", None)
+    )
     if (
         not previous_input
         or not 1 <= len(words) <= 5
@@ -68,12 +72,21 @@ def _location_repair_plan(user_input: str, memory=None):
 
     previous_plan = create_plan(previous_input)
     contextual_capabilities = {
-        "food", "hawkers", "hotels", "playgrounds", "events", "weather"
+        "food", "hawkers", "hotels", "playgrounds", "events", "weather",
+        "lifeops",
     }
     if not contextual_capabilities.intersection(previous_plan.required_capabilities):
         return None
 
     previous_plan.entities["location"] = user_input.strip()
+    if "transport" in previous_plan.required_capabilities:
+        previous_plan.entities["origin"] = user_input.strip()
+        previous_plan.entities.pop("destination", None)
+        if contextual_capabilities.intersection(
+            previous_plan.required_capabilities
+        ):
+            previous_plan.required_capabilities.append("lifeops")
+            previous_plan.entities.setdefault("plan_type", "day")
     previous_plan.required_capabilities = list(dict.fromkeys([
         "place_resolution", *previous_plan.required_capabilities
     ]))

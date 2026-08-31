@@ -1,7 +1,7 @@
 import json
 
 from aug9.core import database
-from aug9.core.memory import ConversationState, UserMemory
+from aug9.core.memory import ConversationState, JourneyState, UserMemory
 from aug9.core.models import Place
 from aug9.core.database import get_memories, save_memory
 
@@ -58,6 +58,7 @@ def get_memory(
         last_intent=existing_state.last_intent,
         history=existing_state.history,
         preferences=preferences,
+        journey=existing_state.journey,
     )
 
 
@@ -107,7 +108,7 @@ def _load_session_state(
         p = database.placeholder()
         cursor.execute(
             f"""
-            SELECT current_place, last_intent, history
+            SELECT current_place, last_intent, history, journey_state
             FROM conversation_contexts
             WHERE user_id = {p} AND session_id = {p}
             """,
@@ -129,7 +130,17 @@ def _load_session_state(
         ),
         last_intent=row[1],
         history=json.loads(row[2] or "[]"),
+        journey=_parse_journey_state(row[3]),
     )
+
+
+def _parse_journey_state(value: str | None) -> JourneyState | None:
+    if not value:
+        return None
+    try:
+        return JourneyState.model_validate(json.loads(value))
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return None
 
 
 def _save_session_state(
@@ -145,12 +156,14 @@ def _save_session_state(
         cursor.execute(
             f"""
             INSERT INTO conversation_contexts (
-                user_id, session_id, current_place, last_intent, history
-            ) VALUES ({p}, {p}, {p}, {p}, {p})
+                user_id, session_id, current_place, last_intent, history,
+                journey_state
+            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p})
             ON CONFLICT(user_id, session_id) DO UPDATE SET
                 current_place = excluded.current_place,
                 last_intent = excluded.last_intent,
                 history = excluded.history,
+                journey_state = excluded.journey_state,
                 updated_at = CURRENT_TIMESTAMP
             """,
             (
@@ -163,6 +176,7 @@ def _save_session_state(
                 ),
                 state.last_intent,
                 json.dumps(state.history[-20:]),
+                state.journey.model_dump_json() if state.journey else None,
             ),
         )
         conn.commit()

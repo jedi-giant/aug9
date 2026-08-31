@@ -98,6 +98,57 @@ def test_planner_skill_builds_structured_itinerary_from_skill_outputs():
     assert result.data["transport"]["summary"] == "Take public transport."
 
 
+def test_planner_skill_uses_registered_food_skill_shape_and_route_details():
+    outputs = {
+        "food": SkillResult(
+            success=True,
+            data={
+                "places": [
+                    {
+                        "name": "Katong Laksa",
+                        "address": "51 East Coast Road",
+                        "latitude": 1.305,
+                        "longitude": 103.905,
+                        "travel_guidance": "walking may be practical",
+                        "licensing_evidence": "Singapore Food Agency",
+                        "location_evidence": "OneMap",
+                        "opening_hours_evidence": "unknown",
+                    }
+                ]
+            },
+        ),
+        "transport": SkillResult(
+            success=True,
+            data={
+                "recommended_mode": "walk",
+                "route": {
+                    "summary": "Walk to 51 East Coast Road in about 8 minutes.",
+                    "distance_meters": 600,
+                    "duration_minutes": 8,
+                },
+            },
+        ),
+    }
+
+    result = SgPlannerSkill().execute(
+        UserContext(
+            current_place=Place(
+                name="Katong", latitude=1.304, longitude=103.902
+            ),
+            intent="Plan a day out in Katong",
+        ),
+        {"plan_type": "day", "_lifeops_outputs": outputs},
+    )
+
+    assert [item["type"] for item in result.data["itinerary"]] == [
+        "start",
+        "food",
+    ]
+    assert result.data["itinerary"][1]["title"] == "Katong Laksa"
+    assert result.data["itinerary"][1]["provenance"]["location"] == "OneMap"
+    assert result.data["travel_legs"][0]["duration_minutes"] == 8
+
+
 def test_planner_orders_nearby_events_and_builds_consecutive_travel_legs():
     outputs = {
         "events": SkillResult(

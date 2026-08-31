@@ -116,3 +116,14 @@ def test_planner_preserves_explicit_food_request_with_weather():
 
     assert "weather" in plan.required_capabilities
     assert "food" in plan.required_capabilities
+
+
+def test_planner_detects_singapore_day_out_as_composite_journey():
+    plan = create_plan(
+        "Help me plan a Singapore day out with food, weather and transport"
+    )
+
+    assert {"food", "weather", "transport", "lifeops"}.issubset(
+        plan.required_capabilities
+    )
+    assert plan.entities["plan_type"] == "day"
