@@ -17,6 +17,8 @@ EVENT_SOURCE_LINKS = (
     ),
 )
 
+LIFEOPS_MAX_DISTANCE_KM = 8.0
+
 
 class SgEventsSkill(Aug9Skill):
     name = "sg_events"
@@ -32,10 +34,9 @@ class SgEventsSkill(Aug9Skill):
 
     def execute(self, context: UserContext, entities: dict[str, Any]) -> SkillResult:
         starts_after, starts_before = self._date_window(context.intent)
-        is_lifeops = bool(entities.get("plan_type")) or (
-            "plan my" in (context.intent or "").casefold()
-            or "itinerary" in (context.intent or "").casefold()
-        )
+        is_lifeops = "plan my" in (context.intent or "").casefold() or "itinerary" in (
+            context.intent or ""
+        ).casefold()
         listings = self.provider.discover(
             query=None if is_lifeops else entities.get("location"),
             starts_after=starts_after,
@@ -44,6 +45,18 @@ class SgEventsSkill(Aug9Skill):
             latitude=(context.current_place.latitude if context.current_place else None),
             longitude=(context.current_place.longitude if context.current_place else None),
         )
+        has_origin_coordinates = bool(
+            context.current_place
+            and context.current_place.latitude is not None
+            and context.current_place.longitude is not None
+        )
+        if is_lifeops and has_origin_coordinates:
+            listings = [
+                item
+                for item in listings
+                if item.distance_km is not None
+                and item.distance_km <= LIFEOPS_MAX_DISTANCE_KM
+            ]
         if starts_before is not None and not (
             is_lifeops and context.current_place is not None
         ):
@@ -57,6 +70,16 @@ class SgEventsSkill(Aug9Skill):
         if is_lifeops:
             listings = listings[:3]
         if not listings:
+            if is_lifeops and has_origin_coordinates:
+                return SkillResult(
+                    success=False,
+                    summary=(
+                        "No governed activities were found within "
+                        f"{LIFEOPS_MAX_DISTANCE_KM:g} km of your starting area. "
+                        "Aug9 has left the activity open rather than suggesting "
+                        "something far away."
+                    ),
+                )
             return SkillResult(
                 success=False,
                 summary=(

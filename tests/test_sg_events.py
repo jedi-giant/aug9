@@ -2,6 +2,7 @@ import sqlite3
 from datetime import UTC, datetime
 
 from aug9.core.context import UserContext
+from aug9.core.models import Place
 from aug9.discovery.models import DiscoveryEntity, EntityType, EventProfile
 from aug9.sg_events import DatabaseEventProvider, EventListing, SgEventsSkill
 
@@ -175,6 +176,61 @@ def test_lifeops_shortlist_prioritises_events_starting_in_window():
     assert len(result.actions) == 3
 
 
+def test_lifeops_shortlist_excludes_distant_and_unlocated_events():
+    listings = [
+        EventListing(
+            name="Nearby activity",
+            starts_at=datetime(2030, 8, 24, tzinfo=UTC),
+            source_url="https://example.gov.sg/nearby",
+            distance_km=3.2,
+        ),
+        EventListing(
+            name="Distant activity",
+            starts_at=datetime(2030, 8, 24, tzinfo=UTC),
+            source_url="https://example.gov.sg/distant",
+            distance_km=12.4,
+        ),
+        EventListing(
+            name="Unknown location activity",
+            starts_at=datetime(2030, 8, 24, tzinfo=UTC),
+            source_url="https://example.gov.sg/unknown",
+        ),
+    ]
+
+    result = SgEventsSkill(FakeEventProvider(listings=listings)).execute(
+        UserContext(
+            intent="Plan my Saturday",
+            current_place=Place(name="Katong", latitude=1.3048, longitude=103.9047),
+        ),
+        {},
+    )
+
+    assert result.success is True
+    assert [item["name"] for item in result.data["events"]] == ["Nearby activity"]
+
+
+def test_lifeops_does_not_pad_journey_with_distant_activity():
+    listing = EventListing(
+        name="Distant activity",
+        starts_at=datetime(2030, 8, 24, tzinfo=UTC),
+        source_url="https://example.gov.sg/distant",
+        distance_km=12.4,
+    )
+
+    result = SgEventsSkill(FakeEventProvider(listings=[listing])).execute(
+        UserContext(
+            intent="Plan my Saturday",
+            current_place=Place(name="Katong", latitude=1.3048, longitude=103.9047),
+        ),
+        {},
+    )
+
+    assert result.success is False
+    assert result.actions == []
+    assert "within 8 km" in result.summary
+    assert "left the activity open" in result.summary
+
+
 def test_lifeops_shortlist_accepts_database_timestamps_without_timezone():
     listing = EventListing(
         name="Saturday event",
@@ -188,26 +244,6 @@ def test_lifeops_shortlist_accepts_database_timestamps_without_timezone():
 
     assert result.success is True
     assert result.data["events"][0]["name"] == "Saturday event"
-
-
-def test_lifeops_shortlist_uses_structured_plan_type_for_day_out_phrase():
-    listings = [
-        EventListing(
-            name=f"Day-out event {index}",
-            starts_at=datetime(2030, 8, 24, tzinfo=UTC),
-            source_url=f"https://example.gov.sg/day-out/{index}",
-        )
-        for index in range(6)
-    ]
-    provider = FakeEventProvider(listings=listings)
-
-    result = SgEventsSkill(provider).execute(
-        UserContext(intent="Help me plan a day out"),
-        {"plan_type": "day"},
-    )
-
-    assert len(result.data["events"]) == 3
-    assert provider.calls[0]["query"] is None
 
 
 def test_skill_offers_attributed_external_guides_when_catalog_is_empty():
