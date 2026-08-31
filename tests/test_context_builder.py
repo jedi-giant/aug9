@@ -106,3 +106,53 @@ def test_supplied_browser_place_bypasses_lookup_and_is_not_persisted(
     mock_token.assert_not_called()
     mock_search.assert_not_called()
     mock_get_memory.assert_not_called()
+
+
+@patch("aug9.core.context_builder.update_memory")
+@patch("aug9.core.context_builder.search_location")
+@patch("aug9.core.context_builder.get_token", return_value="fake-token")
+def test_unresolved_follow_up_is_remembered_for_location_repair(
+    _mock_token, mock_search, mock_update
+):
+    memory = ConversationState(history=["Find a playground near Punggol"])
+    mock_search.return_value = LocationSearchResult(
+        status=SearchStatus.NO_RESULTS,
+        location=None,
+    )
+
+    context = build_context(
+        "Find me a place to eat nearby",
+        user_id="visitor",
+        session_id="chat-1",
+        memory=memory,
+    )
+
+    assert context.memory.last_intent == "Find me a place to eat nearby"
+    assert context.memory.history[-1] == "Find me a place to eat nearby"
+    mock_update.assert_called_once()
+
+
+@patch("aug9.core.context_builder.update_memory")
+@patch("aug9.core.context_builder.search_location")
+@patch("aug9.core.context_builder.get_token")
+def test_nearby_follow_up_reuses_current_place_without_new_lookup(
+    mock_token, mock_search, mock_update
+):
+    memory = ConversationState(
+        current_place=Place(name="PUNGGOL", latitude=1.4052, longitude=103.9023),
+        history=["Find an indoor playground near Punggol"],
+    )
+
+    context = build_context(
+        "Find me a place to eat nearby",
+        {"food_query": "food"},
+        user_id="visitor",
+        session_id="chat-1",
+        memory=memory,
+    )
+
+    assert context.current_place.name == "PUNGGOL"
+    assert context.memory.last_intent == "Find me a place to eat nearby"
+    mock_token.assert_not_called()
+    mock_search.assert_not_called()
+    mock_update.assert_called_once()

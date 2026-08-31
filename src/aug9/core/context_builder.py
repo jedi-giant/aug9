@@ -47,6 +47,18 @@ def build_context(
             memory=state,
         )
 
+    if memory is not None and memory.current_place is not None and not (
+        entities and entities.get("location")
+    ):
+        memory = _remember_turn(
+            user_id, session_id, memory, user_input
+        )
+        return UserContext(
+            current_place=memory.current_place,
+            intent=user_input,
+            memory=memory,
+        )
+
     base_url = os.getenv(
         "ONEMAP_BASE_URL"
     )
@@ -67,6 +79,10 @@ def build_context(
 
     if token is None:
         memory = memory or get_memory(user_id, session_id=session_id)
+
+        memory = _remember_turn(
+            user_id, session_id, memory, user_input
+        )
 
         return UserContext(
             current_place=memory.current_place,
@@ -91,7 +107,7 @@ def build_context(
             result.location
         )
 
-        existing_memory = memory or get_memory(user_id)
+        existing_memory = memory or get_memory(user_id, session_id=session_id)
 
         state = ConversationState(
             current_place=place,
@@ -117,9 +133,28 @@ def build_context(
         )
 
     memory = memory or get_memory(user_id, session_id=session_id)
+    memory = _remember_turn(
+        user_id, session_id, memory, user_input
+    )
 
     return UserContext(
         current_place=memory.current_place,
         intent=user_input,
         memory=memory,
     )
+
+
+def _remember_turn(
+    user_id: str,
+    session_id: str | None,
+    memory: ConversationState,
+    user_input: str,
+) -> ConversationState:
+    state = ConversationState(
+        current_place=memory.current_place,
+        last_intent=user_input,
+        history=[*memory.history, user_input][-20:],
+        preferences=memory.preferences,
+    )
+    update_memory(user_id, state, session_id=session_id, persist=False)
+    return state

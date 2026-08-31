@@ -39,6 +39,15 @@ def extract_entities(
     if street_location:
         entities["location"] = street_location.group(1).strip()
 
+    nearby_place = re.search(
+        r"\b(?:near|at|around)\s+([a-z][a-z0-9'’.-]*(?:\s+[a-z][a-z0-9'’.-]*){0,4})"
+        r"(?:[?.!,]|$)",
+        user_input,
+        flags=re.IGNORECASE,
+    )
+    if nearby_place and "location" not in entities:
+        entities["location"] = nearby_place.group(1).strip()
+
     lowered = user_input.lower()
     matched_locations = [
         location

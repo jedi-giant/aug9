@@ -7,6 +7,9 @@ def plan(
     user_input: str,
     memory=None,
 ):
+    repair_plan = _location_repair_plan(user_input, memory)
+    if repair_plan is not None:
+        return repair_plan
 
     if PLANNER_MODE == "llm":
         rule_plan = create_plan(user_input)
@@ -49,6 +52,32 @@ def plan(
     return create_plan(
         user_input
     )
+
+
+def _location_repair_plan(user_input: str, memory=None):
+    """Apply a short place reply to the user's preceding location-dependent task."""
+    words = user_input.strip().split()
+    previous_input = getattr(memory, "last_intent", None)
+    if (
+        not previous_input
+        or not 1 <= len(words) <= 5
+        or any(character in user_input for character in "?!")
+        or user_input.strip().casefold() in {"yes", "no", "okay", "ok", "thanks"}
+    ):
+        return None
+
+    previous_plan = create_plan(previous_input)
+    contextual_capabilities = {
+        "food", "hawkers", "hotels", "playgrounds", "events", "weather"
+    }
+    if not contextual_capabilities.intersection(previous_plan.required_capabilities):
+        return None
+
+    previous_plan.entities["location"] = user_input.strip()
+    previous_plan.required_capabilities = list(dict.fromkeys([
+        "place_resolution", *previous_plan.required_capabilities
+    ]))
+    return previous_plan
 
 
 def can_use_rule_plan(rule_plan, memory=None) -> bool:

@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from aug9.core.llm_planner import LLMPlan, PlanEntities
 from aug9.core.planner_router import plan
+from aug9.core.memory import ConversationState
 
 
 @patch("aug9.core.planner_router.PLANNER_MODE", "llm")
@@ -80,3 +81,20 @@ def test_lifeops_request_keeps_llm_planner(mock_llm_plan):
     plan("Plan my Saturday from Maxwell Food Centre")
 
     mock_llm_plan.assert_called_once()
+
+
+@patch("aug9.core.planner_router.PLANNER_MODE", "llm")
+@patch("aug9.core.planner_router.create_llm_plan")
+def test_short_location_reply_repairs_previous_food_request(mock_llm_plan):
+    memory = ConversationState(
+        last_intent="Find me a place to eat nearby",
+        history=["Find me a place to eat nearby"],
+    )
+
+    result = plan("Punggol", memory)
+
+    assert "food" in result.required_capabilities
+    assert "place_resolution" in result.required_capabilities
+    assert result.entities["location"] == "Punggol"
+    assert "transport" not in result.required_capabilities
+    mock_llm_plan.assert_not_called()
