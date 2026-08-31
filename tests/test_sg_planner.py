@@ -201,3 +201,26 @@ def test_planner_orders_nearby_events_and_builds_consecutive_travel_legs():
     assert len(result.actions) == 2
     assert result.actions[1].metadata["leg"] == 2
     assert "travelmode=transit" in result.actions[1].url
+
+
+def test_planner_schedule_does_not_overflow_with_many_event_stops():
+    events = [
+        {
+            "name": f"Event {index}",
+            "address": f"Venue {index}",
+        }
+        for index in range(6)
+    ]
+
+    result = SgPlannerSkill().execute(
+        UserContext(intent="Help me plan a day out"),
+        {
+            "plan_type": "day",
+            "_lifeops_outputs": {
+                "events": SkillResult(success=True, data={"events": events})
+            },
+        },
+    )
+
+    assert len(result.data["itinerary"]) == 6
+    assert all(item.get("scheduled_for") for item in result.data["itinerary"])

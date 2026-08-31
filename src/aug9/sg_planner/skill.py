@@ -188,15 +188,13 @@ class SgPlannerSkill(Aug9Skill):
         itinerary: list[dict[str, Any]], intent: str | None
     ) -> None:
         target = SgPlannerSkill._target_date(intent)
-        event_hour = 14
+        event_index = 0
         for item in itinerary:
             if item["type"] == "start":
                 hour = 10
             elif item["type"] == "food":
                 hour = 12
             else:
-                hour = event_hour
-                event_hour += 3
                 starts_at = SgPlannerSkill._parse_datetime(item.get("starts_at"))
                 if (
                     starts_at is not None
@@ -207,6 +205,12 @@ class SgPlannerSkill(Aug9Skill):
                         SINGAPORE_TIMEZONE
                     ).isoformat()
                     continue
+                scheduled = target.replace(hour=14) + timedelta(
+                    hours=3 * event_index
+                )
+                event_index += 1
+                item["scheduled_for"] = scheduled.isoformat()
+                continue
             item["scheduled_for"] = target.replace(hour=hour).isoformat()
 
     @staticmethod

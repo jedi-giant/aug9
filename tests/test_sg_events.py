@@ -190,6 +190,26 @@ def test_lifeops_shortlist_accepts_database_timestamps_without_timezone():
     assert result.data["events"][0]["name"] == "Saturday event"
 
 
+def test_lifeops_shortlist_uses_structured_plan_type_for_day_out_phrase():
+    listings = [
+        EventListing(
+            name=f"Day-out event {index}",
+            starts_at=datetime(2030, 8, 24, tzinfo=UTC),
+            source_url=f"https://example.gov.sg/day-out/{index}",
+        )
+        for index in range(6)
+    ]
+    provider = FakeEventProvider(listings=listings)
+
+    result = SgEventsSkill(provider).execute(
+        UserContext(intent="Help me plan a day out"),
+        {"plan_type": "day"},
+    )
+
+    assert len(result.data["events"]) == 3
+    assert provider.calls[0]["query"] is None
+
+
 def test_skill_offers_attributed_external_guides_when_catalog_is_empty():
     result = SgEventsSkill(FakeEventProvider(listings=[])).execute(
         UserContext(intent="What can I do this weekend?"), {}
