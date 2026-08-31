@@ -175,3 +175,44 @@ def test_ranking_mode_outcomes_do_not_mix_task_cohorts():
 
     assert report.ranking_mode_outcomes["legacy"]["action_click_rate"] == 1.0
     assert report.ranking_mode_outcomes["shortlist"]["action_click_rate"] == 0.0
+
+
+def test_report_separates_card_feedback_and_failure_reasons():
+    log(
+        ProductEventType.FEEDBACK,
+        event_id="card-positive",
+        task_id="food-task",
+        capabilities=["food"],
+        helpful=True,
+        feedback_scope="card",
+        target_id="food-1",
+    )
+    log(
+        ProductEventType.FEEDBACK,
+        event_id="card-context",
+        task_id="play-task",
+        capabilities=["playgrounds"],
+        helpful=False,
+        feedback_scope="card",
+        target_id="playground-1",
+        reason_code="lost_context",
+    )
+    log(
+        ProductEventType.FEEDBACK,
+        event_id="response-positive",
+        task_id="weather-task",
+        helpful=True,
+        feedback_scope="response",
+    )
+
+    report = build_product_analytics_report(days=7, now=datetime.now(UTC))
+
+    assert report.card_feedback_count == 2
+    assert report.card_positive_feedback_rate == 0.5
+    assert report.response_feedback_count == 1
+    assert report.response_positive_feedback_rate == 1.0
+    assert report.card_feedback_by_reason == {"lost_context": 1}
+    assert report.card_feedback_by_capability == {
+        "food": {"positive": 1},
+        "playgrounds": {"lost_context": 1},
+    }

@@ -20,6 +20,12 @@ class ProductAnalyticsReport:
     successful_task_rate: float | None
     action_click_rate: float | None
     positive_feedback_rate: float | None
+    response_feedback_count: int
+    response_positive_feedback_rate: float | None
+    card_feedback_count: int
+    card_positive_feedback_rate: float | None
+    card_feedback_by_reason: dict[str, int]
+    card_feedback_by_capability: dict[str, dict[str, int]]
     capability_demand: dict[str, int]
     failed_results_by_capability: dict[str, int]
     capability_result_success_rate: dict[str, float | None]
@@ -70,7 +76,10 @@ def build_product_analytics_report(
             helpful,
             campaign_source,
             task_status,
-            ranking_mode
+            ranking_mode,
+            feedback_scope,
+            target_id,
+            reason_code
         FROM product_events
         WHERE created_at >= {p}
           AND created_at < {p}
@@ -117,6 +126,22 @@ def build_product_analytics_report(
 
     feedback_rows = [row for row in rows if row[2] == "feedback"]
     positive_feedback = sum(bool(row[4]) for row in feedback_rows)
+    response_feedback_rows = [row for row in feedback_rows if row[8] != "card"]
+    card_feedback_rows = [row for row in feedback_rows if row[8] == "card"]
+    card_feedback_reasons: Counter[str] = Counter(
+        row[10] for row in card_feedback_rows if row[10]
+    )
+    card_feedback_by_capability: dict[str, Counter[str]] = {}
+    for row in card_feedback_rows:
+        try:
+            feedback_capabilities = json.loads(row[3] or "[]")
+        except (json.JSONDecodeError, TypeError):
+            feedback_capabilities = []
+        outcome = "positive" if bool(row[4]) else row[10] or "negative"
+        for capability in feedback_capabilities:
+            card_feedback_by_capability.setdefault(
+                capability, Counter()
+            )[outcome] += 1
     action_clicks = events_by_type["action_click"]
     results_generated = events_by_type["result_generated"]
     ranking_mode_by_task = {
@@ -179,6 +204,21 @@ def build_product_analytics_report(
         ),
         action_click_rate=_rate(action_clicks, results_generated),
         positive_feedback_rate=_rate(positive_feedback, len(feedback_rows)),
+        response_feedback_count=len(response_feedback_rows),
+        response_positive_feedback_rate=_rate(
+            sum(bool(row[4]) for row in response_feedback_rows),
+            len(response_feedback_rows),
+        ),
+        card_feedback_count=len(card_feedback_rows),
+        card_positive_feedback_rate=_rate(
+            sum(bool(row[4]) for row in card_feedback_rows),
+            len(card_feedback_rows),
+        ),
+        card_feedback_by_reason=dict(card_feedback_reasons.most_common()),
+        card_feedback_by_capability={
+            capability: dict(outcomes.most_common())
+            for capability, outcomes in sorted(card_feedback_by_capability.items())
+        },
         capability_demand=dict(capabilities.most_common()),
         failed_results_by_capability=dict(failed_capabilities.most_common()),
         capability_result_success_rate={
