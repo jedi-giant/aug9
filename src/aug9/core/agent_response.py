@@ -21,7 +21,7 @@ def compose_agent_response(execution: ExecutionResult) -> AgentResponse:
     for capability, output in execution.outputs.items():
         if not isinstance(output, SkillResult):
             continue
-        capability_outcomes[capability] = "matched" if output.success else "unmatched"
+        capability_outcomes[capability] = output.resolved_outcome.value
         actions.extend(output.actions)
         if output.data:
             skill_data[capability] = output.data

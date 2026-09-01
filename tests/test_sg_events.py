@@ -261,6 +261,7 @@ def test_planner_lifeops_defers_events_until_origin_is_resolved():
     )
 
     assert result.success is False
+    assert result.resolved_outcome.value == "deferred"
     assert provider.calls == []
     assert "after you provide" in result.summary
 

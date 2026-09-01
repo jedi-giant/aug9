@@ -3,7 +3,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from aug9.core.context import UserContext
-from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
+from aug9.core.skill import Aug9Skill, SkillAction, SkillOutcome, SkillResult
 from aug9.sg_events.provider import EventProvider
 
 
@@ -44,6 +44,7 @@ class SgEventsSkill(Aug9Skill):
         if planner_lifeops and context.current_place is None:
             return SkillResult(
                 success=False,
+                outcome=SkillOutcome.DEFERRED,
                 summary=(
                     "Activity options will be added after you provide a Singapore "
                     "starting neighbourhood or place."

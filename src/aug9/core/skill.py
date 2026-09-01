@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -13,11 +14,24 @@ class SkillAction(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class SkillOutcome(StrEnum):
+    MATCHED = "matched"
+    UNMATCHED = "unmatched"
+    DEFERRED = "deferred"
+
+
 class SkillResult(BaseModel):
     success: bool
     data: dict[str, Any] = Field(default_factory=dict)
     summary: str | None = None
     actions: list[SkillAction] = Field(default_factory=list)
+    outcome: SkillOutcome | None = None
+
+    @property
+    def resolved_outcome(self) -> SkillOutcome:
+        if self.outcome is not None:
+            return self.outcome
+        return SkillOutcome.MATCHED if self.success else SkillOutcome.UNMATCHED
 
 
 class Aug9Skill(ABC):

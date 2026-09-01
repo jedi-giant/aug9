@@ -124,6 +124,15 @@ class VisitorSessionResponse(BaseModel):
     expires_in_seconds: int
 
 
+def result_task_status(capability_outcomes: dict[str, str]) -> TaskStatus:
+    outcomes = set(capability_outcomes.values())
+    if "deferred" in outcomes:
+        return TaskStatus.WAITING_FOR_INPUT
+    if "unmatched" in outcomes:
+        return TaskStatus.FAILED
+    return TaskStatus.ANSWER_GENERATED
+
+
 class ModerationRequest(BaseModel):
     reason: str = Field(min_length=2, max_length=500)
 
@@ -303,20 +312,7 @@ def chat(
         capability_outcomes = result.metadata.get("capability_outcomes", {})
         food_skill_metadata = result.metadata.get("skills", {}).get("food", {})
         ranking_mode = food_skill_metadata.get("ranking_mode")
-        journey_metadata = result.metadata.get("journey", {})
-        failure_stage = next(
-            (
-                capability
-                for capability, outcome in capability_outcomes.items()
-                if outcome == "unmatched"
-            ),
-            None,
-        )
-        result_status = (
-            TaskStatus.FAILED
-            if "unmatched" in capability_outcomes.values()
-            else TaskStatus.ANSWER_GENERATED
-        )
+        result_status = result_task_status(capability_outcomes)
 
         latency_ms = int(
             (
@@ -346,9 +342,6 @@ def chat(
                 capabilities=capabilities,
                 task_status=result_status,
                 ranking_mode=ranking_mode,
-                journey_type=journey_metadata.get("journey_type"),
-                journey_status=journey_metadata.get("status"),
-                failure_stage=failure_stage,
             )
         )
 
