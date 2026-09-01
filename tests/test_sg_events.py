@@ -249,6 +249,39 @@ def test_planner_lifeops_flag_applies_distance_boundary_across_prompt_wording():
 
     assert result.success is False
     assert "within 8 km" in result.summary
+    assert "different day" in result.summary
+
+
+def test_planner_lifeops_defers_events_until_origin_is_resolved():
+    provider = FakeEventProvider()
+
+    result = SgEventsSkill(provider).execute(
+        UserContext(intent="Help me plan a Singapore day out"),
+        {"_is_lifeops": True},
+    )
+
+    assert result.success is False
+    assert provider.calls == []
+    assert "after you provide" in result.summary
+
+
+def test_undated_lifeops_request_uses_single_singapore_calendar_day():
+    provider = FakeEventProvider()
+
+    SgEventsSkill(provider).execute(
+        UserContext(
+            intent="Help me plan a Singapore day out",
+            current_place=Place(name="Katong", latitude=1.3048, longitude=103.9047),
+        ),
+        {"_is_lifeops": True},
+    )
+
+    call = provider.calls[0]
+    assert call["starts_before"] - call["starts_after"] == __import__(
+        "datetime"
+    ).timedelta(days=1)
+    assert call["starts_after"].hour == 0
+    assert str(call["starts_after"].tzinfo) == "Asia/Singapore"
 
 
 def test_lifeops_shortlist_accepts_database_timestamps_without_timezone():

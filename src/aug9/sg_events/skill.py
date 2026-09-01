@@ -1,5 +1,6 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from aug9.core.context import UserContext
 from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
@@ -18,6 +19,7 @@ EVENT_SOURCE_LINKS = (
 )
 
 LIFEOPS_MAX_DISTANCE_KM = 8.0
+SINGAPORE_TIMEZONE = ZoneInfo("Asia/Singapore")
 
 
 class SgEventsSkill(Aug9Skill):
@@ -33,11 +35,24 @@ class SgEventsSkill(Aug9Skill):
         return ["events"]
 
     def execute(self, context: UserContext, entities: dict[str, Any]) -> SkillResult:
-        starts_after, starts_before = self._date_window(context.intent)
         intent_text = (context.intent or "").casefold()
-        is_lifeops = bool(entities.get("_is_lifeops")) or any(
+        planner_lifeops = bool(entities.get("_is_lifeops"))
+        is_lifeops = planner_lifeops or any(
             marker in intent_text
             for marker in ("plan my", "plan a", "day out", "itinerary", "journey")
+        )
+        if planner_lifeops and context.current_place is None:
+            return SkillResult(
+                success=False,
+                summary=(
+                    "Activity options will be added after you provide a Singapore "
+                    "starting neighbourhood or place."
+                ),
+            )
+
+        starts_after, starts_before = self._date_window(
+            context.intent,
+            default_single_day=is_lifeops,
         )
         listings = self.provider.discover(
             query=None if is_lifeops else entities.get("location"),
@@ -76,10 +91,11 @@ class SgEventsSkill(Aug9Skill):
                 return SkillResult(
                     success=False,
                     summary=(
-                        "No governed activities were found within "
-                        f"{LIFEOPS_MAX_DISTANCE_KM:g} km of your starting area. "
+                        "No governed activities matching the journey date were "
+                        f"found within {LIFEOPS_MAX_DISTANCE_KM:g} km of your "
+                        "starting area. "
                         "Aug9 has left the activity open rather than suggesting "
-                        "something far away."
+                        "something far away or on a different day."
                     ),
                 )
             return SkillResult(
@@ -117,8 +133,12 @@ class SgEventsSkill(Aug9Skill):
         )
 
     @staticmethod
-    def _date_window(intent: str | None) -> tuple[datetime, datetime | None]:
-        now = datetime.now(UTC)
+    def _date_window(
+        intent: str | None,
+        *,
+        default_single_day: bool = False,
+    ) -> tuple[datetime, datetime | None]:
+        now = datetime.now(SINGAPORE_TIMEZONE)
         text = (intent or "").casefold()
         if "this weekend" in text or "weekend" in text:
             days_until_saturday = (5 - now.weekday()) % 7
@@ -140,5 +160,8 @@ class SgEventsSkill(Aug9Skill):
             start = (now + timedelta(days=1)).replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
+            return start, start + timedelta(days=1)
+        if default_single_day:
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             return start, start + timedelta(days=1)
         return now, None
