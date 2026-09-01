@@ -231,6 +231,26 @@ def test_lifeops_does_not_pad_journey_with_distant_activity():
     assert "left the activity open" in result.summary
 
 
+def test_planner_lifeops_flag_applies_distance_boundary_across_prompt_wording():
+    listing = EventListing(
+        name="Distant activity",
+        starts_at=datetime(2030, 8, 24, tzinfo=UTC),
+        source_url="https://example.gov.sg/distant",
+        distance_km=12.4,
+    )
+
+    result = SgEventsSkill(FakeEventProvider(listings=[listing])).execute(
+        UserContext(
+            intent="Help me plan a Singapore day with food and transport",
+            current_place=Place(name="Katong", latitude=1.3048, longitude=103.9047),
+        ),
+        {"_is_lifeops": True},
+    )
+
+    assert result.success is False
+    assert "within 8 km" in result.summary
+
+
 def test_lifeops_shortlist_accepts_database_timestamps_without_timezone():
     listing = EventListing(
         name="Saturday event",

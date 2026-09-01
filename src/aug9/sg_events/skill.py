@@ -34,9 +34,11 @@ class SgEventsSkill(Aug9Skill):
 
     def execute(self, context: UserContext, entities: dict[str, Any]) -> SkillResult:
         starts_after, starts_before = self._date_window(context.intent)
-        is_lifeops = "plan my" in (context.intent or "").casefold() or "itinerary" in (
-            context.intent or ""
-        ).casefold()
+        intent_text = (context.intent or "").casefold()
+        is_lifeops = bool(entities.get("_is_lifeops")) or any(
+            marker in intent_text
+            for marker in ("plan my", "plan a", "day out", "itinerary", "journey")
+        )
         listings = self.provider.discover(
             query=None if is_lifeops else entities.get("location"),
             starts_after=starts_after,

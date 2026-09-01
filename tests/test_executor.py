@@ -52,6 +52,7 @@ class FakeEventsSkill(Aug9Skill):
         return ["events"]
 
     def execute(self, context, entities):
+        self.entities = entities
         return SkillResult(
             success=True,
             data={
@@ -77,14 +78,7 @@ class FakeFoodSkill(Aug9Skill):
         return SkillResult(
             success=True,
             data={
-                "places": [
-                    {
-                        "name": "Licensed stall",
-                        "address": "4A Jalan Batu",
-                        "latitude": 1.3023,
-                        "longitude": 103.8839,
-                    }
-                ],
+                "places": [{"name": "Licensed stall"}],
                 "evidence_scope": {
                     "verified": ["licensing", "safe_grade", "location"]
                 },
@@ -269,7 +263,8 @@ def test_executor_routes_services_through_registry():
 
 def test_lifeops_derives_route_destination_from_first_event():
     registry = SkillRegistry()
-    registry.register(FakeEventsSkill())
+    events_skill = FakeEventsSkill()
+    registry.register(events_skill)
     registry.register(SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()))
     plan = Plan(
         intent="Plan my Saturday from Maxwell Food Centre",
@@ -287,31 +282,7 @@ def test_lifeops_derives_route_destination_from_first_event():
     assert result.outputs["transport"].data["route"]["destination"] == (
         "Marina Bay Sands"
     )
-
-
-def test_lifeops_routes_to_selected_food_before_event():
-    registry = SkillRegistry()
-    registry.register(FakeFoodSkill())
-    registry.register(FakeEventsSkill())
-    registry.register(SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()))
-    registry.register(SgPlannerSkill())
-    plan = Plan(
-        intent="Plan a day with food, weather and transport",
-        required_capabilities=["food", "events", "transport", "lifeops"],
-        entities={"plan_type": "day"},
-    )
-    context = UserContext(
-        current_place=Place(name="Katong", latitude=1.30, longitude=103.90)
-    )
-
-    result = execute_plan(plan, context, registry=registry)
-
-    assert result.outputs["transport"].data["route"]["origin"] == "Katong"
-    assert result.outputs["transport"].data["route"]["destination"] == (
-        "Licensed stall"
-    )
-    itinerary = result.outputs["lifeops"].data["itinerary"]
-    assert [item["type"] for item in itinerary[:2]] == ["start", "food"]
+    assert events_skill.entities["_is_lifeops"] is True
 
 
 def test_lifeops_defers_transport_without_starting_location():

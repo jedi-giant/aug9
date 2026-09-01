@@ -4,7 +4,6 @@ from aug9.core.context import UserContext
 from aug9.core.planner import Plan
 from aug9.core.capabilities import CAPABILITIES
 from aug9.core.default_skills import register_default_skills
-from aug9.core.config import composite_journeys_enabled
 from aug9.core.skill_registry import SkillRegistry, skill_registry
 from aug9.core.models import Place
 
@@ -21,6 +20,7 @@ def execute_plan(
     outputs = {}
     execution_entities = dict(plan.entities)
     is_lifeops = "lifeops" in plan.required_capabilities
+    execution_entities["_is_lifeops"] = is_lifeops
 
     execution_order = [
         "place_resolution",
@@ -46,21 +46,15 @@ def execute_plan(
         if capability == "transport" and is_lifeops:
             if context.current_place is None:
                 continue
-            destination = _first_journey_destination(outputs)
-            if destination is None:
+            event_output = outputs.get("events")
+            event_items = getattr(event_output, "data", {}).get("events", [])
+            if not event_items:
                 continue
-            origin = context.current_place.name
-            destination_label = destination.address or destination.name
-            if origin.strip().casefold() == destination_label.strip().casefold():
+            first_event = event_items[0]
+            destination = first_event.get("address") or first_event.get("name")
+            if not destination:
                 continue
-            execution_entities["origin"] = origin
-            execution_entities["destination"] = destination_label
-            execution_entities["_origin_place"] = context.current_place.model_dump(
-                exclude_none=True
-            )
-            execution_entities["_destination_place"] = destination.model_dump(
-                exclude_none=True
-            )
+            execution_entities["destination"] = destination
 
         skill = registry.find_by_capability(capability)
 
@@ -91,37 +85,3 @@ def execute_plan(
         plan=plan,
         outputs=outputs,
     )
-
-
-def _first_journey_destination(outputs: dict[str, object]) -> Place | None:
-    """Select the first real stop before executing the dependent route."""
-    if composite_journeys_enabled():
-        food_output = outputs.get("food")
-        food_places = getattr(food_output, "data", {}).get("places", [])
-        if food_places:
-            first_food = food_places[0]
-            name = first_food.get("name")
-            if name:
-                return Place(
-                    name=str(name),
-                    place_type="food",
-                    address=first_food.get("address"),
-                    postal_code=first_food.get("postal_code"),
-                    latitude=first_food.get("latitude"),
-                    longitude=first_food.get("longitude"),
-                )
-
-    event_output = outputs.get("events")
-    event_items = getattr(event_output, "data", {}).get("events", [])
-    if event_items:
-        first_event = event_items[0]
-        route_name = first_event.get("address") or first_event.get("name")
-        if route_name:
-            return Place(
-                name=str(route_name),
-                place_type="event",
-                address=first_event.get("address"),
-                latitude=first_event.get("latitude"),
-                longitude=first_event.get("longitude"),
-            )
-    return None
