@@ -389,11 +389,7 @@ class FoodDomainImporter:
     def _can_bulk_import(document: FoodDomainDocument) -> bool:
         return all(
             place.parent is None
-            and not place.opening_hours
-            and not place.evidence
             and place.food_profile is not None
-            and not place.food_profile.cuisines
-            and not place.food_profile.signature_dishes
             for place in document.places
         )
 
@@ -408,6 +404,9 @@ class FoodDomainImporter:
         source_rows = []
         profile_rows = []
         provenance_rows = []
+        tag_rows = []
+        opening_rows = []
+        evidence_rows = []
         for place in places:
             entity, record, provenance = self._place_bundle(place, source_id)
             entity_rows.append(
@@ -457,6 +456,30 @@ class FoodDomainImporter:
                     record.external_id,
                 )
                 for item in provenance
+            )
+            for category, values in (
+                ("cuisine", food.cuisines),
+                ("dish", food.signature_dishes),
+            ):
+                tag_rows.extend(
+                    (entity.id, value, category, source_id)
+                    for value in values
+                )
+            opening_rows.extend(
+                (
+                    entity.id,
+                    period.day_of_week,
+                    period.opens_at,
+                    period.closes_at,
+                    source_id,
+                )
+                for period in place.opening_hours
+            )
+            evidence_rows.extend(
+                self.repository._food_evidence_values(
+                    self._evidence(item, entity.id, source_id)
+                )
+                for item in place.evidence
             )
 
         cursor.executemany(
@@ -536,6 +559,64 @@ class FoodDomainImporter:
                 ) in provenance_rows
             ],
         )
+        cursor.executemany(
+            f"DELETE FROM discovery_entity_tags WHERE entity_id = {p}",
+            [(entity_id,) for entity_id, *_ in entity_rows],
+        )
+        if tag_rows:
+            cursor.executemany(
+                f"""
+                INSERT INTO discovery_entity_tags (
+                    entity_id, tag, category, source_id
+                ) VALUES ({p}, {p}, {p}, {p})
+                """,
+                tag_rows,
+            )
+        cursor.executemany(
+            f"""
+            DELETE FROM discovery_opening_hours
+            WHERE entity_id = {p} AND source_id = {p}
+            """,
+            [(entity_id, source_id) for entity_id, *_ in entity_rows],
+        )
+        if opening_rows:
+            cursor.executemany(
+                f"""
+                INSERT INTO discovery_opening_hours (
+                    entity_id, day_of_week, opens_at, closes_at, source_id
+                ) VALUES ({p}, {p}, {p}, {p}, {p})
+                """,
+                opening_rows,
+            )
+        if evidence_rows:
+            cursor.executemany(
+                f"""
+                INSERT INTO discovery_food_evidence (
+                    id, entity_id, external_id, dimension, evidence_type,
+                    direction, claim_key, value, dish_name, confidence,
+                    source_id, source_url, observed_at, expires_at,
+                    commercial_status
+                ) VALUES (
+                    {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p},
+                    {p}, {p}, {p}, {p}, {p}
+                )
+                ON CONFLICT(source_id, external_id) DO UPDATE SET
+                    entity_id = excluded.entity_id,
+                    dimension = excluded.dimension,
+                    evidence_type = excluded.evidence_type,
+                    direction = excluded.direction,
+                    claim_key = excluded.claim_key,
+                    value = excluded.value,
+                    dish_name = excluded.dish_name,
+                    confidence = excluded.confidence,
+                    source_url = excluded.source_url,
+                    observed_at = excluded.observed_at,
+                    expires_at = excluded.expires_at,
+                    commercial_status = excluded.commercial_status,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                evidence_rows,
+            )
 
     def _place_bundle(self, place: DomainPlace, source_id: str):
         entity_id = self._entity_id(source_id, place.external_id, place.entity_type)

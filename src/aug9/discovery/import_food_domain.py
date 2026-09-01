@@ -11,6 +11,7 @@ def main() -> None:
     parser.add_argument("--file", required=True, type=Path)
     args = parser.parse_args()
     initialise_database()
+    print(f"Validating and importing {args.file} in one bulk transaction...")
     summary = FoodDomainImporter(DiscoveryRepository()).run(args.file)
     print(
         "Food domain import complete: "
