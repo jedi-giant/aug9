@@ -5,6 +5,17 @@ def compose_response(
     execution: ExecutionResult,
 ) -> str:
 
+    lifeops = execution.outputs.get("lifeops")
+    if (
+        lifeops
+        and getattr(lifeops, "success", False)
+        and not lifeops.data.get("location_available", False)
+    ):
+        return (
+            "Where are you starting from? Share a Singapore neighbourhood or "
+            "place, and I'll plan nearby food, activities, weather and transport."
+        )
+
     messages = []
 
     place = execution.outputs.get("place_resolution")
@@ -109,7 +120,6 @@ def compose_response(
         elif getattr(transport, "summary", None):
             messages.append(transport.summary)
 
-    lifeops = execution.outputs.get("lifeops")
     if lifeops and getattr(lifeops, "success", False):
         location_available = lifeops.data.get("location_available", False)
         itinerary = lifeops.data.get("itinerary", [])
@@ -139,9 +149,7 @@ def compose_response(
                     or getattr(transport, "summary", None)
                 )
             plan_messages.extend(
-                item
-                for item in (weather_summary, transport_summary)
-                if item
+                item for item in (weather_summary, transport_summary) if item
             )
             return "Your Singapore day plan: " + ". ".join(
                 item.rstrip(".") for item in plan_messages if item
@@ -149,11 +157,8 @@ def compose_response(
 
     response = " ".join(messages)
     if lifeops and getattr(lifeops, "success", False):
-        location_available = lifeops.data.get("location_available", False)
         if response:
             response = "Your Singapore day plan: " + response
         else:
             response = "I can build your Singapore day plan."
-        if not location_available:
-            response += " Tell me your starting neighbourhood for local food and weather."
     return response
