@@ -99,3 +99,15 @@ def test_matcher_quarantines_ambiguous_candidates(matching_database):
     )
     assert cursor.fetchone()[0] == 0
     conn.close()
+
+
+def test_matcher_uses_neighbouring_coordinate_buckets(matching_database):
+    add_entity("food:sfa:edge", "Edge Cafe", None, 1.30001, SFA_SOURCE_ID)
+    add_entity(
+        "food:owner_food:edge", "Edge Cafe", None, 1.29999, "owner_food"
+    )
+
+    report = FoodEntityMatcher(source_ids=("owner_food",)).run()
+
+    assert report["outcomes"] == {"matched": 1}
+    assert report["outcomes_by_source"] == {"owner_food": {"matched": 1}}

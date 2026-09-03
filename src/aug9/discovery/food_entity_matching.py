@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 
@@ -13,6 +14,7 @@ from aug9.discovery.sfa_food_establishments import SFA_SOURCE_ID
 DEFAULT_SOURCE_IDS = (
     "singapore_food_media_curated_2024_2026",
     "jd_google_maps_food_places",
+    "jd_food_collection",
 )
 
 
@@ -58,19 +60,75 @@ class FoodEntityMatcher:
         if limit < 1 or limit > 50_000:
             raise ValueError("limit must be between 1 and 50000")
         sources, canonicals = self._fetch(limit)
-        decisions = [self._match(source, canonicals) for source in sources]
+        postal_index, coordinate_index = self._build_candidate_indexes(canonicals)
+        decisions = [
+            self._match(
+                source,
+                self._candidate_pool(source, postal_index, coordinate_index),
+            )
+            for source in sources
+        ]
         if apply:
             self._apply(decisions)
         counts: dict[str, int] = {}
         for item in decisions:
             counts[item.outcome] = counts.get(item.outcome, 0) + 1
+        counts_by_source: dict[str, dict[str, int]] = {}
+        source_by_entity = {source.id: source.source_id for source in sources}
+        for item in decisions:
+            source_counts = counts_by_source.setdefault(
+                source_by_entity[item.source_entity_id], {}
+            )
+            source_counts[item.outcome] = source_counts.get(item.outcome, 0) + 1
         return {
             "mode": "apply" if apply else "shadow",
             "source_entity_count": len(sources),
             "canonical_candidate_count": len(canonicals),
             "outcomes": counts,
+            "outcomes_by_source": counts_by_source,
             "decisions": [item.__dict__ for item in decisions],
         }
+
+    @staticmethod
+    def _build_candidate_indexes(canonicals: list[EntityRow]):
+        postal_index: dict[str, list[EntityRow]] = defaultdict(list)
+        coordinate_index: dict[tuple[int, int], list[EntityRow]] = defaultdict(list)
+        for canonical in canonicals:
+            if canonical.postal_code:
+                postal_index[canonical.postal_code].append(canonical)
+            if canonical.latitude is not None and canonical.longitude is not None:
+                coordinate_index[
+                    FoodEntityMatcher._coordinate_bucket(
+                        canonical.latitude, canonical.longitude
+                    )
+                ].append(canonical)
+        return postal_index, coordinate_index
+
+    @staticmethod
+    def _candidate_pool(
+        source: EntityRow,
+        postal_index: dict[str, list[EntityRow]],
+        coordinate_index: dict[tuple[int, int], list[EntityRow]],
+    ) -> list[EntityRow]:
+        candidates: dict[str, EntityRow] = {}
+        if source.postal_code:
+            for item in postal_index.get(source.postal_code, []):
+                candidates[item.id] = item
+        if source.latitude is not None and source.longitude is not None:
+            lat_bucket, lon_bucket = FoodEntityMatcher._coordinate_bucket(
+                source.latitude, source.longitude
+            )
+            for lat_offset in (-1, 0, 1):
+                for lon_offset in (-1, 0, 1):
+                    for item in coordinate_index.get(
+                        (lat_bucket + lat_offset, lon_bucket + lon_offset), []
+                    ):
+                        candidates[item.id] = item
+        return list(candidates.values())
+
+    @staticmethod
+    def _coordinate_bucket(latitude: float, longitude: float) -> tuple[int, int]:
+        return math.floor(latitude * 1000), math.floor(longitude * 1000)
 
     def _fetch(self, limit: int) -> tuple[list[EntityRow], list[EntityRow]]:
         conn = database.get_connection()

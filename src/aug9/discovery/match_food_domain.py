@@ -11,6 +11,11 @@ def main() -> None:
     )
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--limit", type=int, default=5000)
+    parser.add_argument(
+        "--source-id",
+        action="append",
+        help="Only match this imported source ID; repeat for multiple sources",
+    )
     parser.add_argument("--summary-only", action="store_true")
     parser.add_argument(
         "--sample-limit",
@@ -20,7 +25,12 @@ def main() -> None:
     )
     args = parser.parse_args()
     initialise_database()
-    report = FoodEntityMatcher().run(apply=args.apply, limit=args.limit)
+    matcher = (
+        FoodEntityMatcher(source_ids=tuple(args.source_id))
+        if args.source_id
+        else FoodEntityMatcher()
+    )
+    report = matcher.run(apply=args.apply, limit=args.limit)
     if args.summary_only:
         report.pop("decisions", None)
     elif args.sample_limit:
