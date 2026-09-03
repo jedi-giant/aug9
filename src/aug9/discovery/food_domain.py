@@ -184,7 +184,9 @@ class FoodDomainImporter:
     def __init__(self, repository: DiscoveryRepository) -> None:
         self.repository = repository
 
-    def run(self, path: str | Path) -> FoodDomainImportSummary:
+    def run(
+        self, path: str | Path, *, deactivate_missing: bool = False
+    ) -> FoodDomainImportSummary:
         payload = json.loads(Path(path).read_text(encoding="utf-8"))
         document = FoodDomainDocument.model_validate(payload)
         source = DiscoverySource(
@@ -199,7 +201,9 @@ class FoodDomainImporter:
         run = self.repository.start_ingestion(source.id)
         upserted = rejected = 0
         try:
-            upserted = self.ingest_document(document, source.id)
+            upserted = self.ingest_document(
+                document, source.id, deactivate_missing=deactivate_missing
+            )
             self.repository.complete_ingestion(
                 run,
                 records_received=len(document.places),
@@ -218,7 +222,11 @@ class FoodDomainImporter:
             raise
 
     def ingest_document(
-        self, document: FoodDomainDocument, source_id: str
+        self,
+        document: FoodDomainDocument,
+        source_id: str,
+        *,
+        deactivate_missing: bool = False,
     ) -> int:
         """Persist a validated document in one transaction and one connection."""
         from aug9.core import database
@@ -233,6 +241,10 @@ class FoodDomainImporter:
                 self._bulk_import_simple_places(
                     cursor, p, document.places, source_id
                 )
+                if deactivate_missing:
+                    self._deactivate_missing_places(
+                        cursor, p, source_id, document.places
+                    )
                 conn.commit()
                 return len(document.places)
             for place in document.places:
@@ -377,6 +389,10 @@ class FoodDomainImporter:
                         """,
                         self.repository._food_evidence_values(evidence),
                     )
+            if deactivate_missing:
+                self._deactivate_missing_places(
+                    cursor, p, source_id, document.places
+                )
             conn.commit()
             return len(document.places)
         except Exception:
@@ -384,6 +400,28 @@ class FoodDomainImporter:
             raise
         finally:
             conn.close()
+
+    @staticmethod
+    def _deactivate_missing_places(
+        cursor,
+        p: str,
+        source_id: str,
+        places: list[DomainPlace],
+    ) -> None:
+        external_ids = [place.external_id for place in places]
+        placeholders = ", ".join(p for _ in external_ids)
+        cursor.execute(
+            f"""
+            UPDATE discovery_entities SET status = 'inactive',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id IN (
+                SELECT entity_id FROM discovery_source_records
+                WHERE source_id = {p}
+                  AND external_id NOT IN ({placeholders})
+            )
+            """,
+            (source_id, *external_ids),
+        )
 
     @staticmethod
     def _can_bulk_import(document: FoodDomainDocument) -> bool:

@@ -162,3 +162,26 @@ def test_food_domain_bulk_imports_simple_place_records(repository, tmp_path):
     )
     assert cursor.fetchone()[0] >= 4
     conn.close()
+
+
+def test_food_domain_can_deactivate_records_missing_from_new_snapshot(
+    repository, tmp_path
+):
+    initial = domain_payload()
+    path = tmp_path / "food-domain.json"
+    path.write_text(json.dumps(initial), encoding="utf-8")
+    FoodDomainImporter(repository).run(path)
+
+    replacement = domain_payload()
+    replacement["places"] = replacement["places"][:1]
+    path.write_text(json.dumps(replacement), encoding="utf-8")
+    FoodDomainImporter(repository).run(path, deactivate_missing=True)
+
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT status FROM discovery_entities
+           WHERE id = 'food:owner_collection:stall-1'"""
+    )
+    assert cursor.fetchone()[0] == "inactive"
+    conn.close()

@@ -9,10 +9,17 @@ from aug9.discovery.repository import DiscoveryRepository
 def main() -> None:
     parser = argparse.ArgumentParser(description="Import an aug9.food-domain.v1 JSON file")
     parser.add_argument("--file", required=True, type=Path)
+    parser.add_argument(
+        "--deactivate-missing",
+        action="store_true",
+        help="Mark records absent from this source snapshot inactive",
+    )
     args = parser.parse_args()
     initialise_database()
     print(f"Validating and importing {args.file} in one bulk transaction...")
-    summary = FoodDomainImporter(DiscoveryRepository()).run(args.file)
+    summary = FoodDomainImporter(DiscoveryRepository()).run(
+        args.file, deactivate_missing=args.deactivate_missing
+    )
     print(
         "Food domain import complete: "
         f"received={summary.received}, upserted={summary.upserted}, "
