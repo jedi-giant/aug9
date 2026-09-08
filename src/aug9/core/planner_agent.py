@@ -67,6 +67,9 @@ Extract location into entities.location.
 For playground requests, extract children's ages into entities.child_ages,
 set entities.water_play for explicit water-play requests, and set
 entities.sheltered for explicit sheltered or indoor requests.
+When the user asks about a specific named venue or result, put its canonical
+name as written by the user into entities.requested_entity_name. Do not use
+generic descriptions such as "an indoor playground" as an entity name.
 Extract a broad event category into entities.category when clearly requested.
 For services, copy the request into entities.service_query.
 For lifeops, set entities.plan_type to day or weekend.

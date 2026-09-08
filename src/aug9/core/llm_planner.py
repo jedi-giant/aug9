@@ -16,6 +16,7 @@ class PlanEntities(BaseModel):
     child_ages: list[int] = Field(default_factory=list)
     water_play: bool = False
     sheltered: bool = False
+    requested_entity_name: str | None = None
 
 
 class LLMPlan(BaseModel):

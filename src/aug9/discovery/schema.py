@@ -4,6 +4,20 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
 
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS discovery_catalog_gaps (
+            entity_type TEXT NOT NULL,
+            query TEXT NOT NULL,
+            normalized_query TEXT NOT NULL,
+            occurrences INTEGER NOT NULL DEFAULT 1,
+            status TEXT NOT NULL DEFAULT 'open',
+            first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(entity_type, normalized_query)
+        )
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS discovery_sources (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,

@@ -19,6 +19,7 @@ def playground_feature(
     max_age=12,
     water_play=False,
     sheltered=False,
+    aliases=None,
 ):
     return {
         "type": "Feature",
@@ -36,6 +37,7 @@ def playground_feature(
             "has_water_play": water_play,
             "is_sheltered": sheltered,
             "sources": "NParks / PlaySG / OneMap",
+            "aliases": aliases or [],
         },
     }
 
@@ -157,3 +159,69 @@ def test_playground_skill_prioritises_shelter_for_rain(tmp_path, monkeypatch):
 
     assert result.data["playgrounds"][0]["name"] == "Sheltered Park"
     assert result.data["filters"]["weather_aware_shelter_preference"] is True
+
+
+def test_playground_provider_resolves_a_specific_alias(tmp_path, monkeypatch):
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setattr(database, "SQLITE_DB_PATH", tmp_path / "named.db")
+    database.initialise_database()
+    path = tmp_path / "playgrounds.geojson"
+    path.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    playground_feature(1, "Coastal Playgrove"),
+                    playground_feature(
+                        2,
+                        "Meyer Road Neighbourhood Playground",
+                        103.893,
+                        1.298,
+                        aliases=["Meyer Road Playground"],
+                    ),
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    PlaygroundGeoJsonImporter(DiscoveryRepository()).run(path)
+
+    result = SgPlaygroundsSkill(DatabasePlaygroundProvider()).execute(
+        UserContext(
+            intent="What about Meyer Road Playground?",
+            current_place=Place(name="Meyer Road", latitude=1.298, longitude=103.893),
+        ),
+        {"requested_entity_name": "Meyer Road Playground"},
+    )
+
+    assert result.success is True
+    assert [item["name"] for item in result.data["playgrounds"]] == [
+        "Meyer Road Neighbourhood Playground"
+    ]
+    assert result.summary.startswith("Yes — here's Meyer Road")
+
+
+def test_missing_named_playground_records_catalog_gap_without_repeating_nearby(
+    tmp_path, monkeypatch
+):
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setattr(database, "SQLITE_DB_PATH", tmp_path / "gap.db")
+    database.initialise_database()
+
+    result = SgPlaygroundsSkill(DatabasePlaygroundProvider()).execute(
+        UserContext(
+            intent="What about Meyer Road Playground?",
+            current_place=Place(name="Meyer Road", latitude=1.298, longitude=103.893),
+        ),
+        {"requested_entity_name": "Meyer Road Playground"},
+    )
+
+    assert result.success is False
+    assert "Meyer Road Playground" in result.summary
+    assert "verified playground list" in result.summary
+    conn = database.get_connection()
+    row = conn.execute(
+        "SELECT query, occurrences FROM discovery_catalog_gaps"
+    ).fetchone()
+    conn.close()
+    assert row == ("Meyer Road Playground", 1)

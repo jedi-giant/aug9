@@ -79,6 +79,21 @@ def extract_entities(
     if any(word in lowered for word in ("sheltered", "indoor", "under cover")):
         entities["sheltered"] = True
 
+    named_playground = re.search(
+        r"(?:what about|how about|show me|find|tell me about)\s+"
+        r"(?:the\s+)?([a-z0-9'’&.-]+(?:\s+[a-z0-9'’&.-]+){0,7}\s+playground)\b",
+        user_input,
+        flags=re.IGNORECASE,
+    )
+    if named_playground:
+        candidate = named_playground.group(1).strip(" .?!,")
+        generic_prefixes = (
+            "a ", "an ", "any ", "indoor ", "outdoor ", "water ",
+            "nearby ", "sheltered ",
+        )
+        if not candidate.casefold().startswith(generic_prefixes):
+            entities["requested_entity_name"] = candidate
+
     return entities
 
 def create_plan(

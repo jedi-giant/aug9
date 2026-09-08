@@ -71,6 +71,19 @@ def test_planner_extracts_playground_preferences():
     assert plan.entities["sheltered"] is True
 
 
+def test_planner_extracts_specific_playground_name():
+    plan = create_plan("What about Meyer Road Playground?")
+
+    assert plan.required_capabilities == ["playgrounds"]
+    assert plan.entities["requested_entity_name"] == "Meyer Road Playground"
+
+
+def test_planner_does_not_treat_generic_playground_preferences_as_a_name():
+    plan = create_plan("Find a sheltered water-play playground near me")
+
+    assert "requested_entity_name" not in plan.entities
+
+
 def test_planner_detects_government_service_request():
     plan = create_plan("How do I renew my Singapore passport?")
 

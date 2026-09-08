@@ -2,7 +2,8 @@ from typing import Any
 from urllib.parse import quote_plus
 
 from aug9.core.context import UserContext
-from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
+from aug9.core.skill import Aug9Skill, SkillAction, SkillOutcome, SkillResult
+from aug9.discovery.catalog_gaps import record_catalog_gap
 from aug9.sg_playgrounds.provider import PlaygroundProvider
 
 
@@ -29,6 +30,7 @@ class SgPlaygroundsSkill(Aug9Skill):
         sheltered = entities.get("sheltered") is True
         intent = (context.intent or "").casefold()
         wet_weather = any(word in intent for word in ("rain", "rainy", "wet weather"))
+        requested_name = entities.get("requested_entity_name")
         playgrounds = self.provider.discover(
             latitude=latitude,
             longitude=longitude,
@@ -36,8 +38,26 @@ class SgPlaygroundsSkill(Aug9Skill):
             water_play=water_play,
             sheltered=sheltered,
             prefer_sheltered=wet_weather and not sheltered,
+            name_query=requested_name,
         )
         if not playgrounds:
+            if isinstance(requested_name, str) and requested_name.strip():
+                record_catalog_gap("playground", requested_name)
+                return SkillResult(
+                    success=False,
+                    data={
+                        "catalog_gap": {
+                            "entity_type": "playground",
+                            "query": requested_name,
+                        }
+                    },
+                    summary=(
+                        f"I don't have {requested_name} in my verified playground "
+                        "list yet. I can show you nearby verified alternatives, or "
+                        "flag it for review."
+                    ),
+                    outcome=SkillOutcome.UNMATCHED,
+                )
             criteria = []
             if child_ages:
                 criteria.append("the requested ages")
@@ -74,6 +94,9 @@ class SgPlaygroundsSkill(Aug9Skill):
         if sheltered or wet_weather:
             preference_summary.append("shelter")
         opening = (
+            f"Yes — here's {playgrounds[0].name}: "
+            if requested_name
+            else
             "These are the strongest nearby matches for "
             + ", ".join(preference_summary)
             + ": "

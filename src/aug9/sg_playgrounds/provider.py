@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import math
 import json
+import re
 import sqlite3
 from dataclasses import dataclass
+from difflib import SequenceMatcher
 from typing import Protocol
 
 import psycopg
@@ -26,6 +28,7 @@ class Playground:
     is_sheltered: bool = False
     min_age: int | None = None
     max_age: int | None = None
+    aliases: tuple[str, ...] = ()
 
 
 class PlaygroundProvider(Protocol):
@@ -38,6 +41,7 @@ class PlaygroundProvider(Protocol):
         water_play: bool = False,
         sheltered: bool = False,
         prefer_sheltered: bool = False,
+        name_query: str | None = None,
     ) -> list[Playground]: ...
 
 
@@ -57,6 +61,7 @@ class DatabasePlaygroundProvider:
         water_play: bool = False,
         sheltered: bool = False,
         prefer_sheltered: bool = False,
+        name_query: str | None = None,
     ) -> list[Playground]:
         try:
             conn = database.get_connection()
@@ -72,7 +77,7 @@ class DatabasePlaygroundProvider:
                 ORDER BY e.quality_score DESC, e.name ASC
                 LIMIT {p}
                 """,
-                (100,),
+                (5000 if name_query else 100,),
             )
             rows = cursor.fetchall()
             conn.close()
@@ -102,8 +107,11 @@ class DatabasePlaygroundProvider:
                     is_sheltered=bool(properties.get("is_sheltered")),
                     min_age=properties.get("min_age"),
                     max_age=properties.get("max_age"),
+                    aliases=tuple(properties.get("aliases") or ()),
                 )
             )
+        if name_query:
+            results = self._match_name(results, name_query)
         if child_ages:
             results = [
                 item
@@ -128,6 +136,51 @@ class DatabasePlaygroundProvider:
             )
         )
         return results[: self.limit]
+
+    @classmethod
+    def _match_name(
+        cls,
+        playgrounds: list[Playground],
+        query: str,
+    ) -> list[Playground]:
+        wanted = cls._normalise_name(query)
+        scored: list[tuple[float, Playground]] = []
+        for playground in playgrounds:
+            candidate_names = (playground.name, *playground.aliases)
+            score = 0.0
+            for candidate_name in candidate_names:
+                name = cls._normalise_name(candidate_name)
+                candidate_score = (
+                    1.0
+                    if name == wanted
+                    else SequenceMatcher(None, wanted, name).ratio()
+                )
+                if wanted in name or name in wanted:
+                    candidate_score = max(candidate_score, 0.9)
+                score = max(score, candidate_score)
+            if score >= 0.78:
+                scored.append((score, playground))
+        scored.sort(
+            key=lambda item: (
+                -item[0],
+                item[1].distance_km
+                if item[1].distance_km is not None
+                else float("inf"),
+            )
+        )
+        if not scored:
+            return []
+        if (
+            scored[0][0] < 1.0
+            and len(scored) > 1
+            and scored[0][0] - scored[1][0] < 0.08
+        ):
+            return []
+        return [scored[0][1]]
+
+    @staticmethod
+    def _normalise_name(value: str) -> str:
+        return " ".join(re.findall(r"[a-z0-9]+", value.casefold()))
 
     @staticmethod
     def _distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
