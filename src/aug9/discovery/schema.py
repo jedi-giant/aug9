@@ -116,6 +116,35 @@ def initialise_discovery_schema(cursor, *, postgres: bool) -> None:
     )
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS discovery_activity_profiles (
+            entity_id TEXT PRIMARY KEY,
+            activity_kind TEXT NOT NULL,
+            setting TEXT NOT NULL,
+            min_age INTEGER,
+            max_age INTEGER,
+            price_min REAL,
+            price_max REAL,
+            currency TEXT NOT NULL DEFAULT 'SGD',
+            is_free INTEGER,
+            booking_required INTEGER,
+            typical_duration_minutes INTEGER,
+            has_water_play INTEGER NOT NULL DEFAULT 0,
+            is_structurally_sheltered INTEGER NOT NULL DEFAULT 0,
+            has_natural_shade INTEGER NOT NULL DEFAULT 0,
+            features TEXT NOT NULL DEFAULT '[]',
+            family_facilities TEXT NOT NULL DEFAULT '[]',
+            accessibility_tags TEXT NOT NULL DEFAULT '[]',
+            opening_summary TEXT,
+            source_id TEXT NOT NULL,
+            verified_at TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(entity_id) REFERENCES discovery_entities(id),
+            FOREIGN KEY(source_id) REFERENCES discovery_sources(id)
+        )
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS discovery_food_profiles (
             entity_id TEXT PRIMARY KEY,
             venue_kind TEXT NOT NULL,

@@ -36,6 +36,36 @@ def test_readiness_returns_503_when_database_is_unavailable(monkeypatch):
     assert error.value.detail["dependency"] == "database"
 
 
+def test_activity_endpoint_forwards_map_safe_filters(monkeypatch):
+    captured = {}
+
+    class FakeRepository:
+        def search_activity_listings(self, **kwargs):
+            captured.update(kwargs)
+            return []
+
+    monkeypatch.setattr(main, "DiscoveryRepository", FakeRepository)
+
+    result = main.list_activities(
+        activity_kind="playground",
+        setting=main.ActivitySetting.OUTDOOR,
+        child_age=5,
+        free_only=True,
+        water_play=False,
+        limit=50,
+    )
+
+    assert result == []
+    assert captured == {
+        "activity_kind": "playground",
+        "setting": "outdoor",
+        "child_age": 5,
+        "free_only": True,
+        "water_play": False,
+        "limit": 50,
+    }
+
+
 def test_chat_succeeds_when_usage_analytics_write_fails(monkeypatch):
     monkeypatch.setattr(main.rate_limiter, "check", lambda user_id: None)
     monkeypatch.setattr(

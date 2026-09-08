@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from aug9.discovery.models import (
+    ActivityProfile,
+    ActivitySetting,
     DiscoveryEntity,
     DiscoverySource,
     EntityType,
@@ -55,6 +57,9 @@ class PlaygroundGeoJsonImporter:
                 try:
                     entity, record, provenance = self.normalise(feature)
                     self.repository.upsert_entity(entity, record, provenance)
+                    self.repository.upsert_activity_profile(
+                        self.activity_profile(feature, entity.id)
+                    )
                     upserted += 1
                 except (KeyError, TypeError, ValueError):
                     rejected += 1
@@ -127,3 +132,26 @@ class PlaygroundGeoJsonImporter:
             if field not in {"id", "entity_type", "quality_score"} and value is not None
         ]
         return entity, record, provenance
+
+    @staticmethod
+    def activity_profile(feature: dict[str, Any], entity_id: str) -> ActivityProfile:
+        properties = feature["properties"]
+        verified_at = properties.get("verified_at")
+        return ActivityProfile(
+            entity_id=entity_id,
+            activity_kind="playground",
+            setting=ActivitySetting.OUTDOOR,
+            min_age=properties.get("min_age"),
+            max_age=properties.get("max_age"),
+            is_free=properties.get("is_free", True),
+            booking_required=properties.get("booking_required", False),
+            has_water_play=bool(properties.get("has_water_play")),
+            is_structurally_sheltered=bool(properties.get("is_sheltered")),
+            has_natural_shade=bool(properties.get("has_natural_shade")),
+            features=list(properties.get("features") or ()),
+            family_facilities=list(properties.get("family_facilities") or ()),
+            accessibility_tags=list(properties.get("accessibility_tags") or ()),
+            opening_summary=properties.get("opening_hours"),
+            source_id=PLAYGROUND_SOURCE_ID,
+            verified_at=verified_at,
+        )

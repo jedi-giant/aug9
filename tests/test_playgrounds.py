@@ -79,6 +79,16 @@ def test_playground_import_and_nearby_skill(tmp_path, monkeypatch):
     )
 
     assert summary.upserted == 2
+    activities = DiscoveryRepository().search_activity_listings(
+        activity_kind="playground",
+        child_age=8,
+    )
+    assert {item.entity.name for item in activities} == {
+        "Neighbourhood Playground",
+        "Far Playground",
+    }
+    assert all(item.profile.setting.value == "outdoor" for item in activities)
+    assert all(item.profile.is_free is True for item in activities)
     assert result.success is True
     assert result.data["playgrounds"][0]["name"] == "Neighbourhood Playground"
     assert result.data["playgrounds"][0]["age_fit"] == "2–12 years"
@@ -199,6 +209,27 @@ def test_playground_provider_resolves_a_specific_alias(tmp_path, monkeypatch):
         "Meyer Road Neighbourhood Playground"
     ]
     assert result.summary.startswith("Got it — Meyer Road")
+
+
+def test_activity_profile_keeps_natural_shade_distinct_from_shelter():
+    feature = playground_feature()
+    feature["properties"].update(
+        {
+            "has_natural_shade": True,
+            "is_sheltered": False,
+            "opening_hours": "Open 24 hours",
+            "verified_at": "2026-09-08",
+        }
+    )
+
+    profile = PlaygroundGeoJsonImporter.activity_profile(
+        feature,
+        "playground:example",
+    )
+
+    assert profile.has_natural_shade is True
+    assert profile.is_structurally_sheltered is False
+    assert profile.opening_summary == "Open 24 hours"
 
 
 def test_missing_named_playground_records_catalog_gap_without_repeating_nearby(

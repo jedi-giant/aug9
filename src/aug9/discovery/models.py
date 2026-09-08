@@ -66,6 +66,56 @@ class CommercialStatus(StrEnum):
     MERCHANT_SUBMITTED = "merchant_submitted"
 
 
+class ActivitySetting(StrEnum):
+    INDOOR = "indoor"
+    OUTDOOR = "outdoor"
+    BOTH = "both"
+
+
+class ActivityProfile(BaseModel):
+    entity_id: str
+    activity_kind: str
+    setting: ActivitySetting
+    min_age: int | None = Field(default=None, ge=0, le=18)
+    max_age: int | None = Field(default=None, ge=0, le=18)
+    price_min: float | None = Field(default=None, ge=0)
+    price_max: float | None = Field(default=None, ge=0)
+    currency: str = "SGD"
+    is_free: bool | None = None
+    booking_required: bool | None = None
+    typical_duration_minutes: int | None = Field(default=None, ge=15, le=1440)
+    has_water_play: bool = False
+    is_structurally_sheltered: bool = False
+    has_natural_shade: bool = False
+    features: list[str] = Field(default_factory=list)
+    family_facilities: list[str] = Field(default_factory=list)
+    accessibility_tags: list[str] = Field(default_factory=list)
+    opening_summary: str | None = None
+    source_id: str
+    verified_at: datetime | None = None
+
+    @model_validator(mode="after")
+    def validate_ranges(self):
+        if (
+            self.min_age is not None
+            and self.max_age is not None
+            and self.max_age < self.min_age
+        ):
+            raise ValueError("max_age must be greater than or equal to min_age")
+        if (
+            self.price_min is not None
+            and self.price_max is not None
+            and self.price_max < self.price_min
+        ):
+            raise ValueError("price_max must be greater than or equal to price_min")
+        return self
+
+
+class ActivityListing(BaseModel):
+    entity: "DiscoveryEntity"
+    profile: ActivityProfile
+
+
 class FoodProfile(BaseModel):
     entity_id: str
     venue_kind: str

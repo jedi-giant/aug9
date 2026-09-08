@@ -45,7 +45,12 @@ from aug9.discovery.submissions import (
     FoodSubmissionRepository,
     SubmissionStatus,
 )
-from aug9.discovery.models import DiscoveryEntity, EntityType
+from aug9.discovery.models import (
+    ActivityListing,
+    ActivitySetting,
+    DiscoveryEntity,
+    EntityType,
+)
 from aug9.discovery.repository import DiscoveryRepository
 
 
@@ -165,6 +170,26 @@ def readiness_check():
             },
         )
     return {"status": "ready"}
+
+
+@app.get("/activities", response_model=list[ActivityListing])
+def list_activities(
+    activity_kind: str | None = Query(default=None, max_length=40),
+    setting: ActivitySetting | None = None,
+    child_age: int | None = Query(default=None, ge=0, le=18),
+    free_only: bool = False,
+    water_play: bool = False,
+    limit: int = Query(default=200, ge=1, le=500),
+):
+    """Return bounded, governed activity records for map and list surfaces."""
+    return DiscoveryRepository().search_activity_listings(
+        activity_kind=activity_kind,
+        setting=setting.value if setting else None,
+        child_age=child_age,
+        free_only=free_only,
+        water_play=water_play,
+        limit=limit,
+    )
 
 
 @app.post("/admin/food-submissions", response_model=FoodSubmission, status_code=201)

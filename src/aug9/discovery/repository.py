@@ -4,6 +4,8 @@ from uuid import uuid4
 
 from aug9.core import database
 from aug9.discovery.models import (
+    ActivityListing,
+    ActivityProfile,
     DiscoveryEntity,
     DiscoverySource,
     EventProfile,
@@ -358,6 +360,168 @@ class DiscoveryRepository:
             raise
         finally:
             conn.close()
+
+    def upsert_activity_profile(self, profile: ActivityProfile) -> None:
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        try:
+            self._require_ingestable_source(cursor, profile.source_id, p)
+            cursor.execute(
+                f"""
+                INSERT INTO discovery_activity_profiles (
+                    entity_id, activity_kind, setting, min_age, max_age,
+                    price_min, price_max, currency, is_free, booking_required,
+                    typical_duration_minutes, has_water_play,
+                    is_structurally_sheltered, has_natural_shade, features,
+                    family_facilities, accessibility_tags, opening_summary,
+                    source_id, verified_at
+                ) VALUES (
+                    {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p},
+                    {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}
+                )
+                ON CONFLICT(entity_id) DO UPDATE SET
+                    activity_kind = excluded.activity_kind,
+                    setting = excluded.setting,
+                    min_age = excluded.min_age,
+                    max_age = excluded.max_age,
+                    price_min = excluded.price_min,
+                    price_max = excluded.price_max,
+                    currency = excluded.currency,
+                    is_free = excluded.is_free,
+                    booking_required = excluded.booking_required,
+                    typical_duration_minutes = excluded.typical_duration_minutes,
+                    has_water_play = excluded.has_water_play,
+                    is_structurally_sheltered = excluded.is_structurally_sheltered,
+                    has_natural_shade = excluded.has_natural_shade,
+                    features = excluded.features,
+                    family_facilities = excluded.family_facilities,
+                    accessibility_tags = excluded.accessibility_tags,
+                    opening_summary = excluded.opening_summary,
+                    source_id = excluded.source_id,
+                    verified_at = excluded.verified_at,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (
+                    profile.entity_id,
+                    profile.activity_kind,
+                    profile.setting.value,
+                    profile.min_age,
+                    profile.max_age,
+                    profile.price_min,
+                    profile.price_max,
+                    profile.currency,
+                    int(profile.is_free) if profile.is_free is not None else None,
+                    int(profile.booking_required)
+                    if profile.booking_required is not None
+                    else None,
+                    profile.typical_duration_minutes,
+                    int(profile.has_water_play),
+                    int(profile.is_structurally_sheltered),
+                    int(profile.has_natural_shade),
+                    json.dumps(profile.features),
+                    json.dumps(profile.family_facilities),
+                    json.dumps(profile.accessibility_tags),
+                    profile.opening_summary,
+                    profile.source_id,
+                    profile.verified_at.isoformat() if profile.verified_at else None,
+                ),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def search_activity_listings(
+        self,
+        *,
+        activity_kind: str | None = None,
+        setting: str | None = None,
+        child_age: int | None = None,
+        free_only: bool = False,
+        water_play: bool = False,
+        limit: int = 200,
+    ) -> list[ActivityListing]:
+        if limit < 1 or limit > 500:
+            raise ValueError("limit must be between 1 and 500")
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        p = database.placeholder()
+        filters = [
+            "e.status = 'active'",
+            "e.latitude IS NOT NULL",
+            "e.longitude IS NOT NULL",
+        ]
+        parameters: list[object] = []
+        if activity_kind:
+            filters.append(f"LOWER(ap.activity_kind) = {p}")
+            parameters.append(activity_kind.casefold().strip())
+        if setting:
+            filters.append(f"ap.setting IN ({p}, 'both')")
+            parameters.append(setting.casefold().strip())
+        if child_age is not None:
+            filters.extend(
+                (
+                    f"(ap.min_age IS NULL OR ap.min_age <= {p})",
+                    f"(ap.max_age IS NULL OR ap.max_age >= {p})",
+                )
+            )
+            parameters.extend((child_age, child_age))
+        if free_only:
+            filters.append("ap.is_free = 1")
+        if water_play:
+            filters.append("ap.has_water_play = 1")
+        cursor.execute(
+            f"""
+            SELECT {self._ENTITY_COLUMNS}, ap.activity_kind, ap.setting,
+                   ap.min_age, ap.max_age, ap.price_min, ap.price_max,
+                   ap.currency, ap.is_free, ap.booking_required,
+                   ap.typical_duration_minutes, ap.has_water_play,
+                   ap.is_structurally_sheltered, ap.has_natural_shade,
+                   ap.features, ap.family_facilities, ap.accessibility_tags,
+                   ap.opening_summary, ap.source_id, ap.verified_at
+            FROM discovery_entities e
+            JOIN discovery_activity_profiles ap ON ap.entity_id = e.id
+            WHERE {' AND '.join(filters)}
+            ORDER BY e.quality_score DESC, e.name ASC
+            LIMIT {p}
+            """,
+            (*parameters, limit),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        listings = []
+        for row in rows:
+            listings.append(
+                ActivityListing(
+                    entity=self._entity_from_row(row[:10]),
+                    profile=ActivityProfile(
+                        entity_id=row[0],
+                        activity_kind=row[10],
+                        setting=row[11],
+                        min_age=row[12],
+                        max_age=row[13],
+                        price_min=row[14],
+                        price_max=row[15],
+                        currency=row[16],
+                        is_free=None if row[17] is None else bool(row[17]),
+                        booking_required=None if row[18] is None else bool(row[18]),
+                        typical_duration_minutes=row[19],
+                        has_water_play=bool(row[20]),
+                        is_structurally_sheltered=bool(row[21]),
+                        has_natural_shade=bool(row[22]),
+                        features=json.loads(row[23]),
+                        family_facilities=json.loads(row[24]),
+                        accessibility_tags=json.loads(row[25]),
+                        opening_summary=row[26],
+                        source_id=row[27],
+                        verified_at=row[28],
+                    ),
+                )
+            )
+        return listings
 
     def search_food_listings(self, *, limit: int = 100) -> list[FoodListing]:
         if limit < 1 or limit > 100:
