@@ -94,9 +94,6 @@ class SgPlaygroundsSkill(Aug9Skill):
         if sheltered or wet_weather:
             preference_summary.append("shelter")
         opening = (
-            f"Yes — here's {playgrounds[0].name}: "
-            if requested_name
-            else
             "These are the strongest nearby matches for "
             + ", ".join(preference_summary)
             + ": "
@@ -114,7 +111,11 @@ class SgPlaygroundsSkill(Aug9Skill):
                     "weather_aware_shelter_preference": wet_weather and not sheltered,
                 },
             },
-            summary=opening + "; ".join(descriptions) + ".",
+            summary=(
+                "Got it — " + descriptions[0] + "."
+                if requested_name
+                else opening + "; ".join(descriptions) + "."
+            ),
             actions=[
                 SkillAction(
                     type="open_url",

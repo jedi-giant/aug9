@@ -198,7 +198,7 @@ def test_playground_provider_resolves_a_specific_alias(tmp_path, monkeypatch):
     assert [item["name"] for item in result.data["playgrounds"]] == [
         "Meyer Road Neighbourhood Playground"
     ]
-    assert result.summary.startswith("Yes — here's Meyer Road")
+    assert result.summary.startswith("Got it — Meyer Road")
 
 
 def test_missing_named_playground_records_catalog_gap_without_repeating_nearby(

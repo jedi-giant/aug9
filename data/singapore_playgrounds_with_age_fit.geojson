@@ -823,6 +823,46 @@
         "is_sheltered": false,
         "sources": "NParks Playgrounds Directory / PlaySG"
       }
+    },
+    {
+      "type": "Feature",
+      "id": 26,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          103.89423,
+          1.29855
+        ]
+      },
+      "properties": {
+        "id": 26,
+        "name": "Meyer Road Playground",
+        "aliases": [
+          "Meyer Rd Playground"
+        ],
+        "park_or_location": "Meyer Road",
+        "address": "Meyer Road, Singapore",
+        "category": "Neighbourhood Playground",
+        "theme": "Outdoor neighbourhood play area with mature-tree shade",
+        "age_fit": "Children (2–12 years)",
+        "min_age": 2,
+        "max_age": 12,
+        "age_suitability_details": "Outdoor neighbourhood playground suitable for children aged 2–12, with low play elements and shade from large mature trees.",
+        "features": [
+          "Slides",
+          "Low play elements",
+          "Exercise corner",
+          "Pavilion",
+          "Natural tree shade"
+        ],
+        "has_water_play": false,
+        "is_sheltered": false,
+        "has_natural_shade": true,
+        "opening_hours": "Open 24 hours",
+        "source_url": "https://maps.app.goo.gl/G9avGw8VMqCKk1fS6",
+        "verified_at": "2026-09-08",
+        "sources": "User-verified location / Google Maps"
+      }
     }
   ]
 }
