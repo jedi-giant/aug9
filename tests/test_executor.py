@@ -53,6 +53,7 @@ class FakeEventsSkill(Aug9Skill):
 
     def execute(self, context, entities):
         self.entities = entities
+        self.context = context
         return SkillResult(
             success=True,
             data={
@@ -117,9 +118,43 @@ class FakePlaygroundsSkill(Aug9Skill):
     def execute(self, context, entities):
         return SkillResult(
             success=True,
-            data={"playgrounds": [{"name": "Neighbourhood Playground"}]},
+            data={
+                "playgrounds": [
+                    {
+                        "name": "Neighbourhood Playground",
+                        "address": "1 Neighbourhood Road",
+                        "latitude": 1.29855,
+                        "longitude": 103.89423,
+                    }
+                ]
+            },
             summary="Here are a few playgrounds to consider: Neighbourhood Playground.",
         )
+
+
+def test_exact_playground_match_becomes_anchor_before_journey_dependencies():
+    registry = SkillRegistry()
+    registry.register(SgPlaceSkill(FakePlaceProvider()))
+    registry.register(FakePlaygroundsSkill())
+    events_skill = FakeEventsSkill()
+    registry.register(events_skill)
+    registry.register(SgPlannerSkill())
+    plan = Plan(
+        intent="Tell me about Meyer Road Playground and plan an outing around it",
+        required_capabilities=[
+            "place_resolution", "playgrounds", "events", "lifeops"
+        ],
+        entities={"requested_entity_name": "Meyer Road Playground"},
+    )
+
+    result = execute_plan(plan, UserContext(intent=plan.intent), registry=registry)
+
+    assert events_skill.context.current_place.name == "Neighbourhood Playground"
+    assert result.outputs["place_resolution"].success is True
+    assert result.outputs["lifeops"].data["location_available"] is True
+    assert result.outputs["lifeops"].data["itinerary"][0]["title"] == (
+        "Start at Neighbourhood Playground"
+    )
 
 
 def test_executor_routes_place_resolution_through_registry():

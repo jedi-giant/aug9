@@ -4,6 +4,7 @@ from aug9.core.context import UserContext
 from aug9.core.planner import Plan
 from aug9.core.capabilities import CAPABILITIES
 from aug9.core.default_skills import register_default_skills
+from aug9.core.skill import SkillResult
 from aug9.core.skill_registry import SkillRegistry, skill_registry
 from aug9.core.models import Place
 
@@ -24,10 +25,10 @@ def execute_plan(
 
     execution_order = [
         "place_resolution",
+        "playgrounds",
         "hawkers",
         "hotels",
         "events",
-        "playgrounds",
         "services",
         "food",
         "weather",
@@ -69,6 +70,34 @@ def execute_plan(
                 if getattr(outputs[capability], "success", False) and place_data:
                     context = context.model_copy(
                         update={"current_place": Place.model_validate(place_data)}
+                    )
+            elif capability == "playgrounds" and execution_entities.get(
+                "requested_entity_name"
+            ):
+                playgrounds = getattr(outputs[capability], "data", {}).get(
+                    "playgrounds", []
+                )
+                if getattr(outputs[capability], "success", False) and len(playgrounds) == 1:
+                    item = playgrounds[0]
+                    anchor = Place(
+                        name=item["name"],
+                        place_type="playground",
+                        address=item.get("address"),
+                        latitude=item.get("latitude"),
+                        longitude=item.get("longitude"),
+                    )
+                    memory = (
+                        context.memory.model_copy(update={"current_place": anchor})
+                        if context.memory is not None
+                        else None
+                    )
+                    context = context.model_copy(
+                        update={"current_place": anchor, "memory": memory}
+                    )
+                    outputs["place_resolution"] = SkillResult(
+                        success=True,
+                        data={"place": anchor.model_dump(exclude_none=True)},
+                        summary=f"Resolved {anchor.name} from Aug9's catalogue.",
                     )
             continue
 
