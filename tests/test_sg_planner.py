@@ -24,7 +24,7 @@ def test_planner_skill_records_when_location_is_missing():
     assert result.data["location_available"] is False
 
 
-def test_lifeops_response_combines_outputs_and_requests_starting_area():
+def test_lifeops_response_uses_one_coordinated_location_question():
     execution = ExecutionResult(
         plan=Plan(intent="Plan my day", required_capabilities=["events", "lifeops"]),
         outputs={
@@ -41,9 +41,10 @@ def test_lifeops_response_combines_outputs_and_requests_starting_area():
 
     response = compose_response(execution)
 
-    assert response.startswith("Your Singapore day plan:")
-    assert "Night Festival" in response
-    assert "starting neighbourhood" in response
+    assert response == (
+        "Where are you starting from? Share a Singapore neighbourhood or place, "
+        "and I'll plan nearby food, activities, weather and transport."
+    )
 
 
 def test_planner_skill_builds_structured_itinerary_from_skill_outputs():
@@ -185,22 +186,65 @@ def test_planner_orders_nearby_events_and_builds_consecutive_travel_legs():
     )
 
     itinerary = result.data["itinerary"]
-    assert [item["title"] for item in itinerary[1:]] == [
-        "Near event",
-        "Far event",
-    ]
+    assert [item["title"] for item in itinerary[1:]] == ["Near event"]
     assert [item["scheduled_for"][11:16] for item in itinerary] == [
         "10:00",
         "14:00",
-        "17:00",
     ]
     assert [leg["recommended_mode"] for leg in result.data["travel_legs"]] == [
         "walk",
-        "public_transport",
     ]
-    assert len(result.actions) == 2
-    assert result.actions[1].metadata["leg"] == 2
-    assert "travelmode=transit" in result.actions[1].url
+    assert len(result.actions) == 1
+
+
+def test_anchored_outing_enforces_total_detour_and_walk_thresholds():
+    outputs = {
+        "food": SkillResult(
+            success=True,
+            data={
+                "places": [
+                    {
+                        "name": "Nearby food",
+                        "address": "Nearby food",
+                        "latitude": 1.3000,
+                        "longitude": 103.89423,
+                    }
+                ]
+            },
+        ),
+        "events": SkillResult(
+            success=True,
+            data={
+                "events": [
+                    {
+                        "name": "Too much detour",
+                        "address": "Farther away",
+                        "latitude": 1.3300,
+                        "longitude": 103.89423,
+                    }
+                ]
+            },
+        ),
+    }
+
+    result = SgPlannerSkill().execute(
+        UserContext(
+            intent="Plan a family outing",
+            current_place=Place(
+                name="Meyer Road Playground",
+                latitude=1.29855,
+                longitude=103.89423,
+            ),
+        ),
+        {"plan_type": "day", "_lifeops_outputs": outputs},
+    )
+
+    assert [item["title"] for item in result.data["itinerary"]] == [
+        "Start at Meyer Road Playground",
+        "Nearby food",
+    ]
+    assert result.data["travel_legs"][0]["recommended_mode"] == "walk"
+    assert result.data["travel_legs"][0]["within_preferred_walk"] is True
 
 
 def test_planner_schedule_does_not_overflow_with_many_event_stops():

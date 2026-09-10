@@ -45,6 +45,9 @@ class ProductEvent(BaseModel):
         default=None,
         pattern="^(inaccurate|outdated|too_far|lost_context|not_relevant|other)$",
     )
+    journey_type: str | None = Field(default=None, max_length=40)
+    journey_status: str | None = Field(default=None, max_length=40)
+    failure_stage: str | None = Field(default=None, max_length=80)
 
     @property
     def successful_task(self) -> bool:
@@ -68,10 +71,11 @@ def log_product_event(event: ProductEvent) -> None:
             event_id, task_id, user_id, session_id, event_type, capabilities,
             task_status, action_type, helpful, successful_task,
             campaign_source, campaign_medium, campaign_name, ranking_mode,
-            feedback_scope, target_id, reason_code
+            feedback_scope, target_id, reason_code, journey_type,
+            journey_status, failure_stage
         ) VALUES (
             {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p},
-            {p}, {p}, {p}
+            {p}, {p}, {p}, {p}, {p}, {p}
         )
         ON CONFLICT(event_id) DO NOTHING
         """,
@@ -93,6 +97,9 @@ def log_product_event(event: ProductEvent) -> None:
             event.feedback_scope,
             event.target_id,
             event.reason_code,
+            event.journey_type,
+            event.journey_status,
+            event.failure_stage,
         ),
     )
     conn.commit()

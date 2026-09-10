@@ -60,6 +60,8 @@ class FakeEventsSkill(Aug9Skill):
                     {
                         "name": "Marina Bay event",
                         "address": "Marina Bay Sands",
+                        "latitude": 1.281,
+                        "longitude": 103.841,
                     }
                 ]
             },
@@ -78,7 +80,14 @@ class FakeFoodSkill(Aug9Skill):
         return SkillResult(
             success=True,
             data={
-                "places": [{"name": "Licensed stall"}],
+                "places": [
+                    {
+                        "name": "Licensed stall",
+                        "address": "1 Nearby Street",
+                        "latitude": 1.2805,
+                        "longitude": 103.8405,
+                    }
+                ],
                 "evidence_scope": {
                     "verified": ["licensing", "safe_grade", "location"]
                 },

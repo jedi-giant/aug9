@@ -30,7 +30,18 @@ def build_context(
                 supplied_place.longitude,
             )
             if resolved.status is SearchStatus.SUCCESS and resolved.location is not None:
-                supplied_place = resolved.location
+                # Coordinates selected from a first-party Aug9 card/map are the
+                # authoritative anchor. Reverse geocoding may enrich the address,
+                # but must not rename the selected venue to a nearby building.
+                supplied_place = supplied_place.model_copy(
+                    update={
+                        "address": supplied_place.address or resolved.location.address,
+                        "postal_code": (
+                            supplied_place.postal_code
+                            or resolved.location.postal_code
+                        ),
+                    }
+                )
         resolved_memory = memory or get_memory(user_id, session_id=session_id)
         state = ConversationState(
             current_place=supplied_place,

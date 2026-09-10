@@ -99,9 +99,10 @@ def test_supplied_browser_place_bypasses_lookup_and_is_not_persisted(
         supplied_place=supplied,
     )
 
-    assert context.current_place.name == "MARINA BAY SANDS"
+    assert context.current_place.name == "Current location"
     assert context.current_place.postal_code == "018956"
-    assert context.memory.current_place.name == "MARINA BAY SANDS"
+    assert context.current_place.address == "10 BAYFRONT AVENUE"
+    assert context.memory.current_place.name == "Current location"
     assert context.memory.history == ["Find food near me"]
     mock_token.assert_not_called()
     mock_search.assert_not_called()

@@ -78,6 +78,15 @@ def test_planner_extracts_specific_playground_name():
     assert plan.entities["requested_entity_name"] == "Meyer Road Playground"
 
 
+def test_planner_does_not_geocode_location_pronouns():
+    plan = create_plan(
+        "Tell me about Meyer Road Playground and plan an outing around it."
+    )
+
+    assert plan.entities["requested_entity_name"] == "Meyer Road Playground"
+    assert "location" not in plan.entities
+
+
 def test_planner_does_not_treat_generic_playground_preferences_as_a_name():
     plan = create_plan("Find a sheltered water-play playground near me")
 

@@ -9,7 +9,9 @@ from aug9.core.skill import Aug9Skill, SkillAction, SkillResult
 
 
 SINGAPORE_TIMEZONE = ZoneInfo("Asia/Singapore")
-WALKABLE_LEG_METERS = 1500.0
+PREFERRED_WALK_METERS = 500.0
+WALKABLE_LEG_METERS = 1000.0
+MAX_OUTING_DETOUR_METERS = 3000.0
 
 
 class SgPlannerSkill(Aug9Skill):
@@ -28,6 +30,7 @@ class SgPlannerSkill(Aug9Skill):
         outputs = entities.get("_lifeops_outputs", {})
         itinerary = self._build_itinerary(context, outputs)
         itinerary = self._order_event_stops(itinerary)
+        itinerary = self._apply_outing_distance_budget(itinerary)
         self._assign_times(itinerary, context.intent)
         itinerary = self._order_by_schedule(itinerary)
         transport_data = self._skill_data(outputs, "transport")
@@ -183,6 +186,35 @@ class SgPlannerSkill(Aug9Skill):
             item["order"] = index
         return result
 
+    @classmethod
+    def _apply_outing_distance_budget(
+        cls, itinerary: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Keep one optional activity only when the whole outing stays compact."""
+        if not itinerary:
+            return []
+        if itinerary[0].get("type") != "start" or any(
+            itinerary[0].get(coordinate) is None
+            for coordinate in ("latitude", "longitude")
+        ):
+            return itinerary
+        selected = [itinerary[0]]
+        travelled = 0.0
+        event_added = False
+        for item in itinerary[1:]:
+            if item.get("type") == "event" and event_added:
+                continue
+            distance = cls._distance_meters(selected[-1], item)
+            if distance is None or travelled + distance > MAX_OUTING_DETOUR_METERS:
+                continue
+            selected.append(item)
+            travelled += distance
+            if item.get("type") == "event":
+                event_added = True
+        for index, item in enumerate(selected, start=1):
+            item["order"] = index
+        return selected
+
     @staticmethod
     def _assign_times(
         itinerary: list[dict[str, Any]], intent: str | None
@@ -286,6 +318,9 @@ class SgPlannerSkill(Aug9Skill):
                     "duration_minutes": route.get("duration_minutes"),
                     "summary": route.get("summary"),
                     "recommended_mode": mode,
+                    "within_preferred_walk": (
+                        distance is not None and distance <= PREFERRED_WALK_METERS
+                    ),
                 }
             )
             url = cls._directions_url(

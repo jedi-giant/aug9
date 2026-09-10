@@ -46,7 +46,12 @@ def extract_entities(
         flags=re.IGNORECASE,
     )
     if nearby_place and "location" not in entities:
-        entities["location"] = nearby_place.group(1).strip()
+        candidate = nearby_place.group(1).strip(" .?!,")
+        if candidate.casefold() not in {
+            "it", "there", "here", "nearby", "this", "that",
+            "this place", "that place", "the place",
+        }:
+            entities["location"] = candidate
 
     lowered = user_input.lower()
     matched_locations = [

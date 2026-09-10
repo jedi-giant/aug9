@@ -46,12 +46,16 @@ def execute_plan(
         if capability == "transport" and is_lifeops:
             if context.current_place is None:
                 continue
+            food_output = outputs.get("food")
+            food_items = getattr(food_output, "data", {}).get("places", [])
             event_output = outputs.get("events")
             event_items = getattr(event_output, "data", {}).get("events", [])
-            if not event_items:
+            next_stop = food_items[0] if food_items else (
+                event_items[0] if event_items else None
+            )
+            if next_stop is None:
                 continue
-            first_event = event_items[0]
-            destination = first_event.get("address") or first_event.get("name")
+            destination = next_stop.get("address") or next_stop.get("name")
             if not destination:
                 continue
             execution_entities["destination"] = destination

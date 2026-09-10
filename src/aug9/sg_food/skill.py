@@ -13,6 +13,8 @@ from aug9.sg_food.provider import FoodProvider, FoodVenue
 
 
 MAX_COMFORTABLE_WALK_KM = 1.2
+LIFEOPS_PREFERRED_DISTANCE_KM = 0.3
+LIFEOPS_MAX_DISTANCE_KM = 0.8
 
 
 def configured_food_ranking_mode() -> str:
@@ -101,8 +103,25 @@ class SgFoodSkill(Aug9Skill):
                 query=str(query) if query else None,
                 venue_kinds=venue_kinds,
             )
+        if entities.get("_is_lifeops") and latitude is not None and longitude is not None:
+            venues = [
+                venue
+                for venue in venues
+                if venue.distance_km is not None
+                and venue.distance_km <= LIFEOPS_MAX_DISTANCE_KM
+            ]
+            venues.sort(
+                key=lambda venue: (
+                    venue.distance_km > LIFEOPS_PREFERRED_DISTANCE_KM,
+                    venue.distance_km,
+                )
+            )
         if not venues:
-            legacy = self._legacy_result(context)
+            legacy = (
+                None
+                if entities.get("_is_lifeops")
+                else self._legacy_result(context)
+            )
             if legacy is not None:
                 return legacy
             return SkillResult(

@@ -147,6 +147,66 @@ def test_food_skill_preserves_legacy_beta_fallback():
     assert result.data["evidence_scope"]["legacy_beta_fallback"] is True
 
 
+def test_anchored_outing_prefers_300m_food_and_excludes_beyond_800m():
+    provider = FakeFoodProvider(
+        [
+            FoodVenue(
+                id="food:near",
+                name="Near",
+                venue_kind="restaurant",
+                address="Near",
+                postal_code=None,
+                latitude=1.3,
+                longitude=103.8,
+                safe_grade="A",
+                business_type=None,
+                distance_km=0.2,
+            ),
+            FoodVenue(
+                id="food:preferred-overflow",
+                name="Still nearby",
+                venue_kind="restaurant",
+                address="Still nearby",
+                postal_code=None,
+                latitude=1.3,
+                longitude=103.8,
+                safe_grade="A",
+                business_type=None,
+                distance_km=0.6,
+            ),
+            FoodVenue(
+                id="food:far",
+                name="Too far",
+                venue_kind="restaurant",
+                address="Too far",
+                postal_code=None,
+                latitude=1.3,
+                longitude=103.8,
+                safe_grade="A",
+                business_type=None,
+                distance_km=0.9,
+            ),
+        ]
+    )
+
+    result = SgFoodSkill(provider).execute(
+        UserContext(
+            intent="Plan a family outing with food",
+            current_place=Place(
+                name="Meyer Road Playground",
+                latitude=1.29855,
+                longitude=103.89423,
+            ),
+        ),
+        {"_is_lifeops": True},
+    )
+
+    assert [place["name"] for place in result.data["places"]] == [
+        "Near",
+        "Still nearby",
+    ]
+
+
 def test_food_skill_does_not_infer_cafes_from_restaurant_licences():
     provider = FakeFoodProvider([])
     result = SgFoodSkill(provider).execute(

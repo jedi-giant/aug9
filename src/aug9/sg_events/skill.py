@@ -18,7 +18,8 @@ EVENT_SOURCE_LINKS = (
     ),
 )
 
-LIFEOPS_MAX_DISTANCE_KM = 8.0
+LIFEOPS_PREFERRED_DISTANCE_KM = 2.0
+LIFEOPS_MAX_DISTANCE_KM = 5.0
 SINGAPORE_TIMEZONE = ZoneInfo("Asia/Singapore")
 
 
@@ -75,6 +76,13 @@ class SgEventsSkill(Aug9Skill):
                 if item.distance_km is not None
                 and item.distance_km <= LIFEOPS_MAX_DISTANCE_KM
             ]
+            listings.sort(
+                key=lambda item: (
+                    item.distance_km > LIFEOPS_PREFERRED_DISTANCE_KM,
+                    item.distance_km,
+                    item.starts_at,
+                )
+            )
         if starts_before is not None and not (
             is_lifeops and context.current_place is not None
         ):
@@ -86,7 +94,7 @@ class SgEventsSkill(Aug9Skill):
                 ),
             )
         if is_lifeops:
-            listings = listings[:3]
+            listings = listings[:1 if has_origin_coordinates else 3]
         if not listings:
             if is_lifeops and has_origin_coordinates:
                 return SkillResult(

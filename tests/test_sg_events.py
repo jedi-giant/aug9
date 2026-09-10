@@ -227,7 +227,7 @@ def test_lifeops_does_not_pad_journey_with_distant_activity():
 
     assert result.success is False
     assert result.actions == []
-    assert "within 8 km" in result.summary
+    assert "within 5 km" in result.summary
     assert "left the activity open" in result.summary
 
 
@@ -248,7 +248,7 @@ def test_planner_lifeops_flag_applies_distance_boundary_across_prompt_wording():
     )
 
     assert result.success is False
-    assert "within 8 km" in result.summary
+    assert "within 5 km" in result.summary
     assert "different day" in result.summary
 
 
