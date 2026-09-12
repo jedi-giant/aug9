@@ -182,7 +182,7 @@ def test_lifeops_shortlist_excludes_distant_and_unlocated_events():
             name="Nearby activity",
             starts_at=datetime(2030, 8, 24, tzinfo=UTC),
             source_url="https://example.gov.sg/nearby",
-            distance_km=3.2,
+            distance_km=1.8,
         ),
         EventListing(
             name="Distant activity",
@@ -227,7 +227,7 @@ def test_lifeops_does_not_pad_journey_with_distant_activity():
 
     assert result.success is False
     assert result.actions == []
-    assert "within 5 km" in result.summary
+    assert "within 2 km" in result.summary
     assert "left the activity open" in result.summary
 
 
@@ -248,8 +248,29 @@ def test_planner_lifeops_flag_applies_distance_boundary_across_prompt_wording():
     )
 
     assert result.success is False
-    assert "within 5 km" in result.summary
+    assert "within 2 km" in result.summary
     assert "different day" in result.summary
+
+
+def test_anchored_outing_only_expands_to_five_km_when_requested():
+    listing = EventListing(
+        name="Wider-area activity",
+        starts_at=datetime(2030, 8, 24, tzinfo=UTC),
+        source_url="https://example.gov.sg/wider",
+        distance_km=4.4,
+    )
+    context = UserContext(
+        intent="Plan an outing and look a little farther away",
+        current_place=Place(name="Tiong Bahru", latitude=1.286, longitude=103.827),
+    )
+
+    result = SgEventsSkill(FakeEventProvider(listings=[listing])).execute(
+        context,
+        {"_is_lifeops": True},
+    )
+
+    assert result.success is True
+    assert result.data["events"][0]["name"] == "Wider-area activity"
 
 
 def test_planner_lifeops_defers_events_until_origin_is_resolved():

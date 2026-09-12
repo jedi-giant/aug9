@@ -70,11 +70,23 @@ class SgEventsSkill(Aug9Skill):
             and context.current_place.longitude is not None
         )
         if is_lifeops and has_origin_coordinates:
+            allow_wider_search = any(
+                phrase in intent_text
+                for phrase in (
+                    "a little farther", "a little further", "farther away",
+                    "further away", "wider area", "within 5 km", "up to 5 km",
+                )
+            )
+            journey_radius_km = (
+                LIFEOPS_MAX_DISTANCE_KM
+                if allow_wider_search
+                else LIFEOPS_PREFERRED_DISTANCE_KM
+            )
             listings = [
                 item
                 for item in listings
                 if item.distance_km is not None
-                and item.distance_km <= LIFEOPS_MAX_DISTANCE_KM
+                and item.distance_km <= journey_radius_km
             ]
             listings.sort(
                 key=lambda item: (
@@ -101,7 +113,7 @@ class SgEventsSkill(Aug9Skill):
                     success=False,
                     summary=(
                         "No governed activities matching the journey date were "
-                        f"found within {LIFEOPS_MAX_DISTANCE_KM:g} km of your "
+                        f"found within {journey_radius_km:g} km of your "
                         "starting area. "
                         "Aug9 has left the activity open rather than suggesting "
                         "something far away or on a different day."
