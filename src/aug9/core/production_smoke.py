@@ -7,6 +7,16 @@ from uuid import uuid4
 import httpx
 
 
+ANCHOR_SMOKE_PROMPT = (
+    "Tell me about Meyer Road Playground and help me plan a family outing "
+    "around it, including food, weather and transport where useful."
+)
+ANCHOR_SMOKE_LATITUDE = 1.29855
+ANCHOR_SMOKE_LONGITUDE = 103.89423
+ANCHOR_SMOKE_EVENT_RADIUS_KM = 2.0
+ANCHOR_SMOKE_FOOD_RADIUS_KM = 0.8
+
+
 @dataclass(frozen=True)
 class SmokeCheck:
     name: str
@@ -69,8 +79,51 @@ def run_production_smoke(
                     prior.name, False, prior.status_code, prior.latency_ms,
                     "empty_response",
                 ))
+
+            anchor_chat = request(
+                "anchored_outing", "POST", api_url.rstrip("/") + "/chat",
+                json={
+                    "user_id": "production-smoke",
+                    "session_id": f"smoke-anchor-{uuid4()}",
+                    "message": ANCHOR_SMOKE_PROMPT,
+                    "visitor_token": token,
+                    "latitude": ANCHOR_SMOKE_LATITUDE,
+                    "longitude": ANCHOR_SMOKE_LONGITUDE,
+                    "location_label": "Meyer Road Playground",
+                },
+            )
+            if anchor_chat and anchor_chat.is_success:
+                payload = anchor_chat.json()
+                metadata = payload.get("metadata", {})
+                journey = metadata.get("journey", {})
+                origin = journey.get("resolved_slots", {}).get("origin")
+                origin_name = origin if isinstance(origin, str) else (origin or {}).get("name")
+                food = metadata.get("skills", {}).get("food", {}).get("places", [])
+                events = metadata.get("skills", {}).get("events", {}).get("events", [])
+                valid = (
+                    origin_name == "Meyer Road Playground"
+                    and all(
+                        item.get("distance_km") is not None
+                        and item["distance_km"] <= ANCHOR_SMOKE_FOOD_RADIUS_KM
+                        for item in food
+                    )
+                    and all(
+                        item.get("distance_km") is not None
+                        and item["distance_km"] <= ANCHOR_SMOKE_EVENT_RADIUS_KM
+                        for item in events
+                    )
+                )
+                if not valid:
+                    prior = checks.pop()
+                    checks.append(SmokeCheck(
+                        prior.name, False, prior.status_code, prior.latency_ms,
+                        "spatial_policy_failed",
+                    ))
         else:
             checks.append(SmokeCheck("chat", False, None, 0, "no_visitor_token"))
+            checks.append(SmokeCheck(
+                "anchored_outing", False, None, 0, "no_visitor_token"
+            ))
     finally:
         if owned_client:
             http.close()
