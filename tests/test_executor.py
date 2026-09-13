@@ -1,3 +1,5 @@
+import time
+
 from aug9.core.context import UserContext
 from aug9.core.executor import execute_plan
 from aug9.core.planner import Plan
@@ -95,6 +97,38 @@ class FakeFoodSkill(Aug9Skill):
             },
             summary="Nearby licensed food options: Licensed stall.",
         )
+
+
+class SlowSkill(Aug9Skill):
+    description = "Slow independent skill"
+
+    def __init__(self, capability):
+        self.name = f"slow_{capability}"
+        self.capability = capability
+
+    @property
+    def capabilities(self):
+        return [self.capability]
+
+    def execute(self, context, entities):
+        time.sleep(0.08)
+        return SkillResult(success=True, data={})
+
+
+class RecordingTransportSkill(Aug9Skill):
+    name = "recording_transport"
+    description = "Record transport execution"
+
+    def __init__(self):
+        self.calls = 0
+
+    @property
+    def capabilities(self):
+        return ["transport"]
+
+    def execute(self, context, entities):
+        self.calls += 1
+        return SkillResult(success=True, data={})
 
 
 class LocationAwareFoodSkill(FakeFoodSkill):
@@ -290,6 +324,70 @@ def test_executor_routes_transport_through_registry():
     assert result.outputs["transport"].success is True
 
 
+def test_lifeops_runs_independent_provider_skills_concurrently():
+    registry = SkillRegistry()
+    for capability in ("events", "food", "weather"):
+        registry.register(SlowSkill(capability))
+    registry.register(SgPlannerSkill())
+    plan = Plan(
+        intent="Plan a day out",
+        required_capabilities=["events", "food", "weather", "lifeops"],
+    )
+    context = UserContext(
+        intent=plan.intent,
+        current_place=Place(name="Katong", latitude=1.30, longitude=103.90),
+    )
+
+    started = time.perf_counter()
+    result = execute_plan(plan, context, registry=registry)
+    elapsed = time.perf_counter() - started
+
+    assert {"events", "food", "weather", "lifeops"} <= result.outputs.keys()
+    assert elapsed < 0.18
+
+
+def test_lifeops_defers_transport_until_choices_are_confirmed():
+    registry = SkillRegistry()
+    transport = RecordingTransportSkill()
+    registry.register(FakeFoodSkill())
+    registry.register(transport)
+    registry.register(SgPlannerSkill())
+    context = UserContext(
+        intent="Plan a family outing",
+        current_place=Place(name="Meyer Road Playground"),
+    )
+    plan = Plan(
+        intent=context.intent,
+        required_capabilities=["food", "transport", "lifeops"],
+    )
+
+    result = execute_plan(plan, context, registry=registry)
+
+    assert transport.calls == 0
+    assert "transport" not in result.outputs
+
+
+def test_lifeops_routes_after_choices_are_confirmed():
+    registry = SkillRegistry()
+    transport = RecordingTransportSkill()
+    registry.register(FakeFoodSkill())
+    registry.register(transport)
+    registry.register(SgPlannerSkill())
+    context = UserContext(
+        intent="Treat these as my confirmed choices",
+        current_place=Place(name="Meyer Road Playground"),
+    )
+    plan = Plan(
+        intent=context.intent,
+        required_capabilities=["food", "transport", "lifeops"],
+    )
+
+    result = execute_plan(plan, context, registry=registry)
+
+    assert transport.calls == 1
+    assert result.outputs["transport"].success is True
+
+
 def test_executor_routes_services_through_registry():
     registry = SkillRegistry()
     registry.register(SgServicesSkill(OfficialGovernmentServiceProvider()))
@@ -311,7 +409,10 @@ def test_lifeops_derives_route_destination_from_first_event():
     registry.register(events_skill)
     registry.register(SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()))
     plan = Plan(
-        intent="Plan my Saturday from Maxwell Food Centre",
+        intent=(
+            "Plan my Saturday from Maxwell Food Centre with these as my "
+            "confirmed choices"
+        ),
         required_capabilities=["events", "transport", "lifeops"],
     )
     context = UserContext(
@@ -349,7 +450,10 @@ def test_lifeops_receives_prior_outputs_and_builds_ordered_plan():
     registry.register(SgTransportSkill(FakePlaceProvider(), FakeRouteProvider()))
     registry.register(SgPlannerSkill())
     plan = Plan(
-        intent="Plan my Saturday from Maxwell Food Centre",
+        intent=(
+            "Plan my Saturday from Maxwell Food Centre with these as my "
+            "confirmed choices"
+        ),
         required_capabilities=["events", "transport", "lifeops"],
         entities={"plan_type": "day"},
     )

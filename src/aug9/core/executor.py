@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+
 from pydantic import BaseModel
 
 from aug9.core.context import UserContext
@@ -22,6 +24,7 @@ def execute_plan(
     execution_entities = dict(plan.entities)
     is_lifeops = "lifeops" in plan.required_capabilities
     execution_entities["_is_lifeops"] = is_lifeops
+    parallel_outputs: set[str] = set()
 
     execution_order = [
         "place_resolution",
@@ -41,10 +44,43 @@ def execute_plan(
         if capability not in plan.required_capabilities:
             continue
 
+        if capability in parallel_outputs:
+            continue
+
+        if capability == "events" and is_lifeops:
+            independent_skills = {
+                name: skill
+                for name in ("events", "food", "weather")
+                if name in plan.required_capabilities
+                and (skill := registry.find_by_capability(name)) is not None
+            }
+            if independent_skills:
+                with ThreadPoolExecutor(
+                    max_workers=len(independent_skills)
+                ) as pool:
+                    futures = {
+                        name: pool.submit(
+                            skill.execute,
+                            context,
+                            dict(execution_entities),
+                        )
+                        for name, skill in independent_skills.items()
+                    }
+                    for name in independent_skills:
+                        outputs[name] = futures[name].result()
+                parallel_outputs.update(independent_skills)
+                continue
+
         if capability == "lifeops":
             execution_entities["_lifeops_outputs"] = dict(outputs)
 
         if capability == "transport" and is_lifeops:
+            # The first outing response asks the user to choose a lunch card.
+            # Routing an arbitrary first result is both misleading and slow;
+            # calculate the route only after the frontend returns the choice.
+            request_intent = context.intent or plan.intent or ""
+            if "confirmed choices" not in request_intent.casefold():
+                continue
             if context.current_place is None:
                 continue
             food_output = outputs.get("food")
