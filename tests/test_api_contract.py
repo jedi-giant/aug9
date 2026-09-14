@@ -4,9 +4,10 @@ from pydantic import ValidationError
 from aug9.api.main import (
     ChatRequest,
     ChatResponse,
+    admin_analytics,
     configured_allowed_origins,
-    require_admin,
     list_hawker_centres,
+    require_admin,
 )
 
 
@@ -109,3 +110,19 @@ def test_admin_hawker_lookup_uses_canonical_entity_search(monkeypatch):
         "https://aug-nudge-now.base44.app",
         "https://staging.example",
     ]
+
+
+def test_admin_analytics_requires_admin_key(monkeypatch):
+    monkeypatch.setenv("AUG9_ADMIN_API_KEY", "admin-" + "x" * 32)
+    monkeypatch.setattr(
+        "aug9.api.main.build_analytics_dashboard",
+        lambda *, days: {"period_days": days},
+    )
+
+    assert admin_analytics(
+        days=14, x_aug9_admin_key="admin-" + "x" * 32
+    ) == {"period_days": 14}
+
+    with pytest.raises(Exception) as error:
+        admin_analytics(days=7, x_aug9_admin_key="incorrect-" + "x" * 32)
+    assert error.value.status_code == 401

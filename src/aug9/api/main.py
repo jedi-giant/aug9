@@ -25,6 +25,7 @@ from aug9.api.admin_auth import (
     verify_admin_api_key,
 )
 from aug9.core.agent import run_aug9
+from aug9.core.analytics_dashboard import build_analytics_dashboard
 from aug9.core.models import Place
 from aug9.core.skill import SkillAction
 from aug9.core.database import (
@@ -228,6 +229,15 @@ def list_hawker_centres(
     )
 
 
+@app.get("/admin/analytics")
+def admin_analytics(
+    days: int = Query(default=7, ge=1, le=90),
+    x_aug9_admin_key: str | None = Header(default=None),
+):
+    require_admin(x_aug9_admin_key)
+    return build_analytics_dashboard(days=days)
+
+
 @app.post("/admin/food-submissions/{submission_id}/approve", response_model=FoodSubmission)
 def approve_food_submission(
     submission_id: str,
@@ -338,6 +348,15 @@ def chat(
         food_skill_metadata = result.metadata.get("skills", {}).get("food", {})
         ranking_mode = food_skill_metadata.get("ranking_mode")
         result_status = result_task_status(capability_outcomes)
+        journey_metadata = result.metadata.get("journey", {})
+        failure_stage = next(
+            (
+                capability
+                for capability, outcome in capability_outcomes.items()
+                if outcome not in {"success", "matched", "answered"}
+            ),
+            None,
+        )
 
         latency_ms = int(
             (
@@ -367,6 +386,9 @@ def chat(
                 capabilities=capabilities,
                 task_status=result_status,
                 ranking_mode=ranking_mode,
+                journey_type=journey_metadata.get("journey_type"),
+                journey_status=journey_metadata.get("status"),
+                failure_stage=failure_stage,
             )
         )
 
