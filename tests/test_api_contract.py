@@ -64,6 +64,16 @@ def test_chat_request_rejects_partial_or_non_singapore_coordinates():
             longitude=-74.006,
         )
 
+    with pytest.raises(ValidationError, match="not accurate enough"):
+        ChatRequest(
+            user_id="user",
+            session_id="session",
+            message="Find food near me",
+            latitude=1.2903,
+            longitude=103.8519,
+            location_accuracy_m=5_000,
+        )
+
 
 def test_cors_defaults_to_base44_and_supports_explicit_allowlist(monkeypatch):
     monkeypatch.delenv("CORS_ALLOWED_ORIGINS", raising=False)

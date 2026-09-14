@@ -1,3 +1,5 @@
+import re
+
 from aug9.core.config import PLANNER_MODE
 from aug9.core.planner import create_plan
 from aug9.core.planner_agent import create_llm_plan
@@ -56,7 +58,8 @@ def plan(
 
 def _location_repair_plan(user_input: str, memory=None):
     """Apply a short place reply to the user's preceding location-dependent task."""
-    words = user_input.strip().split()
+    location_reply = _location_reply(user_input)
+    words = location_reply.split()
     journey = getattr(memory, "journey", None)
     previous_input = (
         getattr(journey, "original_intent", None)
@@ -64,7 +67,7 @@ def _location_repair_plan(user_input: str, memory=None):
     )
     if (
         not previous_input
-        or not 1 <= len(words) <= 5
+        or not 1 <= len(words) <= 8
         or any(character in user_input for character in "?!")
         or user_input.strip().casefold() in {"yes", "no", "okay", "ok", "thanks"}
     ):
@@ -78,9 +81,9 @@ def _location_repair_plan(user_input: str, memory=None):
     if not contextual_capabilities.intersection(previous_plan.required_capabilities):
         return None
 
-    previous_plan.entities["location"] = user_input.strip()
+    previous_plan.entities["location"] = location_reply
     if "transport" in previous_plan.required_capabilities:
-        previous_plan.entities["origin"] = user_input.strip()
+        previous_plan.entities["origin"] = location_reply
         previous_plan.entities.pop("destination", None)
         if contextual_capabilities.intersection(
             previous_plan.required_capabilities
@@ -91,6 +94,16 @@ def _location_repair_plan(user_input: str, memory=None):
         "place_resolution", *previous_plan.required_capabilities
     ]))
     return previous_plan
+
+
+def _location_reply(user_input: str) -> str:
+    value = user_input.strip()
+    return re.sub(
+        r"^(?:i\s*['’]?m|i\s+am|we\s*['’]?re|we\s+are)\s+(?:at|in|near)\s+",
+        "",
+        value,
+        flags=re.IGNORECASE,
+    ).strip()
 
 
 def can_use_rule_plan(rule_plan, memory=None) -> bool:

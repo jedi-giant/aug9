@@ -102,6 +102,21 @@ def test_short_location_reply_repairs_previous_food_request(mock_llm_plan):
 
 @patch("aug9.core.planner_router.PLANNER_MODE", "llm")
 @patch("aug9.core.planner_router.create_llm_plan")
+def test_natural_location_reply_repairs_previous_food_request(mock_llm_plan):
+    memory = ConversationState(
+        last_intent="Recommend three good food options near me",
+        history=["Recommend three good food options near me"],
+    )
+
+    result = plan("I am at 61 Meyer Road", memory)
+
+    assert "food" in result.required_capabilities
+    assert result.entities["location"] == "61 Meyer Road"
+    mock_llm_plan.assert_not_called()
+
+
+@patch("aug9.core.planner_router.PLANNER_MODE", "llm")
+@patch("aug9.core.planner_router.create_llm_plan")
 def test_short_location_reply_continues_original_composite_journey(mock_llm_plan):
     original = "Help me plan a Singapore day out with food, weather and transport"
     memory = ConversationState(

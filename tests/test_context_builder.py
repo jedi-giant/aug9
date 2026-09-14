@@ -112,6 +112,39 @@ def test_supplied_browser_place_bypasses_lookup_and_is_not_persisted(
 @patch("aug9.core.context_builder.update_memory")
 @patch("aug9.core.context_builder.search_location")
 @patch("aug9.core.context_builder.get_token", return_value="fake-token")
+def test_explicit_typed_location_overrides_supplied_browser_place(
+    _mock_token, mock_search, _mock_update
+):
+    mock_search.return_value = LocationSearchResult(
+        status=SearchStatus.SUCCESS,
+        location=Place(
+            name="61 MEYER ROAD",
+            latitude=1.29855,
+            longitude=103.89423,
+        ),
+    )
+    supplied = Place(
+        name="Current location",
+        place_type="browser_location",
+        latitude=1.372,
+        longitude=103.829,
+    )
+
+    context = build_context(
+        "I am at 61 Meyer Road",
+        {"location": "61 Meyer Road"},
+        user_id="visitor",
+        memory=ConversationState(),
+        supplied_place=supplied,
+    )
+
+    assert context.current_place.name == "61 MEYER ROAD"
+    mock_search.assert_called_once()
+
+
+@patch("aug9.core.context_builder.update_memory")
+@patch("aug9.core.context_builder.search_location")
+@patch("aug9.core.context_builder.get_token", return_value="fake-token")
 def test_unresolved_follow_up_is_remembered_for_location_repair(
     _mock_token, mock_search, mock_update
 ):

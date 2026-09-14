@@ -23,7 +23,8 @@ def build_context(
 
     load_dotenv()
 
-    if supplied_place is not None:
+    explicit_location = _explicit_location(entities)
+    if supplied_place is not None and explicit_location is None:
         if supplied_place.latitude is not None and supplied_place.longitude is not None:
             resolved = OneMapProvider.from_environment().reverse_geocode(
                 supplied_place.latitude,
@@ -155,6 +156,20 @@ def build_context(
         intent=user_input,
         memory=memory,
     )
+
+
+def _explicit_location(entities: dict[str, str] | None) -> str | None:
+    if not entities:
+        return None
+    location = str(entities.get("location") or "").strip()
+    if not location:
+        return None
+    if location.casefold() in {
+        "here", "it", "there", "nearby", "near me", "my location",
+        "current location", "where i am",
+    }:
+        return None
+    return location
 
 
 def _remember_turn(

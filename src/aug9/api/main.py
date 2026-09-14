@@ -102,12 +102,17 @@ class ChatRequest(BaseModel):
     visitor_token: str | None = Field(default=None, min_length=1, max_length=512)
     latitude: float | None = Field(default=None, ge=1.1, le=1.5)
     longitude: float | None = Field(default=None, ge=103.6, le=104.1)
+    location_accuracy_m: float | None = Field(default=None, ge=0, le=100_000)
     location_label: str | None = Field(default=None, min_length=1, max_length=120)
 
     @model_validator(mode="after")
     def coordinates_are_complete(self):
         if (self.latitude is None) != (self.longitude is None):
             raise ValueError("latitude and longitude must be provided together")
+        if self.location_accuracy_m is not None and self.latitude is None:
+            raise ValueError("location accuracy requires coordinates")
+        if self.location_accuracy_m is not None and self.location_accuracy_m > 1_000:
+            raise ValueError("browser location is not accurate enough")
         return self
 
 
