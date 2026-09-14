@@ -147,23 +147,14 @@ def create_plan(
     ):
         capabilities.append("weather")
 
-    if any(
-        word in text
-        for word in [
-            "walk",
-            "go",
-            "travel",
-            "directions",
-            "public transport",
-            "transit",
-            "mrt",
-            "bus",
-            "get to",
-            "get from",
-            "how do i get",
-            "route",
-        ]
-    ):
+    transport_phrases = (
+        "public transport", "get to", "get from", "how do i get",
+    )
+    transport_words = re.search(
+        r"\b(?:walk|go|travel|directions?|transit|mrt|bus|route)\b",
+        text,
+    )
+    if transport_words or any(phrase in text for phrase in transport_phrases):
         capabilities.append("transport")
 
     if any(word in text for word in ["cycle", "cycling", "bike"]):

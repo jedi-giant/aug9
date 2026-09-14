@@ -29,6 +29,12 @@ def test_planner_routes_nearby_food_through_food_skill_and_extracts_constraints(
     assert plan.entities["open_now"] is True
 
 
+def test_good_food_does_not_trigger_transport_from_go_substring():
+    plan = create_plan("Recommend three good food options near me")
+
+    assert plan.required_capabilities == ["place_resolution", "food"]
+
+
 def test_planner_extracts_numbered_street_location_for_food():
     plan = create_plan("Recommend three places for dinner near 2 Jiak Chuan Road.")
 

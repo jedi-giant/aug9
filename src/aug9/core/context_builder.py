@@ -165,7 +165,7 @@ def _explicit_location(entities: dict[str, str] | None) -> str | None:
     if not location:
         return None
     if location.casefold() in {
-        "here", "it", "there", "nearby", "near me", "my location",
+        "me", "here", "it", "there", "nearby", "near me", "my location",
         "current location", "where i am",
     }:
         return None

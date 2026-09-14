@@ -94,6 +94,7 @@ def test_supplied_browser_place_bypasses_lookup_and_is_not_persisted(
 
     context = build_context(
         "Find food near me",
+        {"location": "me"},
         user_id="visitor",
         memory=memory,
         supplied_place=supplied,
