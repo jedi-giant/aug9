@@ -35,6 +35,8 @@ def test_builds_prompt_free_dashboard_payload():
             event_id="query", task_id="task", user_id="user",
             event_type=ProductEventType.QUERY_SUBMITTED,
             capabilities=["food"],
+            campaign_source="structured_beta",
+            campaign_name="beta_round_1_discovery",
         ),
         ProductEvent(
             event_id="result", task_id="task", user_id="user",
@@ -68,6 +70,10 @@ def test_builds_prompt_free_dashboard_payload():
     assert report["beta_health"]["testers"] == 1
     assert report["beta_health"]["repeat_testers"] == 0
     assert report["beta_health"]["feedback_coverage_rate"] == 1.0
+    assert report["beta_health"]["structured_beta_testers"] == 1
+    assert report["beta_health"]["cohorts"] == {
+        "beta_round_1_discovery": {"queries": 1, "testers": 1}
+    }
     assert report["beta_health"]["status"] == "collecting"
     selected = next(
         item for item in report["funnel"] if item["stage"] == "Cards selected"

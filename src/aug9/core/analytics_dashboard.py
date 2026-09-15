@@ -33,7 +33,7 @@ def build_analytics_dashboard(
         SELECT task_id, event_type, capabilities, task_status, action_type,
                helpful, feedback_scope, reason_code, journey_type,
                journey_status, failure_stage, created_at, user_id,
-               campaign_source
+               campaign_source, campaign_name
         FROM product_events
         WHERE created_at >= {p} AND created_at < {p}
         ORDER BY created_at
@@ -133,6 +133,16 @@ def build_analytics_dashboard(
         if row[12]
         and str(row[13] or "").casefold() in {"beta", "structured_beta"}
     }
+    beta_cohort_users: dict[str, set[str]] = defaultdict(set)
+    beta_cohort_queries: Counter[str] = Counter()
+    for row in product_rows:
+        if row[1] != "query_submitted" or not row[12]:
+            continue
+        if str(row[13] or "").casefold() not in {"beta", "structured_beta"}:
+            continue
+        cohort = str(row[14] or "unassigned")
+        beta_cohort_users[cohort].add(str(row[12]))
+        beta_cohort_queries[cohort] += 1
     result_tasks = {
         str(row[0]) for row in product_rows
         if row[0] and row[1] == "result_generated"
@@ -199,6 +209,13 @@ def build_analytics_dashboard(
             "feedback_coverage_rate": round(feedback_coverage, 4),
             "lost_context_count": lost_context_count,
             "lost_context_rate": round(context_loss_rate, 4),
+            "cohorts": {
+                cohort: {
+                    "testers": len(users),
+                    "queries": beta_cohort_queries[cohort],
+                }
+                for cohort, users in sorted(beta_cohort_users.items())
+            },
             "gates": gates,
         },
         "operations": build_operational_health_report(now=period_end),
