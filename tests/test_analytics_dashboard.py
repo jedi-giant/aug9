@@ -65,6 +65,10 @@ def test_builds_prompt_free_dashboard_payload():
     assert report["latency"]["median_ms"] == 1200
     assert report["journeys"]["by_status"] == {"ready": 1}
     assert report["feedback_reasons"] == {"too_far": 1}
+    assert report["beta_health"]["testers"] == 1
+    assert report["beta_health"]["repeat_testers"] == 0
+    assert report["beta_health"]["feedback_coverage_rate"] == 1.0
+    assert report["beta_health"]["status"] == "collecting"
     selected = next(
         item for item in report["funnel"] if item["stage"] == "Cards selected"
     )

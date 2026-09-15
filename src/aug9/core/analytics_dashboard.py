@@ -32,7 +32,8 @@ def build_analytics_dashboard(
         f"""
         SELECT task_id, event_type, capabilities, task_status, action_type,
                helpful, feedback_scope, reason_code, journey_type,
-               journey_status, failure_stage, created_at
+               journey_status, failure_stage, created_at, user_id,
+               campaign_source
         FROM product_events
         WHERE created_at >= {p} AND created_at < {p}
         ORDER BY created_at
@@ -120,11 +121,59 @@ def build_analytics_dashboard(
     errors = Counter(
         str(row[2] or row[0]) for row in usage_rows if row[0] != "success"
     )
+    product = build_product_analytics_report(days=days, now=period_end).to_dict()
+    query_users = Counter(
+        str(row[12])
+        for row in product_rows
+        if row[1] == "query_submitted" and row[12]
+    )
+    structured_beta_users = {
+        str(row[12])
+        for row in product_rows
+        if row[12]
+        and str(row[13] or "").casefold() in {"beta", "structured_beta"}
+    }
+    result_tasks = {
+        str(row[0]) for row in product_rows
+        if row[0] and row[1] == "result_generated"
+    }
+    feedback_tasks = {
+        str(row[0]) for row in product_rows
+        if row[0] and row[1] == "feedback"
+    }
+    lost_context_count = feedback_reasons["lost_context"]
+    query_count = event_counts["query_submitted"]
+    feedback_coverage = (
+        len(feedback_tasks) / len(result_tasks) if result_tasks else 0.0
+    )
+    context_loss_rate = lost_context_count / query_count if query_count else 0.0
+    p95_latency = _percentile(latencies, 0.95)
+    gates = [
+        _gate("Tester sample", len(query_users), 20, len(query_users) >= 20),
+        _gate(
+            "Feedback coverage", feedback_coverage, 0.25,
+            feedback_coverage >= 0.25,
+        ),
+        _gate(
+            "Task success", product["successful_task_rate"], 0.60,
+            product["successful_task_rate"] >= 0.60,
+        ),
+        _gate(
+            "P95 response", p95_latency, 8_000,
+            p95_latency is not None and p95_latency <= 8_000,
+            direction="maximum",
+        ),
+        _gate(
+            "Lost context", context_loss_rate, 0.10,
+            context_loss_rate <= 0.10,
+            direction="maximum",
+        ),
+    ]
 
     return {
         "generated_at": period_end.isoformat(),
         "period_days": days,
-        "product": build_product_analytics_report(days=days, now=period_end).to_dict(),
+        "product": product,
         "funnel": funnel,
         "trends": trends,
         "latency": {
@@ -140,6 +189,18 @@ def build_analytics_dashboard(
         },
         "feedback_reasons": dict(feedback_reasons.most_common()),
         "request_errors": dict(errors.most_common()),
+        "beta_health": {
+            "status": "ready" if all(gate["passed"] for gate in gates) else "collecting",
+            "testers": len(query_users),
+            "structured_beta_testers": len(structured_beta_users),
+            "repeat_testers": sum(count >= 2 for count in query_users.values()),
+            "journeys_attempted": sum(journey_types.values()),
+            "journeys_ready": journey_statuses["ready"],
+            "feedback_coverage_rate": round(feedback_coverage, 4),
+            "lost_context_count": lost_context_count,
+            "lost_context_rate": round(context_loss_rate, 4),
+            "gates": gates,
+        },
         "operations": build_operational_health_report(now=period_end),
     }
 
@@ -155,3 +216,20 @@ def _as_datetime(value: object) -> datetime:
     if isinstance(value, datetime):
         return value
     return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+
+
+def _gate(
+    name: str,
+    current: int | float | None,
+    target: int | float,
+    passed: bool,
+    *,
+    direction: str = "minimum",
+) -> dict[str, Any]:
+    return {
+        "name": name,
+        "current": current,
+        "target": target,
+        "direction": direction,
+        "passed": passed,
+    }
