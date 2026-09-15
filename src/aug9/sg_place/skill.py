@@ -24,8 +24,13 @@ class SgPlaceSkill(Aug9Skill):
         entities: dict[str, Any],
     ) -> SkillResult:
         query = entities.get("location")
+        contextual_references = {
+            "me", "here", "it", "there", "nearby", "near me",
+            "my location", "current location", "where i am",
+        }
         if context.current_place is not None and (
             not query
+            or str(query).strip().casefold() in contextual_references
             or str(query).casefold() == context.current_place.name.casefold()
         ):
             return SkillResult(

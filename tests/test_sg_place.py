@@ -52,6 +52,24 @@ def test_sg_place_reuses_matching_resolved_context_with_query():
     assert provider.queries == []
 
 
+def test_sg_place_does_not_geocode_me_over_browser_coordinates():
+    place = Place(
+        name="Current location",
+        place_type="browser_location",
+        latitude=1.29855,
+        longitude=103.89423,
+    )
+    provider = FakePlaceProvider(LocationSearchResult(status=SearchStatus.NO_RESULTS))
+
+    result = SgPlaceSkill(provider).execute(
+        UserContext(current_place=place), {"location": "me"}
+    )
+
+    assert result.success is True
+    assert result.data["place"]["latitude"] == 1.29855
+    assert provider.queries == []
+
+
 def test_sg_place_preserves_provider_failure_message():
     provider = FakePlaceProvider(
         LocationSearchResult(

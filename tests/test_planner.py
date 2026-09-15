@@ -33,6 +33,7 @@ def test_good_food_does_not_trigger_transport_from_go_substring():
     plan = create_plan("Recommend three good food options near me")
 
     assert plan.required_capabilities == ["place_resolution", "food"]
+    assert "location" not in plan.entities
 
 
 def test_planner_extracts_numbered_street_location_for_food():

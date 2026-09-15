@@ -48,7 +48,7 @@ def extract_entities(
     if nearby_place and "location" not in entities:
         candidate = nearby_place.group(1).strip(" .?!,")
         if candidate.casefold() not in {
-            "it", "there", "here", "nearby", "this", "that",
+            "me", "it", "there", "here", "nearby", "this", "that",
             "this place", "that place", "the place",
         }:
             entities["location"] = candidate
